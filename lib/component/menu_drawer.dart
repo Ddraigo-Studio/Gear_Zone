@@ -6,11 +6,11 @@ class CustomAppBarIcons extends StatelessWidget {
   final VoidCallback onMenu;
 
   const CustomAppBarIcons({
-    Key? key,
+    super.key,
     required this.onSearch,
     required this.onCart,
     required this.onMenu,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

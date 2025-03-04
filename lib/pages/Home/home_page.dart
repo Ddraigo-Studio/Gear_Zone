@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/component/custom_appbar.dart'; // Đường dẫn tới file custom_appbar.dart
+import 'package:gear_zone/component/custom_appbar.dart';
+
+import 'package:gear_zone/responsive/responsive_layout.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
   
   @override
   _HomePageState createState() => _HomePageState();
@@ -12,7 +14,6 @@ class _HomePageState extends State<HomePage> {
   late ScrollController _scrollController;
   double _appBarOpacity = 0.0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   @override
   void initState(){
     super.initState();
@@ -33,7 +34,6 @@ class _HomePageState extends State<HomePage> {
   
   @override
   Widget build(BuildContext context){
-    var screenSize = MediaQuery.of(context).size;
     return Scaffold(
       key: _scaffoldKey,
       body: Stack(
@@ -43,6 +43,7 @@ class _HomePageState extends State<HomePage> {
             controller: _scrollController,
             slivers: [
               SliverAppBar(
+                
                 expandedHeight: 700,
                 backgroundColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(

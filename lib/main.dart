@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/pages/home_page.dart';
+import 'package:gear_zone/pages/Home/home_page.dart';
 
-import 'component/constants.dart';
 
 
 
