@@ -1,75 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/component/custom_appbar.dart';
 
-import 'package:gear_zone/responsive/responsive_layout.dart';
+
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-  
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  late ScrollController _scrollController;
-  double _appBarOpacity = 0.0;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
-  void initState(){
-    super.initState();
-    _scrollController = ScrollController()
-      ..addListener(() {
-        setState(() {
-          // Khi cuộn 100px, opacity đạt 1 (có thể điều chỉnh ngưỡng theo ý)
-          _appBarOpacity = (_scrollController.offset / 100).clamp(0.0, 0.8);
-        });
-      });
-  }
-
-  @override
-  void dispose(){
-    _scrollController.dispose();
-    super.dispose();
-  }
-  
-  @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      key: _scaffoldKey,
-      body: Stack(
-        children: [
-          // Nội dung chính cuộn được
-          CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              SliverAppBar(
-                
-                expandedHeight: 700,
-                backgroundColor: Colors.transparent,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Image.asset(
-                    'assets/images/banner_appbar5.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => ListTile(
-                    title: Text('Item $index'),
-                  ),
-                  childCount: 30,
-                ),
-              ),
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 35),
+            
             ],
           ),
-          // Overlay AppBar tùy chỉnh với hiệu ứng opacity
-          CustomAppBar(
-            opacity: _appBarOpacity,
-            scaffoldKey: _scaffoldKey,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
+
+
+
+// 

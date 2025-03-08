@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gear_zone/pages/Home/home_page.dart';
 
+import 'component/bottom_nav_bar.dart';
+
 
 
 
@@ -12,10 +14,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-
-      home: HomePage(),
+    return SafeArea(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: BottomNavBar(),
+      ),
+      
     );
   }
 }
