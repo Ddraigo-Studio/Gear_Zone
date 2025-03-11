@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gear_zone/pages/Home/home_page.dart';
-
+import 'package:gear_zone/pages/Account/register.dart';
 import 'component/bottom_nav_bar.dart';
 
 
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     return SafeArea(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: BottomNavBar(),
+        home: SignUpPage(),
       ),
       
     );
