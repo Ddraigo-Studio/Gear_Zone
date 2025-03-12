@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "878164465702",
+    "project_id": "flutterdb-2df83",
+    "storage_bucket": "flutterdb-2df83.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:878164465702:android:cfbb0160360b832caf6ee7",
+        "android_client_info": {
+          "package_name": "com.example.gear_zone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGGZdPJUS6_2GCaAeiAES_0XLkRM3OKhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

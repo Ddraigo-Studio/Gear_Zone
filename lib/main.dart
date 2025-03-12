@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:gear_zone/pages/Home/home_page.dart';
-import 'package:gear_zone/pages/Account/register.dart';
+import 'package:gear_zone/pages/Account/signup.dart';
 import 'component/bottom_nav_bar.dart';
+import 'pages/Account/signup.dart';
 
 
 
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized(); 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp( const MyApp());
 }  
 class MyApp extends StatelessWidget {
@@ -17,7 +24,7 @@ class MyApp extends StatelessWidget {
     return SafeArea(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: SignUpPage(),
+        home: SignUpScreen(),
       ),
       
     );
