@@ -14,6 +14,20 @@ dependencies:
   firebase_core: ^3.12.1
   firebase_auth: ^5.5.1
   cloud_firestore: ^5.6.5
+  flutter_localizations:
+    sdk: flutter
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.16
+  flutter_rating_bar: ^4.0.1
+  flutter_svg_provider: ^1.0.7
+  responsive_grid_list: ^1.4.0
+  connectivity_plus: ^6.1.1
+
+  cupertino_icons: ^1.0.8
+  carousel_slider: ^5.0.0
+  grouped_list: ^6.0.0
+  bitsdojo_window: ^0.1.6
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -25,3 +39,105 @@ flutter:
   assets:
     - lib/images/imagefirst.png
     - lib/images/imagesecond.png
+    - assets/
+    - assets/images/
+  fonts:
+    - family: Baloo 2
+      fonts:
+        - asset: assets/fonts/Baloo2SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Baloo2Medium.ttf
+          weight: 500
+
+    - family: Gabarito
+      fonts:
+        - asset: assets/fonts/GabaritoSemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/GabaritoBold.ttf
+          weight: 700
+        - asset: assets/fonts/GabaritoRegular.ttf
+          weight: 400
+
+    - family: Encode Sans
+      fonts:
+        - asset: assets/fonts/EncodeSansRegular.ttf
+          weight: 400
+
+    - family: Aoboshi One
+      fonts:
+        - asset: assets/fonts/AoboshiOneRegular.ttf
+          weight: 400
+
+    - family: Sigmar One
+      fonts:
+        - asset: assets/fonts/SigmarOneRegular.ttf
+          weight: 400
+
+    - family: Alatsi
+      fonts:
+        - asset: assets/fonts/AlatsiRegular.ttf
+          weight: 400
+
+    - family: Amaranth
+      fonts:
+        - asset: assets/fonts/AmaranthRegular.ttf
+          weight: 400
+
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/FredokaRegular.ttf
+          weight: 400
+
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/InterExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/InterBold.ttf
+          weight: 700
+        - asset: assets/fonts/InterMedium.ttf
+          weight: 500
+        - asset: assets/fonts/InterSemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/InterRegular.ttf
+          weight: 400
+
+    - family: Basic
+      fonts:
+        - asset: assets/fonts/BasicRegular.ttf
+          weight: 400
+
+    - family: Archivo Black
+      fonts:
+        - asset: assets/fonts/ArchivoBlackRegular.ttf
+          weight: 400
+
+    - family: Baloo Bhai 2
+      fonts:
+        - asset: assets/fonts/BalooBhai2SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BalooBhai2Medium.ttf
+          weight: 500
+
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/PoppinsSemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PoppinsRegular.ttf
+          weight: 400
+
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/RobotoRomanMedium.ttf
+          weight: 500
+
+    - family: Baloo Paaji 2
+      fonts:
+        - asset: assets/fonts/BalooPaaji2SemiBold.ttf
+          weight: 600
+
+    - family: Baloo Bhaijaan 2
+      fonts:
+        - asset: assets/fonts/BalooBhaijaan2SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BalooBhaijaan2Medium.ttf
+          weight: 500
