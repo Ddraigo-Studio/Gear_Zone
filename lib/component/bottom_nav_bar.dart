@@ -30,7 +30,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           });
         },
         shape: const CircleBorder(),
-        backgroundColor: kprimaryColor,
+        backgroundColor: primaryColor,
         child: const Icon(
           Icons.home,
           color: Colors.white,
@@ -58,7 +58,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Icon(
                 Icons.grid_view_outlined,
                 size: 30,
-                color: cuttentIndex == 0 ? kprimaryColor : Colors.grey,
+                color: cuttentIndex == 0 ? primaryColor : Colors.grey,
               ),
             ),
             IconButton(
@@ -70,7 +70,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Icon(
                 Icons.favorite_border,
                 size: 30,
-                color: cuttentIndex == 1 ? kprimaryColor : Colors.grey,
+                color: cuttentIndex == 1 ? primaryColor : Colors.grey,
               ),
             ),
             SizedBox(
@@ -85,7 +85,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Icon(
                 Icons.shopping_cart,
                 size: 30,
-                color: cuttentIndex == 3 ? kprimaryColor : Colors.grey,
+                color: cuttentIndex == 3 ? primaryColor : Colors.grey,
               ),
             ),
             IconButton(
@@ -97,7 +97,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
               icon: Icon(
                 Icons.person,
                 size: 30,
-                color: cuttentIndex == 4 ? kprimaryColor : Colors.grey,
+                color: cuttentIndex == 4 ? primaryColor : Colors.grey,
               ),
             ),
           ],
