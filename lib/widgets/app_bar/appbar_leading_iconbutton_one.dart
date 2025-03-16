@@ -4,13 +4,13 @@ import '../custom_icon_button.dart';
 
 class AppbarLeadingIconbuttonOne extends StatelessWidget {
   const AppbarLeadingIconbuttonOne({
-    Key? key,
+    super.key,
     this.imagePath,
     this.height,
     this.width,
     this.onTap,
     this.margin,
-  }) : super(key: key);
+  });
 
   final double? height;
   final double? width;

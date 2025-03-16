@@ -879,6 +879,5 @@ static TextStyle get titleSmallInterRed500 =>
       theme.textTheme.titleSmall!.copyWith(
     color: appTheme.whiteA700,
   );
-
 }
 
