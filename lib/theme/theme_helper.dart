@@ -169,16 +169,18 @@ class TextThemes {
 }
 
 /// Class containing the supported color schemes.
+/// Class containing the supported color schemes.
 class ColorSchemes {
   static final lightCodeColorScheme = ColorScheme.light(
-    primary: Color(0XFF86ECEE),
-    primaryContainer: Color(0XFF4DA8AE),
-    errorContainer: Color(0XFFFFF550),
-    onError: Color(0XFF6CD075),
-    onPrimary: Color(0XFF1E1E1E),
-    onPrimaryContainer: Color(0XFF70DEB1),
+    primary: Color(0xFF8E6CEE),
+    primaryContainer: Color(0xFF4D0A8E),
+    errorContainer: Color(0xFFFF5500),
+    onError: Color(0xFF6CD075),
+    onPrimary: Color(0xFF1E1E1E),
+    onPrimaryContainer: Color(0xFF70DEB1),
   );
 }
+
 
 /// Class containing custom colors for a lightCode theme.
 class LightCodeColors {
@@ -209,17 +211,17 @@ class LightCodeColors {
   Color get deepPurple400 => Color(0xFF894FC8);
   Color get deepPurple50 => Color(0xFFE9E1FC);
   Color get deepPurple500 => Color(0xFF733BDC);
-  Color get deepPurple5001 => Color(0xFF9E3F5);
+  Color get deepPurple5001 => Color(0xffe9e3f5);
   Color get deepPurpleA100 => Color(0xFFBB9DFB);
 
   // Gray
-  Color get gray100 => Color(0XFFFF4F4F4);
-  Color get gray10001 => Color(0XFFFF7F7F7);
-  Color get gray10002 => Color(0XFFFF5F5F5);
-  Color get gray300 => Color(0XFFDDADADA);
-  Color get gray500 => Color(0XFFFA9A9A);
+  Color get gray100 => Color(0xFFF4F4F4);
+  Color get gray10001 => Color(0XFFF7F7F7);
+  Color get gray10002 => Color(0XFFF5F5F5);
+  Color get gray300 => Color(0XFFDADADA);
+  Color get gray500 => Color(0XFFA9A9AA);
   Color get gray50001 => Color(0XFF9C9C9C);
-  Color get gray600 => Color(0XFF7F57575);
+  Color get gray600 => Color(0XFF757575);
   Color get gray60001 => Color(0XFF787880);
   Color get gray700 => Color(0XFF666666);
   Color get gray70001 => Color(0XFF5B5B5B);
@@ -231,33 +233,33 @@ class LightCodeColors {
   Color get green600 => Color(0xFF429049);
 
   // GreenA
-  Color get greenA200Ad => Color(0xAD7D6FBF);
+  Color get greenA200Ad => Color(0xAD70F6BF);
 
   // Orange
   Color get orange300 => Color(0xFFF4BD46);
 
   // Pink
-  Color get pink300 => Color(0xFFFF5DA8);
+  Color get pink300 => Color(0xFFEF5DA8);
   Color get pinkA700 => Color(0xFFCE048C);
 
   // Purple
-  Color get purple900 => Color(0xFFF3D176);
+  Color get purple900 => Color(0xFF3D1F76);
 
   // Red
-  Color get red400 => Color(0xFFFF2645C);
-  Color get red50 => Color(0xFFFFF2F2);
-  Color get red500 => Color(0xFFFFA3636);
+  Color get red400 => Color(0xFFF2645C);
+  Color get red50 => Color(0xFFFEF2F2);
+  Color get red500 => Color(0xFFFA3636);
   Color get red700 => Color(0xFFDC2626);
-  Color get redA200 => Color(0xFFFFE959);
+  Color get redA200 => Color(0xFFFE5959);
 
   // Teal
   Color get teal400 => Color(0xFF3F9A84);
 
   // White
   Color get whiteA700 => Color(0xFFFFFFFF);
-  Color get whiteA70001 => Color(0xFFFFFDFD);
+  Color get whiteA70001 => Color(0xFFFDFDFD);
 
   // Yellow
   Color get yellow700 => Color(0xFFF4BD2F);
-  Color get yellow900 => Color(0xFFFC6D26);
+  Color get yellow900 => Color(0xFFEC6D26);
 }

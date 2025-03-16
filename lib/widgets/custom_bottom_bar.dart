@@ -1,3 +1,5 @@
+// ignore_for_file: duplicate_ignore
+
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 
@@ -82,7 +84,7 @@ class CustomBottomBarState extends State<CustomBottomBar> {
   }
 }
 
-// ignore_for_file: must_be_immutable
+// ignore_for_file: must_be_immutable2
 class BottomMenuModel {
   BottomMenuModel({
     required this.icon,

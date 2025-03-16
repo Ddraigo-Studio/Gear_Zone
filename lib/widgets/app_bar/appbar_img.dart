@@ -3,13 +3,13 @@ import '../../core/app_export.dart';
 
 class AppbarImage extends StatelessWidget {
   const AppbarImage({
-    Key? key,
+    super.key,
     this.imagePath,
     this.height,
     this.width,
     this.onTap,
     this.margin,
-  }) : super(key: key);
+  });
 
   final double? height;
   final double? width;
