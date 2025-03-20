@@ -140,18 +140,15 @@ extension IconButtonStyleHelper on CustomIconButton {
 }
 
 class CustomIconButton extends StatelessWidget {
-  CustomIconButton(
-    {Key? key,
+  const CustomIconButton(
+    {super.key,
     this.alignment,
     this.height,
     this.width,
     this.decoration,
     this.padding,
     this.onTap,
-    this.child})
-    : super(
-        key: key,
-      );
+    this.child});
 
   final Alignment? alignment;
 

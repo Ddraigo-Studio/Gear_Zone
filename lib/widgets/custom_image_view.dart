@@ -21,7 +21,8 @@ extension ImageTypeExtension on String {
 enum ImageType { svg, png, network, file, unknown }
 
 class CustomImageView extends StatelessWidget {
-  CustomImageView({
+  const CustomImageView({
+    super.key, 
     this.imagePath,
     this.height,
     this.width,
