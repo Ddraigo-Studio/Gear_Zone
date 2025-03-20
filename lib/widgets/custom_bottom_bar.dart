@@ -7,7 +7,7 @@ enum BottomBarEnum { Frame50, Frame54, Frame52, Frame53 }
 
 // ignore_for_file: must_be_immutable
 class CustomBottomBar extends StatefulWidget {
-  CustomBottomBar({this.onChanged});
+  CustomBottomBar({super.key, this.onChanged});
 
   Function(BottomBarEnum)? onChanged;
 
@@ -98,6 +98,8 @@ class BottomMenuModel {
 }
 
 class DefaultWidget extends StatelessWidget {
+  const DefaultWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(

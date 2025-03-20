@@ -12,8 +12,8 @@ extension SearchViewStyleHelper on CustomSearchView {
 }
 
 class CustomSearchView extends StatelessWidget {
-  CustomSearchView(
-      {Key? key,
+  const CustomSearchView(
+      {super.key,
       this.alignment,
       this.width,
       this.boxDecoration,
@@ -35,10 +35,7 @@ class CustomSearchView extends StatelessWidget {
       this.fillColor,
       this.filled = true,
       this.validator,
-      this.onChanged})
-      : super(
-          key: key,
-        );
+      this.onChanged});
 
   final Alignment? alignment;
   final double? width;
