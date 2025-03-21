@@ -202,6 +202,7 @@ class LightCodeColors {
   Color get blueGray90002 => Color(0xFF363636);
 
   // DeepOrange
+    Color get deepOrange50 => Color(0xFFFDE8E7);
   Color get deepOrange300 => Color(0xFFFF8A4F);
   Color get deepOrange400 => Color(0xFFFF6C50);
   Color get deepOrange600 => Color(0xFFF24822);
@@ -260,6 +261,7 @@ class LightCodeColors {
   Color get whiteA70001 => Color(0xFFFDFDFD);
 
   // Yellow
+  Color get yellow50 => Color(0xFFFFFBEB);
   Color get yellow700 => Color(0xFFF4BD2F);
   Color get yellow900 => Color(0xFFEC6D26);
 }
