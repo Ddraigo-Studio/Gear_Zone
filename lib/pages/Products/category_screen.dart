@@ -4,7 +4,7 @@ import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_image.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/items/categoriesgrid_item_widget.dart';
+import '../../widgets/items/categories_grid_item.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -19,21 +19,16 @@ class CategoriesScreen extends StatelessWidget {
         child: Container(
           width: double.maxFinite,
           padding: EdgeInsets.only(
-            left: 24.h,
-            top: 20.h,
-            right: 24.h,
+            top: 16.h,
+            left: 8.h,
+            right: 8.h,
           ),
           child: Column(
             spacing: 14,
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Danh mục",
-                style: CustomTextStyles.titleLargeGabaritoBlack900,
-              ),
               _buildCategoriesGrid(context),
-              SizedBox(height: 30.h),
             ],
           ),
         ),
@@ -44,40 +39,43 @@ class CategoriesScreen extends StatelessWidget {
   /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return CustomAppBar(
-      height: 38.h,
-      leadingWidth: 48.h,
-      leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgInbox,
-        width: 40.h,
-        margin: EdgeInsets.only(
-          left: 8.h,
-          bottom: 24.h,
+      height: 70.h,
+      leadingWidth: 50.h,
+      leading: Container(
+        padding: const EdgeInsets.all(4.0),
+        child: AppbarLeadingImage(
+          imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
+          width: 50.h,
+          
+          margin: EdgeInsets.only(top: 10.h, bottom: 10.h),
         ),
+      ),
+      title: Text(
+        "Danh mục",
+        style: CustomTextStyles.titleLargeGabaritoBlack900,
       ),
       actions: [
         Container(
-          width: 46.h,
-          margin: EdgeInsets.only(
-            right: 15.h,
-            bottom: 18.h,
-          ),
+          width: 50.h,
+          height: 50.h,
+          margin: EdgeInsets.only(right: 16.h),
           decoration: AppDecoration.outlineBlack.copyWith(
-            borderRadius: BorderRadiusStyle.roundedBorder8,
-          ),
-          child: Column(
-            children: [
-              AppbarImage(
-                imagePath: ImageConstant.imgIconsaxBrokenBag2WhiteA7006x16,
-                height: 6.h,
-                margin: EdgeInsets.only(
-                  left: 14.h,
-                  right: 13.h,
-                ),
+            borderRadius: BorderRadiusStyle.circleBorder28,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                offset: Offset(0, 2),
+                blurRadius: 2,
               ),
-              SizedBox(height: 14.h)
-            ],
+            ]
           ),
-        )
+          padding: EdgeInsets.all(8.h),
+          child: AppbarImage(
+            imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
+            height: 20.h,
+            width: 20.h,
+          ),
+        ),
       ],
     );
   }
@@ -89,8 +87,8 @@ class CategoriesScreen extends StatelessWidget {
         minItemWidth: 1,
         minItemsPerRow: 2,
         maxItemsPerRow: 2,
-        horizontalGridSpacing: 22.h,
-        verticalGridSpacing: 22.h,
+        // horizontalGridSpacing: 0.h,
+        // verticalGridSpacing: 00.h,
         builder: (context, items) => ListView(
           shrinkWrap: true,
           padding: EdgeInsets.zero,
@@ -100,7 +98,7 @@ class CategoriesScreen extends StatelessWidget {
         gridItems: List.generate(
           5,
           (index) {
-            return CategoriesgridItemWidget();
+            return CategoriesGridItem();
           },
         ),
       ),

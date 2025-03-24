@@ -47,6 +47,10 @@ class AppDecoration {
       color: appTheme.yellow50,
   );
 
+  static BoxDecoration get fillPink => BoxDecoration(
+    color: Color(0xFFFEE9E7),
+  );
+
   // Outline decorations
   static BoxDecoration get outlineBlack => BoxDecoration(
     color: appTheme.deepPurple400,
@@ -347,6 +351,8 @@ class AppDecoration {
 }
 
 class BorderRadiusStyle {
+  static var roundedBorder;
+
   // Circle borders
   static BorderRadius get circleBorder20 => BorderRadius.circular(
         20.h,

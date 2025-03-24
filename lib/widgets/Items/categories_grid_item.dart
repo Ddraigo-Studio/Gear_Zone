@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 
-class CategoriesgridItemWidget extends StatelessWidget {
-  const CategoriesgridItemWidget({super.key});
+class CategoriesGridItem extends StatelessWidget {
+  const CategoriesGridItem({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: EdgeInsets.only(
+        left: 10.h,
+        right: 10.h,
+        bottom: 8.h,
+        top: 8.h,
+      ),
       width: double.maxFinite,
       decoration: AppDecoration.shadow.copyWith(
         borderRadius: BorderRadiusStyle.roundedBorder16,

@@ -14,9 +14,15 @@ import '../pages/Create_Profile/address_new_screen.dart';
 // Profile
 import '../pages/Profile/add_address_screen.dart';
 
+// Plash_Screen
+import '../pages/Plash_Screen/plash_screen.dart';
+
+import '../pages/Setting/setting_screen.dart';
+import '../pages/Products/category_screen.dart';
+
 // import '../pages/address_new_screen/address_new_screen.dart';
 // import '../pages/app_navigation_screen/app_navigation_screen.dart';
-// import '../pages/categoriesone_screen/categoriesone_screen.dart';
+
 // import '../pages/categoriestwo_screen/categoriestwo_screen.dart';
 // import '../pages/checkout_screen/checkout_screen.dart';
 // import '../pages/edit_profile_screen/edit_profile_screen.dart';
@@ -39,7 +45,7 @@ import '../pages/Profile/add_address_screen.dart';
 // import '../pages/product_screen/product_screen.dart';
 // import '../pages/search_result_screen/search_result_screen.dart';
 // import '../pages/search_result_screen/search_result_empty_screen.dart';
-// import '../pages/settings_screen/settings_screen.dart';
+
 // import '../pages/voucher_detail_screen/voucher_detail_screen.dart';
 
 class AppRoutes {
@@ -49,10 +55,7 @@ class AppRoutes {
   static const String signup = '/signup';
   static const String homeScreen = '/home_screen';
   static const String homeInitialPage = '/home_initial_page';
-  static const String plashtwoscreentwoScreen = '/plashtwoscreentwo_screen';
-  static const String plashtwoscreennoneScreen = '/plashtwoscreennone_screen';
-  static const String plashtscreenthreeScreen = '/plashtscreenthree_screen';
-  static const String plashtscreenthreeOneScreen = '/plashtscreenthree_one_screen';
+  static const String plashScreen = '/plash_screen';
   static const String notificationEmptyScreen = '/notification_empty_screen';
   static const String notificationsScreen = '/notifications_screen';
   static const String ordersHistoryScreen = '/orders_history_screen';
@@ -60,7 +63,7 @@ class AppRoutes {
   static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
   static const String ordersTab1Page = '/orders_tab1_page';
   static const String ordersDetailScreen = '/orders_detail_screen';
-  static const String categoriesoneScreen = '/categoriesone_screen';
+  static const String categoriesScreen = '/category_screen';
   static const String categoriestwoScreen = '/categoriestwo_screen';
   static const String searchResultEmptyScreen = '/search_result_empty_screen';
   static const String searchResultScreen = '/search_result_screen';
@@ -74,7 +77,7 @@ class AppRoutes {
   static const String methodCheckoutScreen = '/method_checkout_screen';
   static const String orderPlacedScreen = '/order_placed_screen';
   static const String voucherDetailScreen = '/voucher_detail_screen';
-  static const String settingsScreen = '/settings_screen';
+  static const String settingsScreen = '/setting_screen';
   static const String editProfileScreen = '/edit_profile_screen';
   static const String listAddressScreen = '/list_address_screen';
   static const String addAddressScreen = '/add_address_screen';
@@ -89,7 +92,7 @@ class AppRoutes {
     signup: (context) => SignUpScreen(),
     homeScreen: (context) => HomeScreen(),
     // plashscreentwoScreen: (context) => PlashscreentwoScreen(),
-    // plashscreenoneScreen: (context) => PlashscreenoneScreen(),
+    plashScreen: (context) => PlashScreenScreen(),
     // plashscreenthreeScreen: (context) => PlashscreenthreeScreen(),
     // plashscreenthreeOneScreen: (context) => PlashscreenthreeOneScreen(),
     // notificationEmptyScreen: (context) => NotificationEmptyScreen(),
@@ -97,7 +100,7 @@ class AppRoutes {
     // ordersHistoryScreen: (context) => OrdersHistoryScreen(),
     // ordersHistoryEmptyScreen: (context) => OrdersHistoryEmptyScreen(),
     // ordersDetailScreen: (context) => OrdersDetailScreen(),
-    // categoriesoneScreen: (context) => CategoriesoneScreen(),
+    categoriesScreen: (context) => CategoriesScreen(),
     // categoriestwoScreen: (context) => CategoriestwoScreen(),
     // searchResultEmptyScreen: (context) => SearchResultEmptyScreen(),
     // searchResultScreen: (context) => SearchResultScreen(),
@@ -109,13 +112,13 @@ class AppRoutes {
     // methodCheckoutScreen: (context) => MethodCheckoutScreen(),
     // orderPlacedScreen: (context) => OrderPlacedScreen(),
     // voucherDetailScreen: (context) => VoucherDetailScreen(),
-    // settingsScreen: (context) => SettingsScreen(),
+    settingsScreen: (context) => SettingsScreen(),
     // editProfileScreen: (context) => EditProfileScreen(),
     // listAddressScreen: (context) => ListAddressScreen(),
     addAddressScreen: (context) => AddAddressScreen(),
     // listFavoriteScreen: (context) => ListFavoriteScreen(),
     // appNavigationScreen: (context) => AppNavigationScreen(),
-    // initialRoute: (context) => PlashscreenthreeOneScreen()
+    initialRoute: (context) => HomeScreen()
   };
 
 

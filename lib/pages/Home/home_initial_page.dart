@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/app_export.dart';
-// import '../../theme/custom_button_style.dart';
+import '../../widgets/Items/recently_viewed_item.dart';
 import '../../widgets/app_bar/appbar_image.dart';
-import '../../widgets/app_bar/appbar_leading_image_one.dart';
 import '../../widgets/app_bar/appbar_title_searchview_one.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_icon_button.dart';
-import '../../widgets/custom_outlined_button.dart';
-import '../../widgets/items/categorieslist_item_widget.dart';
-import '../../widgets/items/productcarousel_item_widget.dart';
+import '../../widgets/items/categories_list_item.dart';
+import '../../widgets/items/product_carousel_item_widget.dart';
+import '../Products/category_screen.dart';
 
 class HomeInitialPage extends StatefulWidget {
   const HomeInitialPage({super.key});
@@ -20,90 +19,132 @@ class HomeInitialPage extends StatefulWidget {
 // ignore_for_file: must_be_immutable
 class HomeInitialPageState extends State<HomeInitialPage> {
   TextEditingController searchController = TextEditingController();
+  
+  final List<Map<String, String>> categories = [
+    {'imagePath': ImageConstant.imgMacbookAirRetinaM1240x160, 'categoryName': 'Laptop'},
+    {'imagePath': ImageConstant.imgProfile, 'categoryName': 'Laptop Gaming'},
+    {'imagePath': ImageConstant.imgEllipse3, 'categoryName': 'PC'},
+    {'imagePath': ImageConstant.imgEllipse4, 'categoryName': 'Tản nhiệt'},
+    {'imagePath': ImageConstant.imgEllipse356x56, 'categoryName': 'Accessories'},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Make the status bar transparent
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: LightCodeColors().deepPurple400, 
+      statusBarIconBrightness: Brightness.light,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      decoration: AppDecoration.fillWhiteA,
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildAppBar(context),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 12.h),
-                    _buildLimitedOfferSection(context),
-                    SizedBox(height: 40.h),
-                    Container(
-                      width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 40.h),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 2.h),
-                              child: Text(
-                                "Danh mục",
-                                style: CustomTextStyles
-                                    .titleMediumGabaritoGray900Bold,
+    return SafeArea(
+      child: Container(
+        width: double.maxFinite,
+        decoration: AppDecoration.fillWhiteA,
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.maxFinite,
+              child: _buildAppBar(context),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 12.h),
+                      _buildBannerSection(context),
+                      SizedBox(height: 40.h),
+                      Container(
+                        width: double.maxFinite,
+                        margin: EdgeInsets.symmetric(horizontal: 40.h),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 2.h),
+                                child: Text(
+                                  "Danh mục",
+                                  style: CustomTextStyles
+                                      .titleMediumGabaritoGray900Bold,
+                                ),
                               ),
                             ),
-                          ),
-                          Text(
-                            "Xem tất cả",
-                            style: CustomTextStyles.bodyLargeAmaranth,
-                          ),
-                        ],
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => CategoriesScreen()), 
+                                );
+                              },
+                              child: Text(
+                                "Xem tất cả",
+                                style: CustomTextStyles.bodyLargeAmaranth,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 16.h),
-                    _buildCategoriesList(context),
-                    SizedBox(height: 38.h),
-                    Container(
-                      width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 24.h),
-                      child: _buildNewestRow(
-                        context,
-                        minhOne: "Top bán chạy",
-                        xemttcTwo: "Xem tất cả",
+                      SizedBox(height: 16.h),
+                      _buildCategoriesList(context),
+                      SizedBox(height: 38.h),
+                      Container(
+                        width: double.maxFinite,
+                        margin: EdgeInsets.symmetric(horizontal: 24.h),
+                        child: _buildTitleRow(
+                          context,
+                          minhOne: "Top bán chạy",
+                          xemttcTwo: "Xem tất cả",
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 14.h),
-                    _buildProductCarousel(context),
-                    SizedBox(height: 46.h),
-                    Container(
-                      width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 24.h),
-                      child: _buildNewestRow(
-                        context,
-                        minhOne: "Mới nhất",
-                        xemttcTwo: "Xem tất cả",
+                      SizedBox(height: 14.h),
+                      _buildProductCarousel(context),
+                      SizedBox(height: 40.h),
+                      Container(
+                        width: double.maxFinite,
+                        margin: EdgeInsets.symmetric(horizontal: 24.h),
+                        child: _buildTitleRow(
+                          context,
+                          minhOne: "Mới nhất",
+                          xemttcTwo: "Xem tất cả",
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 16.h),
-                    _buildHorizontalScrollSection(context)
-                  ],
+                      SizedBox(height: 16.h),
+                      _buildNeweProductSection(context),
+                      SizedBox(height: 40.h),
+                      Container(
+                        width: double.maxFinite,
+                        margin: EdgeInsets.symmetric(horizontal: 24.h),
+                        child: _buildTitleRow(
+                          context,
+                          minhOne: "Xem gần đây",
+                          xemttcTwo: "Xem tất cả",
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildRencentlyViewedSection(context),
+                      SizedBox(height: 24.h),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   /// Common widget
-  Widget _buildNewestRow(
+  Widget _buildTitleRow(
     BuildContext context, {
     required String minhOne,
     required String xemttcTwo,
@@ -127,47 +168,66 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     );
   }
 
-  /// Section Widget
+  /// Section Widget: AppBar
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return CustomAppBar(
-      height: 38.h,
-      leadingWidth: 70.h,
-      leading: AppbarLeadingImageOne(
-        imagePath: ImageConstant.imgEllipse13,
-        height: 18.h,
-        width: 54.h,
-        margin: EdgeInsets.only(
-          left: 16.h,
-          bottom: 20.h,
+      height: 80.h,
+      leadingWidth: 70.h, 
+      leading: Container(
+        alignment: Alignment.center,
+        margin: EdgeInsets.only(left: 16.h),
+        decoration: BoxDecoration(
+          color: Colors.white,  
+          shape: BoxShape.circle, 
+          border: Border.all( 
+            color: Colors.white,  
+            width: 1.5, 
+          ), 
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              offset: Offset(0, 2),
+              blurRadius: 2,
+            ),
+          ],
+        ),
+        child: ClipOval(  // Ensure the child image is clipped to fit the circular shape
+          child: Image.asset(
+            ImageConstant.imgProfile,  // Your image asset
+            fit: BoxFit.cover,  
+          ),
         ),
       ),
       title: SizedBox(
         width: double.maxFinite,
-        child: AppbarTitleSearchviewOne(
-          margin: EdgeInsets.only(left: 17.h),
-          hintText: "Tìm kiếm",
-          controller: searchController,
+        child: Center(
+          child: AppbarTitleSearchviewOne(
+            margin: EdgeInsets.only(left: 16.h, right: 16.h),
+            hintText: "Tìm kiếm",
+            controller: searchController,
+          ),
         ),
       ),
       actions: [
         Container(
-          width: 44.h,
-          margin: EdgeInsets.only(
-            right: 17.h,
-            bottom: 20.h,
-          ),
-          decoration: AppDecoration.outlineBlack.copyWith(
-            borderRadius: BorderRadiusStyle.roundedBorder8,
-          ),
-          child: Column(
-            children: [
-              AppbarImage(
-                imagePath: ImageConstant.imgIconsaxBrokenBag2,
-                height: 4.h,
-                margin: EdgeInsets.symmetric(horizontal: 14.h),
+          width: 45.h,
+          height: 45.h,
+          margin: EdgeInsets.only(right: 16.h),
+          decoration: AppDecoration.fillWhiteA.copyWith(
+            borderRadius: BorderRadiusStyle.circleBorder28,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                offset: Offset(0, 2),
+                blurRadius: 2,
               ),
-              SizedBox(height: 13.h)
-            ],
+            ]
+          ),
+          padding: EdgeInsets.all(8.h),
+          child: AppbarImage(
+            imagePath: ImageConstant.imgIconsaxBrokenBag2,
+            height: 20.h,
+            width: 20.h,
           ),
         ),
       ],
@@ -175,17 +235,18 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     );
   }
 
+
   /// Section Widget
-  Widget _buildLimitedOfferSection(BuildContext context) {
+  Widget _buildBannerSection(BuildContext context) {
     return Container(
       height: 194.h,
       width: double.maxFinite,
-      margin: EdgeInsets.only(left: 16.h),
+      margin: EdgeInsets.only(left: 16.h, right: 16.h),
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.center,
             child: Container(
               height: 188.h,
               child: Stack(
@@ -224,7 +285,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                                 alignment: Alignment.bottomRight,
                                 children: [
                                   CustomImageView(
-                                    imagePath: ImageConstant.img5eb4156d7834b2000433266d,
+                                    imagePath: ImageConstant.imgSwitch,
                                     height: 120.h,
                                     width: 154.h,
                                   ),
@@ -308,9 +369,12 @@ class HomeInitialPageState extends State<HomeInitialPage> {
               ),
             ),
           ),
-          Text(
-            "Số lượng có hạn!!!",
-            style: CustomTextStyles.bodySmallAlatsiGray600,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: Text(
+              "Số lượng có hạn!!!",
+              style: CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700,
+            ),
           ),
         ],
       ),
@@ -320,275 +384,165 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   /// Section Widget
   Widget _buildCategoriesList(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 24.h),
-      child: SingleChildScrollView(
+      height: 90.h,
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        child: Wrap(
-          direction: Axis.horizontal,
-          spacing: 24.h,
-          children: List.generate(
-            5,
-            (index) {
-              return CategorieslistItemWidget();
-            },
-          ),
-        ),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h),
+            child: CategoriesListItem( 
+                imagePath: categories[index]['imagePath']!,
+                categoryName: categories[index]['categoryName']!,
+            ),
+          );
+        },
       ),
     );
   }
+
 
   /// Section Widget
   Widget _buildProductCarousel(BuildContext context) {
+  // Một danh sách các sản phẩm mẫu, bạn có thể thay đổi hoặc lấy từ API.
+    final List<Map<String, String>> products = [
+      {
+        'imagePath': ImageConstant.imgImage1,
+        'productName': 'Huawei Matebook X13',
+        'discountPrice': '17.390.000đ',
+        'originalPrice': '20.990.000đ',
+        'discountPercent': '31%',
+        'rating': '5.0',
+      },
+      {
+        'imagePath': ImageConstant.imgProduct4,
+        'productName': 'Dell XPS 13',
+        'discountPrice': '21.990.000đ',
+        'originalPrice': '24.990.000đ',
+        'discountPercent': '20%',
+        'rating': '4.5',
+      },
+      // Thêm các sản phẩm khác ở đây
+    ];
+
     return Container(
-      margin: EdgeInsets.only(left: 24.h),
-      child: SingleChildScrollView(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: 250.h, 
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        child: Wrap(
-          direction: Axis.horizontal,
-          spacing: 16.h,
-          children: List.generate(
-            3,
-            (index) {
-              return ProductcarouselItemWidget();
-            },
-          ),
-        ),
+        itemCount: products.length, // Sử dụng số lượng sản phẩm thay vì 10
+        itemBuilder: (context, index) {
+          final product = products[index]; // Lấy thông tin sản phẩm tại index
+
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h),
+            child: ProductCarouselItem(
+              imagePath: product['imagePath']!,
+              productName: product['productName']!,
+              discountPrice: product['discountPrice']!,
+              originalPrice: product['originalPrice']!,
+              discountPercent: product['discountPercent']!,
+              rating: product['rating']!,
+            ),
+          );
+        },
       ),
     );
   }
 
   /// Section Widget
-  Widget _buildHorizontalScrollSection(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(left: 24.h),
-      child: SingleChildScrollView(
+  Widget _buildNeweProductSection(BuildContext context) {
+    final List<Map<String, String>> products = [
+      {
+        'imagePath': ImageConstant.imgImage1,
+        'productName': 'Huawei Matebook X13',
+        'discountPrice': '17.390.000đ',
+        'originalPrice': '20.990.000đ',
+        'discountPercent': '31%',
+        'rating': '5.0',
+      },
+      {
+        'imagePath': ImageConstant.imgProduct4,
+        'productName': 'Dell XPS 13',
+        'discountPrice': '21.990.000đ',
+        'originalPrice': '24.990.000đ',
+        'discountPercent': '20%',
+        'rating': '4.5',
+      },
+      // Thêm các sản phẩm khác ở đây
+    ];
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: 250.h, 
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        child: IntrinsicWidth(
-          child: SizedBox(
-            width: 490.h,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    width: double.maxFinite,
-                    padding: EdgeInsets.symmetric(vertical: 6.h),
-                    decoration: AppDecoration.fillGray.copyWith(
-                      borderRadius: BorderRadiusStyle.roundedBorder16,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomIconButton(
-                          height: 26.h,
-                          width: 26.h,
-                          padding: EdgeInsets.all(6.h),
-                          decoration: IconButtonStyleHelper.none,
-                          alignment: Alignment.centerRight,
-                          child: CustomImageView(
-                            imagePath: ImageConstant.imgHeartIconlyPro,
-                          ),
-                        ),
-                        SizedBox(height: 20.h),
-                        CustomImageView(
-                          imagePath: ImageConstant.imgHuaweiFreebuds,
-                          height: 68.h,
-                          width: 70.h,
-                        ),
-                        SizedBox(height: 22.h),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 6.h),
-                            child: Text(
-                              "Huawei Matebook X13",
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 12.h),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 6.h),
-                          child: Text(
-                            "\$ 20,999 ",
-                            style: CustomTextStyles.labelLargePPMoriBluegray900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    width: double.maxFinite,
-                    margin: EdgeInsets.only(left: 16.h),
-                    padding: EdgeInsets.all(6.h),
-                    decoration: AppDecoration.fillGray.copyWith(
-                      borderRadius: BorderRadiusStyle.roundedBorder16,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomIconButton(
-                          height: 26.h,
-                          width: 26.h,
-                          padding: EdgeInsets.all(6.h),
-                          decoration: IconButtonStyleHelper.none,
-                          alignment: Alignment.centerRight,
-                          child: CustomImageView(
-                            imagePath: ImageConstant.imgHeartIconlyPro,
-                          ),
-                        ),
-                        SizedBox(height: 14.h),
-                        CustomImageView(
-                          imagePath: ImageConstant.imgImage1,
-                          height: 72.h,
-                          width: 48.h,
-                        ),
-                        SizedBox(height: 20.h),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Container(
-                            margin: EdgeInsets.only(left: 16.h),
-                            padding: EdgeInsets.all(6.h),
-                            decoration: AppDecoration.fillGray.copyWith(
-                              borderRadius: BorderRadiusStyle.roundedBorder16,
-                            ),
-                            child: Column(
-                              spacing: 16,
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                CustomImageView(
-                                  imagePath: ImageConstant.imgImage1,
-                                  height: 72.h,
-                                  width: 48.h,
-                                  margin: EdgeInsets.only(right: 28.h),
-                                ),
-                                Text(
-                                  "Huawei Matebook X13",
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Padding(
-                                    padding: EdgeInsets.only(left: 6.h),
-                                    child: Text(
-                                      "17.390.000đ",
-                                      style: theme.textTheme.labelLarge,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    width: double.maxFinite,
-                    margin: EdgeInsets.only(left: 16.h),
-                    padding: EdgeInsets.all(6.h),
-                    decoration: AppDecoration.fillGray.copyWith(
-                      borderRadius: BorderRadiusStyle.roundedBorder16,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomIconButton(
-                          height: 26.h,
-                          width: 26.h,
-                          padding: EdgeInsets.all(6.h),
-                          decoration: IconButtonStyleHelper.none,
-                          alignment: Alignment.centerRight,
-                          child: CustomImageView(
-                            imagePath: ImageConstant.imgHeartIconlyPro,
-                          ),
-                        ),
-                        SizedBox(height: 14.h),
-                        CustomImageView(
-                          imagePath: ImageConstant.imgImage1,
-                          height: 72.h,
-                          width: 48.h,
-                        ),
-                        SizedBox(height: 20.h),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 6.h),
-                            child: Text(
-                              "Huawei Matebook X13",
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 6.h),
-                        Container(
-                          width: double.maxFinite,
-                          margin: EdgeInsets.symmetric(horizontal: 6.h),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "17.390.000đ",
-                                style: theme.textTheme.labelLarge,
-                              ),
-                              CustomOutlinedButton(
-                                width: 34.h,
-                                text: "31%".toUpperCase(),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 6.h),
-                      ],
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Container(
-                    margin: EdgeInsets.only(left: 16.h),
-                    padding: EdgeInsets.all(6.h),
-                    decoration: AppDecoration.fillGray.copyWith(
-                      borderRadius: BorderRadiusStyle.roundedBorder16,
-                    ),
-                    child: Column(
-                      spacing: 16,
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        CustomImageView(
-                          imagePath: ImageConstant.imgImage1,
-                          height: 72.h,
-                          width: 48.h,
-                          margin: EdgeInsets.only(right: 28.h),
-                        ),
-                        Text(
-                          "Huawei Matebook X13",
-                          style: theme.textTheme.bodySmall,
-                        ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 6.h),
-                            child: Text(
-                              "17.390.000đ",
-                              style: theme.textTheme.labelLarge,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              ],
+        itemCount: products.length, // Sử dụng số lượng sản phẩm thay vì 10
+        itemBuilder: (context, index) {
+          final product = products[index]; // Lấy thông tin sản phẩm tại index
+
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h),
+            child: ProductCarouselItem(
+              imagePath: product['imagePath']!,
+              productName: product['productName']!,
+              discountPrice: product['discountPrice']!,
+              originalPrice: product['originalPrice']!,
+              discountPercent: product['discountPercent']!,
+              rating: product['rating']!,
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
+
+  Widget _buildRencentlyViewedSection(BuildContext context) {
+    final List<Map<String, String>> products = [
+      {
+        'imagePath': ImageConstant.imgImage1,
+        'productName': 'Huawei Matebook X13',
+        'discountPrice': '17.390.000đ',
+        'originalPrice': '20.990.000đ',
+        'discountPercent': '31%',
+        'rating': '5.0',
+      },
+      {
+        'imagePath': ImageConstant.imgProduct4,
+        'productName': 'Dell XPS 13',
+        'discountPrice': '21.990.000đ',
+        'originalPrice': '24.990.000đ',
+        'discountPercent': '20%',
+        'rating': '4.5',
+      },
+      // Thêm các sản phẩm khác ở đây
+    ];
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: 250.h, 
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: products.length, // Sử dụng số lượng sản phẩm thay vì 10
+        itemBuilder: (context, index) {
+          final product = products[index]; // Lấy thông tin sản phẩm tại index
+
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h),
+            child: RecentlyViewedItem(
+              index: index,
+              imagePath: product['imagePath']!,
+              productName: product['productName']!,
+              discountPrice: product['discountPrice']!,
+              originalPrice: product['originalPrice']!,
+              discountPercent: product['discountPercent']!,
+              rating: product['rating']!,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
 }

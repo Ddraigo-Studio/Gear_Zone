@@ -22,19 +22,19 @@ class AppbarLeadingImage extends StatelessWidget {
     return Padding(
       padding: margin ?? EdgeInsets.zero,
       child: InkWell(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
+        borderRadius: BorderRadius.circular(28.h), 
         onTap: () {
           onTap?.call();
         },
-        child: CustomImageView(
-          imagePath: imagePath!,
-          height: height ?? 14.h,
-          width: width ?? 16.h,
-          fit: BoxFit.contain,
-          radius: BorderRadius.circular(6.h),
+        child: ClipOval( 
+          child: CustomImageView(
+            imagePath: imagePath!,
+            height: height ?? 15.h,
+            width: width ?? 15.h,
+            fit: BoxFit.contain,  
+          ),
         ),
       ),
     );
   }
-
 }

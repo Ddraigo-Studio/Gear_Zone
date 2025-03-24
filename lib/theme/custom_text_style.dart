@@ -126,6 +126,12 @@ class CustomTextStyles {
     fontSize: 18.fSize,
   );
 
+  static TextStyle get labelLargeBluegray900 => 
+    theme.textTheme.labelLarge!.copyWith(
+      color: appTheme.blueGray900,
+      fontWeight: FontWeight.w500,
+  );
+
   static TextStyle get bodyLargeAmaranth => theme.textTheme.bodyLarge!.amaranth;
 
   static TextStyle get bodyLargeArchivoBlackWhiteA700 =>

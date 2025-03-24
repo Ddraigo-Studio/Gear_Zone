@@ -60,8 +60,6 @@ class CustomSearchView extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final Function(String)? onChanged;
 
-  
- 
   @override
   Widget build(BuildContext context) {
     return alignment != null
@@ -87,7 +85,7 @@ class CustomSearchView extends StatelessWidget {
             }
           },
           autofocus: autofocus!,
-          style: textStyle ?? CustomTextStyles.bodySmallBalooBhaiGray900,
+          style: textStyle ?? CustomTextStyles.bodyMediumEncodeSansWhiteA700,
           keyboardType: textInputType,
           maxLines: maxLines ?? 1,
           decoration: decoration,
@@ -95,6 +93,7 @@ class CustomSearchView extends StatelessWidget {
           onChanged: (String value) {
             onChanged?.call(value);
           },
+          cursorColor: appTheme.whiteA700,
         ),
       );
 
@@ -114,22 +113,29 @@ class CustomSearchView extends StatelessWidget {
             BoxConstraints(
               maxHeight: 38.h,
             ),
-        suffixIcon: suffix ??
-            Container(
-              margin: EdgeInsets.fromLTRB(16.h, 10.h, 20.h, 10.h),
-              child: CustomImageView(
-                imagePath: ImageConstant.imgX,
-                height: 16.h,
-                width: 16.h,
-              ),
-            ),
+        suffixIcon: controller?.text.isNotEmpty == true
+            ? GestureDetector(
+                onTap: () {
+                  controller?.clear(); // Clears the text in the field
+                },
+                child: Container(
+                  margin: EdgeInsets.fromLTRB(16.h, 10.h, 20.h, 10.h),
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgX,
+                    height: 16.h,
+                    width: 16.h,
+                    color: appTheme.whiteA700,
+                  ),
+                ),
+              )
+            : null, // Only show the "X" icon if the text is not empty
         suffixIconConstraints: suffixConstraints ??
             BoxConstraints(
               maxHeight: 38.h,
             ),
         isDense: true,
         contentPadding: contentPadding ?? EdgeInsets.all(10.h),
-        fillColor: fillColor ?? appTheme.gray100,
+        fillColor: fillColor ?? appTheme.whiteA700,
         filled: filled,
         border: borderDecoration ??
             OutlineInputBorder(
@@ -147,7 +153,7 @@ class CustomSearchView extends StatelessWidget {
                 ))
             .copyWith(
           borderSide: BorderSide(
-            color: theme.colorScheme.primary,
+            color: appTheme.deepPurple1003f,
             width: 1,
           ),
         ),
