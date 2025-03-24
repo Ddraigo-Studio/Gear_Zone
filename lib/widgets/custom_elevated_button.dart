@@ -37,19 +37,27 @@ Widget get buildElevatedButtonWidget => Container(
       height: height ?? 20.h,
       width: width ?? double.maxFinite,
       margin: margin,
+
       decoration: decoration,
       child: ElevatedButton(
         style: buttonStyle,
         onPressed: isDisabled ?? false ? null : onPressed ?? () {},
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            leftIcon ?? const SizedBox.shrink(),
-            Text(
-              text,
-              style:
-                  buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.h),
+              child: Row( 
+                children: [
+                  leftIcon ?? const SizedBox.shrink(),
+                  Text(
+                    text,
+                    style:
+                        buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
+                  ),
+                ],
+              ),
             ),
             rightIcon ?? const SizedBox.shrink()
           ],

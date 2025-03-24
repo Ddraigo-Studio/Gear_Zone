@@ -95,7 +95,7 @@ class EditProfileScreen extends StatelessWidget {
                     ),
                   ),
                   CustomImageView(
-                    imagePath: ImageConstant.imgEllipse14,
+                    imagePath: ImageConstant.imgProfile,
                     height: 90.h,
                     width: 92.h,
                     radius: BorderRadius.circular(

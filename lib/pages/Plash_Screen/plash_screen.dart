@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 
-class PlasshcreenoneScreen extends StatelessWidget {
-  const PlasshcreenoneScreen({super.key});
+class PlashScreenScreen extends StatelessWidget {
+  const PlashScreenScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -130,7 +130,7 @@ class CustomImageView extends StatelessWidget {
           fit: fit ?? BoxFit.cover,
           color: color,
         );
-case ImageType.network:
+      case ImageType.network:
         return CachedNetworkImage(
           height: height,
           width: width,
