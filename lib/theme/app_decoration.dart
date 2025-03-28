@@ -17,7 +17,7 @@ class AppDecoration {
         color: appTheme.deepPurpleA100,
       );
   static BoxDecoration get fillDeepPurpleF => BoxDecoration(
-        color: appTheme.deepPurple1003f,
+        color: appTheme.deepPurple400,
       );
   static BoxDecoration get fillDeeppurple5001 => BoxDecoration(
         color: appTheme.deepPurple5001,
@@ -282,13 +282,13 @@ class AppDecoration {
     boxShadow: [
       BoxShadow(
         color: appTheme.black900.withValues(
-          alpha: 0.25,
+          alpha: 0.2,
         ),
-        spreadRadius: 2.h,
-        blurRadius: 2.h,
+        spreadRadius: 1.h,
+        blurRadius: 1.5.h,
         offset: Offset(
           1,
-          1,
+          0,
         ),
       ),
     ],
@@ -304,41 +304,41 @@ class AppDecoration {
     ),
   );
 
-  static BoxDecoration get row31 => BoxDecoration(
-    image: DecorationImage(
-      image: fs.Svg(
-        ImageConstant.imgPolygon1,
-      ),
-      fit: BoxFit.fill,
-    ),
-  );
+  // static BoxDecoration get row31 => BoxDecoration(
+  //   image: DecorationImage(
+  //     image: fs.Svg(
+  //       ImageConstant.imgPolygon1,
+  //     ),
+  //     fit: BoxFit.fill,
+  //   ),
+  // );
 
-  static BoxDecoration get row32 => BoxDecoration(
-    image: DecorationImage(
-      image: fs.Svg(
-        ImageConstant.imgPolygon1,
-      ),
-      fit: BoxFit.fill,
-    ),
-  );
+  // static BoxDecoration get row32 => BoxDecoration(
+  //   image: DecorationImage(
+  //     image: fs.Svg(
+  //       ImageConstant.imgPolygon1,
+  //     ),
+  //     fit: BoxFit.fill,
+  //   ),
+  // );
 
-  static BoxDecoration get row33 => BoxDecoration(
-    image: DecorationImage(
-      image: fs.Svg(
-        ImageConstant.imgPolygon1,
-      ),
-      fit: BoxFit.fill,
-    ),
-  );
+  // static BoxDecoration get row33 => BoxDecoration(
+  //   image: DecorationImage(
+  //     image: fs.Svg(
+  //       ImageConstant.imgPolygon1,
+  //     ),
+  //     fit: BoxFit.fill,
+  //   ),
+  // );
 
-  static BoxDecoration get row34 => BoxDecoration(
-    image: DecorationImage(
-      image: fs.Svg(
-        ImageConstant.imgPolygon1,
-      ),
-      fit: BoxFit.fill,
-    ),
-  );
+  // static BoxDecoration get row34 => BoxDecoration(
+  //   image: DecorationImage(
+  //     image: fs.Svg(
+  //       ImageConstant.imgPolygon1,
+  //     ),
+  //     fit: BoxFit.fill,
+  //   ),
+  // );
 
   static BoxDecoration get row35 => BoxDecoration(
     image: DecorationImage(

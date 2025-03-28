@@ -181,8 +181,9 @@ class CustomTextStyles {
 
   static TextStyle get bodyLargeBalooBhaijaanWhiteA700 =>
       theme.textTheme.bodyLarge!.balooBhaijaan.copyWith(
-    color: appTheme.whiteA700,
-    fontSize: 18.fSize,
+      color: appTheme.whiteA700,
+      
+      fontSize: 18.fSize,
   );
 
   static TextStyle get bodyLargeBlack900 => theme.textTheme.bodyLarge!.copyWith(
@@ -746,6 +747,7 @@ static TextStyle get labelMediumInterRedA200 =>
   static TextStyle get titleMediumBalooBhai2Gray900 =>
       theme.textTheme.titleMedium!.balooBhai2.copyWith(
     color: appTheme.gray900,
+    fontWeight: FontWeight.w800,
   );
 
   static TextStyle get titleMediumBalooBhai2Red500 =>

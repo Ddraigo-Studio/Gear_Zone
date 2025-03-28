@@ -7,8 +7,15 @@ extension IconButtonStyleHelper on CustomIconButton {
     borderRadius: BorderRadius.circular(20.h),
     boxShadow: [
       BoxShadow(
-        spreadRadius: 2.h,
-        blurRadius: 2.h,
+        color: appTheme.black900.withValues(
+        alpha: 0.1,
+      ),
+        spreadRadius: 1.h,
+        blurRadius: 1.h,
+        offset: Offset(
+        1,
+        0,
+      ),
       )
     ],
   );

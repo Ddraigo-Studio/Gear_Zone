@@ -111,7 +111,7 @@ class AddVoucherBottomsheet extends StatelessWidget {
         horizontal: 16.h,
         vertical: 10.h,
       ),
-      decoration: AppDecoration.row33,
+      decoration: AppDecoration.row30,
       width: double.maxFinite,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -149,7 +149,7 @@ class AddVoucherBottomsheet extends StatelessWidget {
         horizontal: 16.h,
         vertical: 10.h,
       ),
-      decoration: AppDecoration.row34,
+      decoration: AppDecoration.row30,
       width: double.maxFinite,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
