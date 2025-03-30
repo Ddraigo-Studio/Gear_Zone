@@ -108,7 +108,8 @@ class ImageConstant {
 
   static String imgMingcuteLocationLine = '$iconPath/img_mingcute_location_line.svg';
   static String imgFluentPayment16Filled = '$iconPath/img_fluent_payment_16_filled.svg';
-  static String imgUserRed500 = '$imagePath/img_user_red_500.svg';
+  static String imgLogoWhite = '$imagePath/img_logo_2.png';
+  static String imgLogo = '$imagePath/img_logo.png';
   static String imgUser1 = '$imagePath/img_user_1.png';
   static String imgUser2 = '$imagePath/img_user_2.png';
   static String imgUser3 = '$imagePath/img_user_3.png';

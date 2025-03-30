@@ -176,7 +176,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
           shape: BoxShape.circle,
           border: Border.all(
             color: Colors.white,
-            width: 1.5,
+            width: 1,
           ),
           boxShadow: [
             BoxShadow(
@@ -188,7 +188,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
         ),
         child: ClipOval(
           child: Image.asset(
-            ImageConstant.imgProfile,
+            ImageConstant.imgLogo,
             fit: BoxFit.cover,
           ),
         ),

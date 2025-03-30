@@ -176,28 +176,27 @@ class ProductVariantBottomsheet extends StatelessWidget {
   Widget _buidQuantityButton(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.max,
       children: [
         Text(
           "Chọn số lượng: 1",
           style: CustomTextStyles.labelLargeGray60001,
         ),
-        Container(
-          width: 64.h,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadiusStyle.roundedBorder8,
-          ),
+        Flexible(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: GestureDetector(
+              Container(
+                child: InkWell(
                   onTap: () {
                     // Handle the decrement action here
                   },
                   child: Container(
-                    height: 20.h,
+                    height: 30.h,
+                    width: 30.h,
                     decoration: AppDecoration.fillPrimary.copyWith(
-                      borderRadius: BorderRadiusStyle.roundedBorder8,
+                      borderRadius: BorderRadiusStyle.circleBorder20,
                     ),
                     child: Stack(
                       alignment: Alignment.center,
@@ -205,8 +204,8 @@ class ProductVariantBottomsheet extends StatelessWidget {
                         CustomImageView(
                           imagePath: ImageConstant
                               .imgIconsaxBrokenMinus, // Path for the minus icon
-                          height: 12.h,
-                          width: 14.h,
+                          height: 20.h,
+                          width: 20.h,
                         ),
                       ],
                     ),
@@ -215,24 +214,22 @@ class ProductVariantBottomsheet extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: 8.h), // Add some space between minus and plus
-                child: RotationTransition(
-                  turns: AlwaysStoppedAnimation(0),
-                  child: Text(
-                    "1", // Display the quantity dynamically
-                    style: CustomTextStyles.labelLargeInterDeeppurple500,
-                  ),
+                    horizontal: 10.h), // Add some space between minus and plus
+                child: Text(
+                  "1", 
+                  style: CustomTextStyles.labelLargeInterDeeppurple500,
                 ),
               ),
-              Expanded(
-                child: GestureDetector(
+              Container(
+                child: InkWell(
                   onTap: () {
                     // Handle the increment action here
                   },
                   child: Container(
-                    height: 20.h,
+                    height: 30.h,
+                    width: 30.h,
                     decoration: AppDecoration.fillPrimary.copyWith(
-                      borderRadius: BorderRadiusStyle.roundedBorder8,
+                      borderRadius: BorderRadiusStyle.circleBorder20,
                     ),
                     child: Stack(
                       alignment: Alignment.center,
@@ -240,8 +237,8 @@ class ProductVariantBottomsheet extends StatelessWidget {
                         CustomImageView(
                           imagePath: ImageConstant
                               .imgIconsaxBrokenAdd, // Path for the plus icon
-                          height: 12.h,
-                          width: 14.h,
+                          height: 20.h,
+                          width: 20.h,
                         ),
                       ],
                     ),

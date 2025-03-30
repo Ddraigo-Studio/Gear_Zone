@@ -515,6 +515,7 @@ class CustomTextStyles {
   static TextStyle get labelLargeInterDeeppurple500 =>
       theme.textTheme.labelLarge!.inter.copyWith(
     color: appTheme.deepPurple500,
+    fontSize: 15.fSize,
     fontWeight: FontWeight.w600,
   );
 
