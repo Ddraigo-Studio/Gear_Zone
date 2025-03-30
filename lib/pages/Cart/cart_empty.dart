@@ -7,7 +7,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 
 class EmptyCartScreen extends StatelessWidget {
-  const EmptyCartScreen({Key? key}) : super(key: key);
+  const EmptyCartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
