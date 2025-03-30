@@ -9,7 +9,7 @@ import '../../widgets/custom_elevated_button.dart';
 
 // ignore_for_file: must_be_immutable
 class SearchResultEmptyScreen extends StatelessWidget {
-  SearchResultEmptyScreen({Key? key}) : super(key: key);
+  SearchResultEmptyScreen({super.key});
 
   TextEditingController searchController = TextEditingController();
 

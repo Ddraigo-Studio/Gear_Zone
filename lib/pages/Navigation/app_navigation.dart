@@ -154,14 +154,9 @@ class AppNavigationScreen extends StatelessWidget {
                           context,
                           screenTitle: "Product",
                           onTapScreenTitle: () => onTapScreenTitle(
-                            context, AppRoutes.productScreen),
+                            context, AppRoutes.productDetail),
                         ),
-                        _buildScreenTitle(
-                          context,
-                          screenTitle: "Product One",
-                          onTapScreenTitle: () => onTapScreenTitle(
-                            context, AppRoutes.productOneScreen),
-                        ),
+                      
                         _buildScreenTitle(
                           context,
                           screenTitle: "Empty_Cart",

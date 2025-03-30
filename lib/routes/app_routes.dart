@@ -17,8 +17,12 @@ import '../pages/Profile/add_address_screen.dart';
 // Plash_Screen
 import '../pages/Plash_Screen/plash_screen.dart';
 
+// Setting
 import '../pages/Setting/setting_screen.dart';
+
+// Products
 import '../pages/Products/category_screen.dart';
+import '../pages/Products/product_detail.dart';
 
 // import '../pages/address_new_screen/address_new_screen.dart';
 // import '../pages/app_navigation_screen/app_navigation_screen.dart';
@@ -42,7 +46,7 @@ import '../pages/Products/category_screen.dart';
 // import '../pages/plasscreenthree_screen/plasscreenthree_screen.dart';
 // import '../pages/plasscreentwo_screen/plasscreentwo_screen.dart';
 // import '../pages/product_one_screen/product_one_screen.dart';
-// import '../pages/product_screen/product_screen.dart';
+
 // import '../pages/search_result_screen/search_result_screen.dart';
 // import '../pages/search_result_screen/search_result_empty_screen.dart';
 
@@ -67,10 +71,8 @@ class AppRoutes {
   static const String categoriestwoScreen = '/categoriestwo_screen';
   static const String searchResultEmptyScreen = '/search_result_empty_screen';
   static const String searchResultScreen = '/search_result_screen';
-  static const String productScreen = '/product_screen';
   static const String productUTabPage = '/product_u_tab_page';
-  static const String productOneScreen = '/product_one_screen';
-  static const String productTwoPage = '/product_two_page';
+  static const String productDetail = '/product_detail';
   static const String emptyCartScreen = '/empty_cart_screen';
   static const String myCartScreen = '/my_cart_screen';
   static const String checkoutScreen = '/checkout_screen';
@@ -104,7 +106,7 @@ class AppRoutes {
     // categoriestwoScreen: (context) => CategoriestwoScreen(),
     // searchResultEmptyScreen: (context) => SearchResultEmptyScreen(),
     // searchResultScreen: (context) => SearchResultScreen(),
-    // productScreen: (context) => ProductScreen(),
+    productDetail: (context) => ProductDetailScreen(),
     // productOneScreen: (context) => ProductOneScreen(),
     // emptyCartScreen: (context) => EmptyCartScreen(),
     // myCartScreen: (context) => MyCartScreen(),
