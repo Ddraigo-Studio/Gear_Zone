@@ -120,7 +120,8 @@ class AppRoutes {
     addAddressScreen: (context) => AddAddressScreen(),
     // listFavoriteScreen: (context) => ListFavoriteScreen(),
     // appNavigationScreen: (context) => AppNavigationScreen(),
-    initialRoute: (context) => HomeScreen()
+    //initialRoute: (context) => HomeScreen()
+    initialRoute: (context) => LoginScreen(),
   };
 
 
