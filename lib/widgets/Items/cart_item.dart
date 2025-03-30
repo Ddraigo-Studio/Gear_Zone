@@ -35,7 +35,6 @@ class CartItem extends StatelessWidget {
                   height: 24.h,
                   width: 24.h,
                 ),
-
               ],
             ),
           ),
@@ -120,7 +119,8 @@ class CartItem extends StatelessWidget {
                                 alignment: Alignment.center,
                                 children: [
                                   CustomImageView(
-                                    imagePath: ImageConstant.imgIconsaxBrokenMinusGray100,
+                                    imagePath: ImageConstant
+                                        .imgIconsaxBrokenMinusGray100,
                                     height: 12.h,
                                     width: 14.h,
                                   ),
@@ -145,7 +145,8 @@ class CartItem extends StatelessWidget {
                                 alignment: Alignment.center,
                                 children: [
                                   CustomImageView(
-                                    imagePath: ImageConstant.imgIconsaxBrokenAddGray100,
+                                    imagePath: ImageConstant
+                                        .imgIconsaxBrokenAddGray100,
                                     height: 12.h,
                                     width: 14.h,
                                   ),
@@ -154,16 +155,13 @@ class CartItem extends StatelessWidget {
                             ),
                           ),
                         ),
-
                       ],
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
-
         ],
       ),
     );

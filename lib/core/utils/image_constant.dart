@@ -53,7 +53,7 @@ class ImageConstant {
   static String imgThiTKChAC42x60 = '$imagePath/img_pc.png';
   static String imgImage = '$imagePath/_product_4.png';
 
-  static String imgCheckOut1 = '$imagePath/img_check_out_1.png';
+  static String imgOrderEmpty = '$imagePath/img_check_out.png';
   static String imgCheckLine = '$iconPath/img_check_line.svg';
   static String imgImage33 = '$imagePath/img_laptop_4.png';
   static String imgImage32 = '$imagePath/img_laptop_5.png';
@@ -136,4 +136,6 @@ class ImageConstant {
   static String imgGgAdd = '$iconPath/img_gg_add.svg';
   static String imgHeartIconlyProFill = '$iconPath/img_heart_iconly_pro_fill.svg';
   static String imageNotFound = 'assets/images/image_not_found.png';
+
+  static String imgNapas = '$iconPath/icon_napas.svg';
 }
