@@ -130,7 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-
                     _buildTextField(
                       label: "Email",
                       hint: "Nhập email",
@@ -138,7 +137,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       focusNode: _emailFocus,
                     ),
                     const SizedBox(height: 15),
-
                     _buildTextField(
                       label: "Mật khẩu",
                       hint: "Nhập mật khẩu",
@@ -147,7 +145,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       isPassword: true,
                     ),
                     const SizedBox(height: 20),
-
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -170,11 +167,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 40),
-
                     Center(
                       child: GestureDetector(
-                        onTap: () {
-                        },
+                        onTap: () {},
                         child: RichText(
                           text: const TextSpan(
                             text: "Đã có tài khoản? ",
@@ -196,6 +191,81 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: Text(
+                        "Hoặc đăng nhập bằng",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Nút đăng nhập Google
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            // Xử lý đăng nhập Google
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: const BorderSide(color: Colors.grey),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.g_mobiledata, // Hoặc Icons.g_translate
+                            color: Colors.red, // Google màu đỏ
+                            size: 24,
+                          ),
+                          label: const Text(
+                            "Google",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+
+                        // Nút đăng nhập Facebook
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            // Xử lý đăng nhập Facebook
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[800],
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons
+                                .facebook, // Dùng Google Fonts Icon thay vì ảnh
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          label: const Text(
+                            "Facebook",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

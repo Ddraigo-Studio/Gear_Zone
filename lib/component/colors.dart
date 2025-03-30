@@ -14,3 +14,4 @@ const LinearGradient kGradientAuth = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
 );
+
