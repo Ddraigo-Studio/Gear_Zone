@@ -12,6 +12,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  
   int _currentIndex = 0;
 
   // Mảng các màn hình ứng với từng index
@@ -25,9 +26,9 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: appTheme.whiteA700,
       resizeToAvoidBottomInset: false,
       body: SafeArea(
+        top: false,
         child: IndexedStack(
           index: _currentIndex,
           children: _screens,

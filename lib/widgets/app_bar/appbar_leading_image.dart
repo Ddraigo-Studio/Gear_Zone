@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import 'appbar_image.dart';
 
 class AppbarLeadingImage extends StatelessWidget {
   const AppbarLeadingImage({
@@ -21,20 +22,11 @@ class AppbarLeadingImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: margin ?? EdgeInsets.zero,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28.h), 
-        onTap: () {
-          onTap?.call();
-        },
-        child: ClipOval( 
-          child: CustomImageView(
-            imagePath: imagePath!,
-            height: height ?? 15.h,
-            width: width ?? 15.h,
-            fit: BoxFit.contain,  
-          ),
+      child: AppbarImage(
+          imagePath: imagePath,
+          height: height ?? 20.h,
+          width: width ?? 20.h,
         ),
-      ),
     );
   }
 }

@@ -21,16 +21,11 @@ class AppbarImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: margin ?? EdgeInsets.zero,
-      child: InkWell(
-        onTap: () {
-          onTap?.call();
-        },
-        child: CustomImageView(
+      child: CustomImageView(
           imagePath: imagePath!,
-          height: height ?? 14.h,
+          height: height ?? 16.h,
           width: width ?? 16.h,
           fit: BoxFit.contain,
-        ),
       ),
     );
   }
