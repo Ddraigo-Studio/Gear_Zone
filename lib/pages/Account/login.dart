@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gear_zone/component/colors.dart';
+import 'package:gear_zone/pages/Home/home_initial_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,79 +11,47 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final FocusNode _emailFocus = FocusNode();
-  final FocusNode _passwordFocus = FocusNode();
-  final FocusNode _confirmPasswordFocus = FocusNode();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
+  bool _isLoading = false; // Biến để hiển thị loading khi đăng nhập
 
-    _emailFocus.addListener(() => setState(() {}));
-    _passwordFocus.addListener(() => setState(() {}));
-    _confirmPasswordFocus.addListener(() => setState(() {}));
-  }
+  // Hàm xử lý đăng nhập Firebase
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-  @override
-  void dispose() {
-    _emailFocus.dispose();
-    _passwordFocus.dispose();
-    _confirmPasswordFocus.dispose();
-    super.dispose();
-  }
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-  Widget _buildTextField({
-    required String label,
-    required String hint,
-    required IconData icon,
-    required FocusNode focusNode,
-    bool isPassword = false,
-  }) {
-    bool isFocused = focusNode.hasFocus;
+      // Nếu đăng nhập thành công -> Chuyển qua trang Home
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeInitialPage()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = "Đăng nhập thất bại!";
+      if (e.code == 'user-not-found') {
+        message = "Không tìm thấy tài khoản!";
+      } else if (e.code == 'wrong-password') {
+        message = "Sai mật khẩu!";
+      }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isFocused ? ksecondaryColor : Colors.black,
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          focusNode: focusNode,
-          obscureText: isPassword,
-          decoration: InputDecoration(
-            prefixIcon: Icon(
-              icon,
-              color: isFocused ? ksecondaryColor : Colors.grey,
-            ),
-            hintText: hint,
-            filled: true,
-            fillColor: kbackgroundColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: isFocused ? ksecondaryColor : Colors.transparent,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: ksecondaryColor,
-                width: 2,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -91,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Column(
         children: [
           const SizedBox(height: 40),
+          // Ảnh logo
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -100,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
           const SizedBox(height: 20),
+
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -114,41 +86,52 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Tiêu đề đăng nhập
                     Center(
-                      child: ShaderMask(
-                        shaderCallback: (Rect bounds) {
-                          return kGradientAuth.createShader(bounds);
-                        },
-                        child: const Text(
-                          "Đăng nhập",
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                      child: Text(
+                        "Đăng nhập",
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _buildTextField(
-                      label: "Email",
-                      hint: "Nhập email",
-                      icon: Icons.email_outlined,
-                      focusNode: _emailFocus,
+
+                    // Ô nhập Email
+                    TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 15),
-                    _buildTextField(
-                      label: "Mật khẩu",
-                      hint: "Nhập mật khẩu",
-                      icon: Icons.lock_outline,
-                      focusNode: _passwordFocus,
-                      isPassword: true,
+
+                    // Ô nhập Mật khẩu
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: "Mật khẩu",
+                        prefixIcon: Icon(Icons.lock_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 20),
+
+                    // Nút Đăng nhập
                     SizedBox(
                       width: double.infinity,
+                      height: 50,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kbuttonColor,
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -156,116 +139,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(100),
                           ),
                         ),
-                        child: const Text(
-                          "Đăng nhập",
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: RichText(
-                          text: const TextSpan(
-                            text: "Đã có tài khoản? ",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: "Đăng nhập ngay",
+                        child: _isLoading
+                            ? CircularProgressIndicator(color: Colors.white)
+                            : Text(
+                                "Đăng nhập",
                                 style: TextStyle(
-                                  color: Color(0xFF894FC8),
-                                  fontSize: 16,
+                                  fontSize: 18,
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Text(
-                        "Hoặc đăng nhập bằng",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Nút đăng nhập Google
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            // Xử lý đăng nhập Google
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: const BorderSide(color: Colors.grey),
-                            ),
-                          ),
-                          icon: const Icon(
-                            Icons.g_mobiledata, // Hoặc Icons.g_translate
-                            color: Colors.red, // Google màu đỏ
-                            size: 24,
-                          ),
-                          label: const Text(
-                            "Google",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-
-                        // Nút đăng nhập Facebook
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            // Xử lý đăng nhập Facebook
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[800],
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          icon: const Icon(
-                            Icons
-                                .facebook, // Dùng Google Fonts Icon thay vì ảnh
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                          label: const Text(
-                            "Facebook",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
