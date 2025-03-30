@@ -35,7 +35,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       elevation: 0,
       shape: shape,
-      toolbarHeight: height ?? 56.h,
+      toolbarHeight: height ?? 80.h,
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
       flexibleSpace: _getStyle(),
@@ -51,7 +51,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => Size(
         SizeUtils.width,
-        height ?? 56.h,
+        height ?? 80.h,
       );
 
   _getStyle() {
@@ -71,7 +71,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 blurRadius: 2.h,
                 offset: Offset(
                   0,
-                  2,
+                  1,
                 ),
               ),
             ],
@@ -93,7 +93,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 blurRadius: 2.h,
                 offset: Offset(
                   0,
-                  2,
+                  1,
                 ),
               ),
             ],
@@ -115,7 +115,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 blurRadius: 2.h,
                 offset: Offset(
                   0,
-                  2,
+                  1,
                 ),
               ),
             ],
@@ -124,7 +124,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       case Style.bgFillWhiteA700:
         return Container(
-          height: 72.h,
+          height: 88.h,
           width: double.maxFinite,
           decoration: BoxDecoration(
             color: appTheme.whiteA700,

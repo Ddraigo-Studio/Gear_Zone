@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:responsive_grid_list/responsive_grid_list.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
+import '../../widgets/Items/product_carousel_item_widget.dart';
 import '../../widgets/Items/search_results_grid_item_widget.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton_one.dart';
 import '../../widgets/app_bar/appbar_title_searchview.dart';
@@ -12,10 +13,7 @@ import '../../widgets/custom_icon_button.dart';
 
 // ignore_for_file: must_be_immutable
 class SearchResultScreen extends StatelessWidget {
-  SearchResultScreen({Key? key})
-      : super(
-          key: key,
-        );
+  SearchResultScreen({super.key});
 
   TextEditingController searchController = TextEditingController();
 
@@ -153,6 +151,25 @@ class SearchResultScreen extends StatelessWidget {
 
   /// Section Widget
   Widget _buildSearchResultsGrid(BuildContext context) {
+    final List<Map<String, String>> products = [
+      {
+        'imagePath': ImageConstant.imgImage1,
+        'productName': 'Huawei Matebook X13',
+        'discountPrice': '17.390.000đ',
+        'originalPrice': '20.990.000đ',
+        'discountPercent': '31%',
+        'rating': '5.0',
+      },
+      {
+        'imagePath': ImageConstant.imgProduct4,
+        'productName': 'Dell XPS 13',
+        'discountPrice': '21.990.000đ',
+        'originalPrice': '24.990.000đ',
+        'discountPercent': '20%',
+        'rating': '4.5',
+      },
+      // Thêm các sản phẩm khác ở đây
+    ];
     return Expanded(
       child: ResponsiveGridListBuilder(
         minItemWidth: 1,
@@ -167,13 +184,113 @@ class SearchResultScreen extends StatelessWidget {
           children: items,
         ),
         gridItems: List.generate(
-          6,
+          products.length,
           (index) {
-            return SearchResultsGridItemWidget();
+            final product = products[index];
+            return ProductCarouselItem(
+              imagePath: product['imagePath']!,
+              productName: product['productName']!,
+              discountPrice: product['discountPrice']!,
+              originalPrice: product['originalPrice']!,
+              discountPercent: product['discountPercent']!,
+              rating: product['rating']!,
+            );
           },
         ),
       ),
     );
   }
+
+  /// Section Widget
+  Widget _buildPaginationControls(BuildContext context) {
+    return Container(
+      width: double.maxFinite,
+      margin: EdgeInsets.symmetric(horizontal: 8.h),
+      child: Row(
+        children: [
+          CustomIconButton(
+            height: 34.h,
+            width: 34.h,
+            padding: EdgeInsets.all(6.h),
+            decoration: IconButtonStyleHelper.outlineDeepPurpleA,
+            child: CustomImageView(
+              imagePath: ImageConstant.imgArrowLeft,
+            ),
+          ),
+          Container(
+            width: 34.h,
+            height: 34.h,
+            alignment: Alignment.center,
+            decoration: AppDecoration.secondaryVariant100.copyWith(
+              borderRadius: BorderRadiusStyle.roundedBorder16,
+            ),
+            child: Text(
+              "1",
+              textAlign: TextAlign.center,
+              style: CustomTextStyles.labelLargePoppinsDeeppurple500,
+            ),
+          ),
+          Container(
+            width: 34.h,
+            height: 34.h,
+            alignment: Alignment.center,
+            decoration: AppDecoration.fillDeepPurpleA.copyWith(
+              borderRadius: BorderRadiusStyle.roundedBorder16,
+            ),
+            child: Text(
+              "2",
+              textAlign: TextAlign.center,
+              style: CustomTextStyles.labelLargePoppinsDeeppurple50,
+            ),
+          ),
+          Container(
+            width: 34.h,
+            height: 34.h,
+            alignment: Alignment.center,
+            decoration: AppDecoration.secondaryVariant100.copyWith(
+              borderRadius: BorderRadiusStyle.roundedBorder16,
+            ),
+            child: Text(
+              "3",
+              textAlign: TextAlign.center,
+              style: CustomTextStyles.labelLargePoppinsDeeppurple500,
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Text(
+              "...",
+              style: CustomTextStyles.bodyMediumPoppinsBluegray300,
+            ),
+          ),
+          Container(
+            width: 34.h,
+            height: 34.h,
+            alignment: Alignment.center,
+            decoration: AppDecoration.secondaryVariant100.copyWith(
+              borderRadius: BorderRadiusStyle.roundedBorder16,
+            ),
+            child: Text(
+              "15",
+              textAlign: TextAlign.center,
+              style: CustomTextStyles.labelLargePoppinsDeeppurple500,
+            ),
+          ),
+          CustomIconButton(
+            height: 34.h,
+            width: 34.h,
+            padding: EdgeInsets.all(6.h),
+            decoration: IconButtonStyleHelper.outlineDeepPurpleA,
+            child: CustomImageView(
+              imagePath: ImageConstant.imgArrowRightDeepPurple500,
+            ),
+          ),
+
+
+        ],
+      ),
+    );
+  }
+
 
 }

@@ -43,21 +43,14 @@ Widget get buildElevatedButtonWidget => Container(
         style: buttonStyle,
         onPressed: isDisabled ?? false ? null : onPressed ?? () {},
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.h),
-              child: Row( 
-                children: [
-                  leftIcon ?? const SizedBox.shrink(),
-                  Text(
-                    text,
-                    style:
-                        buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
-                  ),
-                ],
-              ),
+            leftIcon ?? const SizedBox.shrink(),
+            Text(
+              text,
+              style:
+                  buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
             ),
             rightIcon ?? const SizedBox.shrink()
           ],

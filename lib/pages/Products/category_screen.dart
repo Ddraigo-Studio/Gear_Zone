@@ -11,12 +11,12 @@ class CategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: appTheme.whiteA700,
-      appBar: _buildAppBar(context),
-      body: SafeArea(
-        top: false,
-        child: Container(
+    return SafeArea(
+      top: true,
+      child: Scaffold(
+        backgroundColor: appTheme.whiteA700,
+        appBar: _buildAppBar(context),
+        body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.only(
             top: 16.h,
@@ -38,43 +38,54 @@ class CategoriesScreen extends StatelessWidget {
 
   /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      height: 70.h,
-      leadingWidth: 50.h,
-      leading: Container(
-        padding: const EdgeInsets.all(4.0),
-        child: AppbarLeadingImage(
+    return AppBar(
+      elevation: 2,
+      toolbarHeight: 80.h,
+      backgroundColor: Colors.white,
+      leading: IconButton(
+        icon: AppbarLeadingImage(
           imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-          width: 50.h,
-          
-          margin: EdgeInsets.only(top: 10.h, bottom: 10.h),
+          height: 25.h,
+          width: 25.h,
         ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
       ),
       title: Text(
         "Danh mục",
-        style: CustomTextStyles.titleLargeGabaritoBlack900,
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
+      centerTitle: true, // Nếu muốn tiêu đề căn giữa
       actions: [
-        Container(
-          width: 50.h,
-          height: 50.h,
-          margin: EdgeInsets.only(right: 16.h),
-          decoration: AppDecoration.outlineBlack.copyWith(
-            borderRadius: BorderRadiusStyle.circleBorder28,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                offset: Offset(0, 2),
-                blurRadius: 2,
-              ),
-            ]
+        IconButton(
+          icon: Container(
+            width: 45.h,
+            height: 45.h,
+            decoration: AppDecoration.fillDeepPurpleF.copyWith(
+              borderRadius: BorderRadiusStyle.circleBorder28,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  offset: Offset(0, 2),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+            padding: EdgeInsets.all(8.h),
+            child: AppbarImage(
+              imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
+              height: 20.h,
+              width: 20.h,
+            ),
           ),
-          padding: EdgeInsets.all(8.h),
-          child: AppbarImage(
-            imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
-            height: 20.h,
-            width: 20.h,
-          ),
+          onPressed: () {
+            // Hành động khi nhấn vào nút giỏ hàng
+          },
         ),
       ],
     );
@@ -87,8 +98,6 @@ class CategoriesScreen extends StatelessWidget {
         minItemWidth: 1,
         minItemsPerRow: 2,
         maxItemsPerRow: 2,
-        // horizontalGridSpacing: 0.h,
-        // verticalGridSpacing: 00.h,
         builder: (context, items) => ListView(
           shrinkWrap: true,
           padding: EdgeInsets.zero,

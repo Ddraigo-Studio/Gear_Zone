@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../pages/Products/product_detail.dart';
 import '../../widgets/custom_icon_button.dart';
 
 class ProductCarouselItem extends StatelessWidget {
@@ -24,13 +25,22 @@ class ProductCarouselItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        
-        // Navigator.pushNamed(context, '/product_detail', arguments: {'productName': productName});
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProductDetailScreen()),
+        );
       },
       child: Container(
         width: 165.h,
         decoration: AppDecoration.fillGray.copyWith(
           borderRadius: BorderRadiusStyle.roundedBorder16,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              offset: Offset(0, 2),
+              blurRadius: 2,
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -52,6 +62,9 @@ class ProductCarouselItem extends StatelessWidget {
                     child: CustomImageView(
                       imagePath: ImageConstant.imgHeartIconlyPro,
                     ),
+                    onTap: () {
+                      // Add your custom logic here
+                    },
                   ),
                   SizedBox(height: 14.h),
                   CustomImageView(
@@ -61,24 +74,22 @@ class ProductCarouselItem extends StatelessWidget {
                     fit: BoxFit.contain,
                   ),
                   SizedBox(height: 18.h),
-                  _ProductTitle(
-                      title: productName), // Tái sử dụng widget cho tên sản phẩm
+                  _ProductTitle(title: productName), // tên sản phẩm
                   SizedBox(height: 4.h),
                   _ProductPrice(
                     originalPrice: originalPrice,
                     discountPrice: discountPrice,
                     discountPercent: discountPercent,
-                  ), // Tái sử dụng widget cho giá
+                  ),
                   SizedBox(height: 4.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _ProductRating(
-                          rating: rating), // Tái sử dụng widget cho đánh giá
+                      _ProductRating(rating: rating),
                       SizedBox(height: 4.h),
                       _AddToCartButton(),
                     ],
-                  ) // Tái sử dụng widget cho nút thêm vào giỏ hàng
+                  ) //  nút thêm vào giỏ hàng
                 ],
               ),
             ),
@@ -93,7 +104,7 @@ class ProductCarouselItem extends StatelessWidget {
 class _ProductTitle extends StatelessWidget {
   final String title;
 
-  const _ProductTitle({super.key, required this.title});
+  const _ProductTitle({required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +128,6 @@ class _ProductPrice extends StatelessWidget {
   final String discountPercent;
 
   const _ProductPrice({
-    super.key,
     required this.originalPrice,
     required this.discountPrice,
     required this.discountPercent,
@@ -128,7 +138,6 @@ class _ProductPrice extends StatelessWidget {
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 6.h),
-      
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -181,7 +190,7 @@ class _ProductPrice extends StatelessWidget {
 class _ProductRating extends StatelessWidget {
   final String rating;
 
-  const _ProductRating({super.key, required this.rating});
+  const _ProductRating({required this.rating});
 
   @override
   Widget build(BuildContext context) {
@@ -217,6 +226,9 @@ class _AddToCartButton extends StatelessWidget {
       child: CustomImageView(
         imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
       ),
+      onTap: () {
+        // Add your custom logic here
+      },
     );
   }
 }
