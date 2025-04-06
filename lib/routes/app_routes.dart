@@ -4,53 +4,45 @@ import 'package:flutter/material.dart';
 import '../pages/Account/login.dart';
 import '../pages/Account/signup.dart';
 
-//Home
-import '../pages/Home/home_screen.dart';
+// Cart
+import '../pages/Cart/cart_screen.dart';
+
+// Checkout
+import '../pages/Checkout/checkout_screen.dart';
+import '../pages/Checkout/payment_method_screen.dart';
+import '../pages/Checkout/payment_success.dart';
 
 // Create_Profile
 import '../pages/Create_Profile/add_profile_screen.dart';
 import '../pages/Create_Profile/address_new_screen.dart';
 
-// Profile
-import '../pages/Profile/add_address_screen.dart';
+//Home
+import '../pages/Home/home_screen.dart';
+import '../pages/Home/home_initial_page.dart'; // Add this import for HomeInitialPage
+
+// Order
+import '../pages/Order/order_history_screen.dart';
 
 // Plash_Screen
 import '../pages/Plash_Screen/plash_screen.dart';
-
-// Setting
-import '../pages/Setting/setting_screen.dart';
 
 // Products
 import '../pages/Products/category_screen.dart';
 import '../pages/Products/product_detail.dart';
 
-// import '../pages/address_new_screen/address_new_screen.dart';
-// import '../pages/app_navigation_screen/app_navigation_screen.dart';
+// Profile
+import '../pages/Profile/edit_profile_screen.dart';
+import '../pages/Profile/list_address_screen.dart'; 
+import '../pages/Profile/add_address_screen.dart'; 
 
-// import '../pages/categoriestwo_screen/categoriestwo_screen.dart';
-// import '../pages/checkout_screen/checkout_screen.dart';
-// import '../pages/edit_profile_screen/edit_profile_screen.dart';
-// import '../pages/empty_cart_screen/empty_cart_screen.dart';
+// Search Product
+import '../pages/Search_Product/search_result_screen.dart';
 
-// import '../pages/list_address_screen/list_address_screen.dart';
-// import '../pages/list_favorite_screen/list_favorite_screen.dart';
-// import '../pages/method_checkout_screen/method_checkout_screen.dart';
-// import '../pages/my_cart_screen/my_cart_screen.dart';
-// import '../pages/notification_empty_screen/notification_empty_screen.dart';
-// import '../pages/notifications_screen/notifications_screen.dart';
-// import '../pages/order_placed_screen/order_placed_screen.dart';
-// import '../pages/orders_detail_screen/orders_detail_screen.dart';
-// import '../pages/orders_history_empty_screen/orders_history_empty_screen.dart';
-// import '../pages/orders_history_screen/orders_history_screen.dart';
-// import '../pages/plasscreenthree_one_screen/plasscreenthree_one_screen.dart';
-// import '../pages/plasscreenthree_screen/plasscreenthree_screen.dart';
-// import '../pages/plasscreentwo_screen/plasscreentwo_screen.dart';
-// import '../pages/product_one_screen/product_one_screen.dart';
+// Setting
+import '../pages/Setting/setting_screen.dart';
 
-// import '../pages/search_result_screen/search_result_screen.dart';
-// import '../pages/search_result_screen/search_result_empty_screen.dart';
+import '../pages/Voucher/voucher_detail_screen.dart';
 
-// import '../pages/voucher_detail_screen/voucher_detail_screen.dart';
 
 class AppRoutes {
   static const String addProfileScreen = '/add_profile_screen';
@@ -74,10 +66,10 @@ class AppRoutes {
   static const String productUTabPage = '/product_u_tab_page';
   static const String productDetail = '/product_detail';
   static const String emptyCartScreen = '/empty_cart_screen';
-  static const String myCartScreen = '/my_cart_screen';
+  static const String myCartScreen = '/cart_screen';
   static const String checkoutScreen = '/checkout_screen';
-  static const String methodCheckoutScreen = '/method_checkout_screen';
-  static const String orderPlacedScreen = '/order_placed_screen';
+  static const String methodCheckoutScreen = '/payment_method_screen';
+  static const String orderPlacedScreen = '/payment_success';
   static const String voucherDetailScreen = '/voucher_detail_screen';
   static const String settingsScreen = '/setting_screen';
   static const String editProfileScreen = '/edit_profile_screen';
@@ -93,37 +85,19 @@ class AppRoutes {
     login: (context) => LoginScreen(),
     signup: (context) => SignUpScreen(),
     homeScreen: (context) => HomeScreen(),
-    // plashscreentwoScreen: (context) => PlashscreentwoScreen(),
+    homeInitialPage: (context) => HomeInitialPage(), 
     plashScreen: (context) => PlashScreenScreen(),
-    // plashscreenthreeScreen: (context) => PlashscreenthreeScreen(),
-    // plashscreenthreeOneScreen: (context) => PlashscreenthreeOneScreen(),
-    // notificationEmptyScreen: (context) => NotificationEmptyScreen(),
-    // notificationsScreen: (context) => NotificationsScreen(),
-    // ordersHistoryScreen: (context) => OrdersHistoryScreen(),
-    // ordersHistoryEmptyScreen: (context) => OrdersHistoryEmptyScreen(),
-    // ordersDetailScreen: (context) => OrdersDetailScreen(),
     categoriesScreen: (context) => CategoriesScreen(),
-    // categoriestwoScreen: (context) => CategoriestwoScreen(),
-    // searchResultEmptyScreen: (context) => SearchResultEmptyScreen(),
-    // searchResultScreen: (context) => SearchResultScreen(),
     productDetail: (context) => ProductDetailScreen(),
-    // productOneScreen: (context) => ProductOneScreen(),
-    // emptyCartScreen: (context) => EmptyCartScreen(),
-    // myCartScreen: (context) => MyCartScreen(),
-    // checkoutScreen: (context) => CheckoutScreen(),
-    // methodCheckoutScreen: (context) => MethodCheckoutScreen(),
-    // orderPlacedScreen: (context) => OrderPlacedScreen(),
+    myCartScreen: (context) => MyCartScreen(),
+    checkoutScreen: (context) => CheckoutScreen(), 
+    methodCheckoutScreen: (context) => PaymentMethodScreen(), 
+    // orderPlacedScreen: (context) => PaymentSuccess(), 
     // voucherDetailScreen: (context) => VoucherDetailScreen(),
     settingsScreen: (context) => SettingsScreen(),
-    // editProfileScreen: (context) => EditProfileScreen(),
-    // listAddressScreen: (context) => ListAddressScreen(),
+    editProfileScreen: (context) => EditProfileScreen(), 
+    listAddressScreen: (context) => ListAddressScreen(), 
     addAddressScreen: (context) => AddAddressScreen(),
-    // listFavoriteScreen: (context) => ListFavoriteScreen(),
-    // appNavigationScreen: (context) => AppNavigationScreen(),
-    //initialRoute: (context) => HomeScreen()
-    initialRoute: (context) => LoginScreen(),
+    initialRoute: (context) => HomeScreen(),
   };
-
-
-
 }

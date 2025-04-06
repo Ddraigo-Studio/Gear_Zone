@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: ksecondaryColor,
       body: Column(
         children: [
-          const SizedBox(height: 40),
+          const SizedBox(height: 60),
           // Ảnh logo
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Image.asset('lib/images/imagesecond.png', height: 120),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 40),
 
           Expanded(
             child: Container(
