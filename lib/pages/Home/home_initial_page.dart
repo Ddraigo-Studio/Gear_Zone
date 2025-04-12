@@ -124,7 +124,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildRencentlyViewedSection(context),
+                    _buildWishListSection(context),
                     SizedBox(height: 24.h),
                   ],
                 ),
@@ -164,7 +164,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   /// Section Widget: AppBar
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      elevation: 2,
       toolbarHeight: 75.h,
       backgroundColor: appTheme.deepPurple400,
       leadingWidth: 70.h,
@@ -237,7 +236,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       
     );
   }
-
 
   /// Section Widget
   Widget _buildBannerSection(BuildContext context) {
@@ -499,7 +497,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     );
   }
 
-  Widget _buildRencentlyViewedSection(BuildContext context) {
+  Widget _buildWishListSection(BuildContext context) {
     final List<Map<String, String>> products = [
       {
         'imagePath': ImageConstant.imgImage1,
