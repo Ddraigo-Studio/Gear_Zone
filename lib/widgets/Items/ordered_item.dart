@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../../../widgets/custom_elevated_button.dart';
 import '../../../widgets/custom_outlined_button.dart';
+import '../../theme/custom_button_style.dart';
 
 class OrderedItem extends StatelessWidget {
   final String imagePath;
@@ -28,39 +29,28 @@ class OrderedItem extends StatelessWidget {
   /// Hàm xác định màu cho ô trạng thái (label) dựa theo status
   Color _getStatusColor() {
     switch (status) {
-      case 'Chờ xác nhận':
-      case 'Chờ xử lý': // Nếu bạn có thêm trạng thái này
+      case 'Chờ xử lý':
         return const Color(0xFFFF7E5F); // Deep Orange
-      case 'Chờ giao hàng':
-        return Colors.blue;
-      case 'Đã giao':
-        return Colors.green;
+      case 'Đang giao':
+        return Color(0xfffe5a5a);
+      case 'Đã nhận':
+        return Color(0xff6dd176);
       case 'Trả hàng':
-        return Colors.purple;
+        return Colors.black;
       case 'Đã hủy':
         return Colors.grey;
       default:
-        return Colors.black;
+        return  const Color(0xFFFF7E5F);
     }
   }
 
   /// Hàm xác định màu cho nút “Đánh giá” dựa theo status
-  /// Có thể giống _getStatusColor() hoặc tùy chỉnh khác nhau.
   Color _getReviewButtonColor() {
     switch (status) {
-      case 'Chờ xác nhận':
-      case 'Chờ xử lý':
-        return const Color(0xFFFF7E5F);
-      case 'Chờ giao hàng':
-        return Colors.blue;
-      case 'Đã giao':
-        return Colors.green;
-      case 'Trả hàng':
-        return Colors.purple;
-      case 'Đã hủy':
-        return Colors.grey;
+      case 'Đã nhận':
+        return Color(0xfff2655d);
       default:
-        return Colors.black;
+        return Colors.grey;
     }
   }
 
@@ -70,7 +60,7 @@ class OrderedItem extends StatelessWidget {
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.only(bottom: 8.h),
-      padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 8.h),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(8.h),
@@ -78,19 +68,18 @@ class OrderedItem extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Thông tin sản phẩm + Trạng thái
+          // Thông tin sản phẩm + trạng thái
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Ảnh sản phẩm
               Container(
-                height: 42.h,
+                height: 60.h,
                 width: 60.h,
                 margin: EdgeInsets.only(bottom: 6.h),
-                color: Colors.white, // Demo
-                child: Image.asset(imagePath, fit: BoxFit.cover),
+                child: Image.asset(imagePath, fit: BoxFit.contain),
               ),
-              // Thông tin
+              // Thông tin chi tiết
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.only(left: 16.h),
@@ -116,7 +105,7 @@ class OrderedItem extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 2.h),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        // color: statusColor.withOpacity(0.1),
                         border: Border.all(color: statusColor),
                         borderRadius: BorderRadius.circular(8.h),
                       ),
@@ -126,7 +115,7 @@ class OrderedItem extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    // Giá
+                    // Giá sản phẩm
                     Text(
                       "${price.toStringAsFixed(2)}",
                       style: CustomTextStyles.bodySmallBalooBhaiRed500,
@@ -134,55 +123,82 @@ class OrderedItem extends StatelessWidget {
                   ],
                 ),
               ),
+              
             ],
           ),
+          if (status == "Đã nhận")
+            DeliverySuccessWidget(
+              dateText: "12/03/2025",
+              onReturnPressed: () {
+                // Xử lý khi nhấn nút Trả hàng/hoàn tiền
+              },
+              onConfirmReceived: () {
+                // Xử lý khi nhấn nút Đã nhận được hàng
+              },
+            ),
           SizedBox(height: 16.h),
-          // Nút “Đánh giá” + “Chi tiết”
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _buildReviewButton(),
-              SizedBox(width: 16.h),
-              _buildDetailsButton(),
-            ],
-          ),
+          if(status != "Đã nhận")
+            SizedBox(
+              
+              width: double.maxFinite,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _buildReviewButton(),
+                  SizedBox(width: 16.h),
+                  _buildDetailsButton(),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 
-  /// Tạo nút “Đánh giá” với màu tùy theo status
+  /// Nút “Đánh giá” với màu tự quy định theo status
   Widget _buildReviewButton() {
     final reviewColor = _getReviewButtonColor();
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(color: reviewColor),
-        foregroundColor: reviewColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.h),
+    return SizedBox(
+      height: 34.h,
+      width: 120.h,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: reviewColor),
+          foregroundColor: reviewColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.h),
+          ),
         ),
+        onPressed: onReviewPressed,
+        child:  Text("Đánh giá", style: CustomTextStyles.titleSmallInterGray700),
       ),
-      onPressed: onReviewPressed,
-      child: const Text("Đánh giá"),
     );
   }
 
-  /// Nút “Chi tiết” (giữ màu mặc định hoặc tuỳ ý bạn)
+  /// Nút “Chi tiết” với màu mặc định (có thể tùy chỉnh)
   Widget _buildDetailsButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: theme.colorScheme.primary, // Màu chính
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.h),
+    return SizedBox(
+      height: 34.h,
+      width: 120.h,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: theme.colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.h),
+          ),
+        ),
+        onPressed: onDetailsPressed,
+        child: Text(
+          "Chi tiết" ,
+          style: CustomTextStyles.titleSmallWhiteA700,
         ),
       ),
-      onPressed: onDetailsPressed,
-      child: const Text("Chi tiết"),
     );
   }
+
 }
 
-
+/// Widget hiển thị thông báo "Giao hàng thành công"
 class DeliverySuccessWidget extends StatelessWidget {
   final String dateText;
   final VoidCallback? onReturnPressed;
@@ -216,6 +232,9 @@ class DeliverySuccessWidget extends StatelessWidget {
           ),
           SizedBox(height: 12.h),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
             children: [
               Expanded(
                 child: OutlinedButton(
@@ -226,8 +245,9 @@ class DeliverySuccessWidget extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.h),
                     ),
+                    minimumSize: Size(double.infinity, 48.h),
                   ),
-                  child: const Text('Trả hàng/hoàn tiền'),
+                  child: Text('Trả hàng/hoàn tiền', style: CustomTextStyles.titleSmallInterGray700),
                 ),
               ),
               SizedBox(width: 16.h),
@@ -239,8 +259,12 @@ class DeliverySuccessWidget extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.h),
                     ),
+                    minimumSize: Size(double.infinity, 48.h), 
                   ),
-                  child: const Text('Đã nhận được hàng'),
+                  child: Text(
+                    'Đã nhận được hàng',
+                    style: CustomTextStyles.titleSmallWhiteA700, 
+                  ),
                 ),
               ),
             ],

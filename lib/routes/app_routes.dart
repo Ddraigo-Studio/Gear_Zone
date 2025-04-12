@@ -21,6 +21,7 @@ import '../pages/Home/home_screen.dart';
 import '../pages/Home/home_initial_page.dart'; // Add this import for HomeInitialPage
 
 // Order
+import '../pages/Order/order_detail_screen.dart';
 import '../pages/Order/order_history_screen.dart';
 
 // Plash_Screen
@@ -55,15 +56,12 @@ class AppRoutes {
   static const String notificationEmptyScreen = '/notification_empty_screen';
   static const String notificationsScreen = '/notifications_screen';
   static const String ordersHistoryScreen = '/orders_history_screen';
-  static const String ordersTabPage = '/orders_tab_page';
   static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
-  static const String ordersTab1Page = '/orders_tab1_page';
-  static const String ordersDetailScreen = '/orders_detail_screen';
+  static const String ordersDetailScreen = '/order_detail_screen';
   static const String categoriesScreen = '/category_screen';
   static const String categoriestwoScreen = '/categoriestwo_screen';
   static const String searchResultEmptyScreen = '/search_result_empty_screen';
   static const String searchResultScreen = '/search_result_screen';
-  static const String productUTabPage = '/product_u_tab_page';
   static const String productDetail = '/product_detail';
   static const String emptyCartScreen = '/empty_cart_screen';
   static const String myCartScreen = '/cart_screen';
@@ -91,7 +89,8 @@ class AppRoutes {
     productDetail: (context) => ProductDetailScreen(),
     myCartScreen: (context) => MyCartScreen(),
     checkoutScreen: (context) => CheckoutScreen(), 
-    methodCheckoutScreen: (context) => PaymentMethodScreen(), 
+    methodCheckoutScreen: (context) => PaymentMethodScreen(),
+    ordersDetailScreen: (context) => OrdersDetailScreen(), 
     // orderPlacedScreen: (context) => PaymentSuccess(), 
     // voucherDetailScreen: (context) => VoucherDetailScreen(),
     settingsScreen: (context) => SettingsScreen(),

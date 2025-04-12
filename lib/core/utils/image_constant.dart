@@ -54,7 +54,7 @@ class ImageConstant {
   static String imgImage = '$imagePath/_product_4.png';
 
   static String imgOrderEmpty = '$imagePath/img_check_out.png';
-  static String imgCheckLine = '$iconPath/img_check_line.svg';
+  static String imgCheckLine = '$iconPath/icon_check-line.svg';
   static String imgImage33 = '$imagePath/img_laptop_4.png';
   static String imgImage32 = '$imagePath/img_laptop_5.png';
 
@@ -138,4 +138,5 @@ class ImageConstant {
   static String imageNotFound = 'assets/images/image_not_found.png';
 
   static String imgNapas = '$iconPath/icon_napas.svg';
+  static String imgDiscount = '$iconPath/icon_discount-fill.svg';
 }

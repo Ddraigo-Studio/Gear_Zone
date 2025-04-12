@@ -13,23 +13,21 @@ class OrderTimeLineItem extends StatelessWidget {
         CustomIconButton(
           height: 24.h,
           width: 24.h,
-          padding: EdgeInsets.all(8.h),
+          padding: EdgeInsets.all(6.h),
           decoration: IconButtonStyleHelper.fillPrimary,
           child: CustomImageView(
             imagePath: ImageConstant.imgCheckLine,
           ),
         ),
-        Container(
-          width: 120.h,
-          margin: EdgeInsets.only(left: 12.h),
+        SizedBox(width: 12.h),
+        Expanded(
           child: Text(
             "Thời gian đặt hàng",
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium,
+            style: CustomTextStyles.titleMediumBalooBhai2Gray700.copyWith(fontSize: 14.h),
           ),
         ),
-        Spacer(),
         Text(
           "02-10-2024",
           style: CustomTextStyles.bodyMedium13,

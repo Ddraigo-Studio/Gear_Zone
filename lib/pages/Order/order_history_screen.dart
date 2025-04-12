@@ -25,11 +25,9 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
     tabviewController = TabController(length: 5, vsync: this);
 
     tabviewController.addListener(() {
-      if (tabIndex != tabviewController.index) {
-        setState(() {
-          tabIndex = tabviewController.index;
-        });
-      }
+      setState(() {
+        tabIndex = tabviewController.index;
+      });
     });
   }
 
@@ -54,11 +52,11 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
                 child: TabBarView(
                   controller: tabviewController,
                   children: const [
-                    OrderTabPage(),
-                    OrderTabPage(),
-                    OrderTabPage(),
-                    OrderTabPage(),
-                    OrderTabPage(),
+                    OrderTabPage(status: "Chờ xử lý"),
+                    OrderTabPage(status: "Đang giao"),
+                    OrderTabPage(status: "Đã nhận"),
+                    OrderTabPage(status: "Trả hàng"),
+                    OrderTabPage(status: "Đã hủy"),
                   ],
                 ),
               ),
@@ -72,7 +70,6 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
   /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      elevation: 2,
       toolbarHeight: 80.h,
       backgroundColor: appTheme.whiteA700,
       leading: IconButton(
@@ -133,9 +130,13 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
           fontFamily: 'Baloo Bhai',
           fontWeight: FontWeight.w400,
         ),
-        
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: Colors.transparent,
+        onTap: (index) {
+          setState(() {
+            tabIndex = index; // Update tabIndex immediately on tap
+          });
+        },
         tabs: [
           _buildTabItem("Chờ xác nhận", 0),
           _buildTabItem("Chờ giao hàng", 1),
@@ -150,13 +151,15 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
   Tab _buildTabItem(String title, int index) {
     return Tab(
       height: 50,
-      child: Container(
+      child: AnimatedContainer(
+        duration:
+            const Duration(milliseconds: 300), // Smooth animation duration
+        curve: Curves.easeInOut, // Smooth animation curve
         margin: EdgeInsets.symmetric(vertical: 10.h),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: tabIndex == index
-              ? theme.colorScheme.primary
-              : appTheme.gray100,
+          color:
+              tabIndex == index ? theme.colorScheme.primary : appTheme.gray100,
           borderRadius: BorderRadius.circular(14.h),
         ),
         child: Padding(
@@ -166,35 +169,4 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
       ),
     );
   }
-
-  /// Section Widget
-  Widget _buildEmptyOrderMessage(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        spacing: 22,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgOrderEmpty,
-            height: 100.h,
-            width: 102.h,
-          ),
-          Text(
-            "Bạn chưa có đơn hàng nào cả",
-            style: CustomTextStyles.headlineSmallBalooBhai,
-          ),
-          CustomElevatedButton(
-            height: 58.h,
-            text: "Tiếp tục mua hàng",
-            margin: EdgeInsets.only(
-              left: 66.h,
-              right: 68.h,
-            ),
-            buttonTextStyle: CustomTextStyles.bodyLargeWhiteA700,
-          ),
-        ],
-      ),
-    );
-  }
-
 }
