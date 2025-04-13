@@ -118,9 +118,9 @@ class ImageConstant {
   static String imgImage3 = '$imagePath/img_success.png';
   static String imgImage16x16 = '$imagePath/img_image_16x16.png';
   static String imgFrame9217 = '$imagePath/img_frame_9217.svg';
-  static String imgPolygon1 = '$iconPath/img_polygon_1.svg';
-  static String imgFrame9217Gray60001 = '$iconPath/img_frame_9217_gray_600_01.svg';
-  static String imgPolygon1WhiteA700 = '$iconPath/img_polygon_1_white_a700.svg';
+  static String imgPolygon1 = '$iconPath/polygon.svg';
+  static String imgDiscountPercentPur = '$iconPath/icon_discount_percent_pur.svg';
+  static String imgDiscountPercentGrey = '$iconPath/icon_discount_percent_grey.svg';
   static String imgProfile = '$imagePath/img_profile.png';
   static String imgMaskGroup = '$imagePath/img_mask_group.png';
   static String imgFa6SolidMapLocation = '$iconPath/img_solid_map_location.svg';

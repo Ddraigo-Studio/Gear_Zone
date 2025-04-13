@@ -5,6 +5,7 @@ import '../../widgets/app_bar/appbar_image.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/items/categories_grid_item.dart';
+import '../../widgets/cart_icon_button.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -62,29 +63,10 @@ class CategoriesScreen extends StatelessWidget {
       ),
       centerTitle: true, // Nếu muốn tiêu đề căn giữa
       actions: [
-        IconButton(
-          icon: Container(
-            width: 45.h,
-            height: 45.h,
-            decoration: AppDecoration.fillDeepPurpleF.copyWith(
-              borderRadius: BorderRadiusStyle.circleBorder28,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  offset: Offset(0, 2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-            padding: EdgeInsets.all(8.h),
-            child: AppbarImage(
-              imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
-              height: 20.h,
-              width: 20.h,
-            ),
-          ),
+        CartIconButton(
           onPressed: () {
-            // Hành động khi nhấn vào nút giỏ hàng
+            // Navigate to cart screen
+            Navigator.pushNamed(context, AppRoutes.myCartScreen);
           },
         ),
       ],

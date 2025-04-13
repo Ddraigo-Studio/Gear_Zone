@@ -8,7 +8,8 @@ class AppbarImage extends StatelessWidget {
     this.height,
     this.width,
     this.onTap,
-    this.margin,
+    this.margin, 
+    this.color,
   });
 
   final double? height;
@@ -16,6 +17,7 @@ class AppbarImage extends StatelessWidget {
   final String? imagePath;
   final Function? onTap;
   final EdgeInsetsGeometry? margin;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +28,7 @@ class AppbarImage extends StatelessWidget {
           height: height ?? 16.h,
           width: width ?? 16.h,
           fit: BoxFit.contain,
+          color: color ?? Colors.white, // Default to deep purple
       ),
     );
   }

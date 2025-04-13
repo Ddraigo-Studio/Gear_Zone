@@ -4,8 +4,28 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 
-class ProductVariantBottomsheet extends StatelessWidget {
-  const ProductVariantBottomsheet({super.key});
+class ProductVariantBottomsheet extends StatefulWidget {
+  final Function(String, int)? onAddToCart;
+
+  const ProductVariantBottomsheet({
+    Key? key,
+    this.onAddToCart,
+  }) : super(key: key);
+
+  @override
+  State<ProductVariantBottomsheet> createState() => _ProductVariantBottomsheetState();
+}
+
+class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
+  int quantity = 1;
+  String selectedColor = "Đỏ"; // Default color
+  
+  // List of available colors
+  final List<Map<String, dynamic>> colorOptions = [
+    {"name": "Đỏ", "color": Colors.red},
+    {"name": "Xanh", "color": Colors.blue},
+    {"name": "Xanh lá", "color": Colors.green},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -123,36 +143,36 @@ class ProductVariantBottomsheet extends StatelessWidget {
   }
 
   Widget _buildProductVariantOptions(BuildContext context) {
-  // List of colors you want to display for the options
-  final List<Color> colors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-  ];
-
-  return Container(
-    width: double.infinity,
-    child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Wrap(
-        direction: Axis.horizontal,
-        spacing: 16.h,
-        children: List.generate(
-          colors.length,  
-          (index) {
-            return _ProductVariantOptionsItem(colors[index]);
-          },
+    return Container(
+      width: double.infinity,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Wrap(
+          direction: Axis.horizontal,
+          spacing: 16.h,
+          children: List.generate(
+            colorOptions.length,  
+            (index) {
+              final option = colorOptions[index];
+              final isSelected = selectedColor == option["name"];
+              return _ProductVariantOptionsItem(
+                option["color"], 
+                option["name"],
+                isSelected,
+              );
+            },
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _ProductVariantOptionsItem(Color color) {
+  Widget _ProductVariantOptionsItem(Color color, String colorName, bool isSelected) {
     return InkWell(
       onTap: () {
-        
-        print("Selected color: $color");
+        setState(() {
+          selectedColor = colorName;
+        });
       },
       child: Container(
         height: 30.h,
@@ -160,6 +180,7 @@ class ProductVariantBottomsheet extends StatelessWidget {
         decoration: BoxDecoration(
           color: color, // Set the background color
           borderRadius: BorderRadius.circular(14.h),
+          border: isSelected ? Border.all(color: Colors.black, width: 2) : null,
           boxShadow: [
             BoxShadow(
               color: appTheme.black900.withValues(alpha: 0.25),
@@ -179,7 +200,7 @@ class ProductVariantBottomsheet extends StatelessWidget {
       mainAxisSize: MainAxisSize.max,
       children: [
         Text(
-          "Chọn số lượng: 1",
+          "Chọn số lượng: $quantity",
           style: CustomTextStyles.labelLargeGray60001,
         ),
         Flexible(
@@ -190,7 +211,11 @@ class ProductVariantBottomsheet extends StatelessWidget {
               Container(
                 child: InkWell(
                   onTap: () {
-                    // Handle the decrement action here
+                    setState(() {
+                      if (quantity > 1) {
+                        quantity--;
+                      }
+                    });
                   },
                   child: Container(
                     height: 30.h,
@@ -202,8 +227,7 @@ class ProductVariantBottomsheet extends StatelessWidget {
                       alignment: Alignment.center,
                       children: [
                         CustomImageView(
-                          imagePath: ImageConstant
-                              .imgIconsaxBrokenMinus, // Path for the minus icon
+                          imagePath: ImageConstant.imgIconsaxBrokenMinus,
                           height: 20.h,
                           width: 20.h,
                         ),
@@ -213,17 +237,18 @@ class ProductVariantBottomsheet extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 10.h), // Add some space between minus and plus
+                padding: EdgeInsets.symmetric(horizontal: 10.h),
                 child: Text(
-                  "1", 
+                  "$quantity", 
                   style: CustomTextStyles.labelLargeInterDeeppurple500,
                 ),
               ),
               Container(
                 child: InkWell(
                   onTap: () {
-                    // Handle the increment action here
+                    setState(() {
+                      quantity++;
+                    });
                   },
                   child: Container(
                     height: 30.h,
@@ -235,8 +260,7 @@ class ProductVariantBottomsheet extends StatelessWidget {
                       alignment: Alignment.center,
                       children: [
                         CustomImageView(
-                          imagePath: ImageConstant
-                              .imgIconsaxBrokenAdd, // Path for the plus icon
+                          imagePath: ImageConstant.imgIconsaxBrokenAdd,
                           height: 20.h,
                           width: 20.h,
                         ),
@@ -266,6 +290,12 @@ class ProductVariantBottomsheet extends StatelessWidget {
               text: "Thêm vào giỏ",
               buttonStyle: CustomButtonStyles.outlinePrimaryTL26,
               buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanDeeppurple40018,
+              onPressed: () {
+                // Call the onAddToCart callback with selected values
+                if (widget.onAddToCart != null) {
+                  widget.onAddToCart!(selectedColor, quantity);
+                }
+              },
             ),
           ),
           Expanded(
@@ -275,6 +305,18 @@ class ProductVariantBottomsheet extends StatelessWidget {
               text: "Mua ngay",
               buttonStyle: CustomButtonStyles.outlineBlackTL263,
               buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700,
+              onPressed: () {
+                // Call the onAddToCart callback with selected values and then navigate to checkout
+                if (widget.onAddToCart != null) {
+                  widget.onAddToCart!(selectedColor, quantity);
+                  
+                  // Close the bottom sheet
+                  Navigator.pop(context);
+                  
+                  // Navigate to checkout screen
+                  Navigator.pushNamed(context, AppRoutes.checkoutScreen);
+                }
+              },
             ),
           ),
         ],

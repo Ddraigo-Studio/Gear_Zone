@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_image.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
+import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/tab_page/order_tab_page.dart';
+import '../../widgets/cart_icon_button.dart';
 
 class OrdersHistoryScreen extends StatefulWidget {
   const OrdersHistoryScreen({super.key});
@@ -72,40 +74,15 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
     return AppBar(
       toolbarHeight: 80.h,
       backgroundColor: appTheme.whiteA700,
-      leading: IconButton(
-        icon: AppbarLeadingImage(
-          imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-          height: 25.h,
-          width: 25.h,
-        ),
-        onPressed: () {
-          Navigator.pop(context);
-        },
+      centerTitle: true,
+      title: AppbarSubtitleTwo(
+        text: "Lịch sử đơn hàng",
       ),
       actions: [
-        IconButton(
-          icon: Container(
-            width: 45.h,
-            height: 45.h,
-            decoration: AppDecoration.fillDeepPurpleF.copyWith(
-              borderRadius: BorderRadiusStyle.circleBorder28,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  offset: Offset(0, 2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-            padding: EdgeInsets.all(8.h),
-            child: AppbarImage(
-              imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
-              height: 20.h,
-              width: 20.h,
-            ),
-          ),
+        CartIconButton(
           onPressed: () {
-            // Hành động khi nhấn vào nút giỏ hàng
+            // Navigate to cart screen
+            Navigator.pushNamed(context, AppRoutes.myCartScreen);
           },
         ),
       ],

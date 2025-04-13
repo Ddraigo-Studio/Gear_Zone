@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/Items/voucher_item.dart'; // ignore_for_file: must_be_immutable
+import '../../widgets/Items/voucher_item.dart';
+import '../app_bar/appbar_leading_image.dart'; // ignore_for_file: must_be_immutable
 
 class AddVoucherBottomsheet extends StatelessWidget {
   const AddVoucherBottomsheet({super.key});
@@ -78,11 +79,17 @@ class AddVoucherBottomsheet extends StatelessWidget {
                   "Chọn mã giảm giá",
                   style: CustomTextStyles.titleMediumInterBluegray600,
                 ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgX,
-                  height: 16.h,
-                  width: 18.h,
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: AppbarLeadingImage(
+                    imagePath: ImageConstant.imgX,
+                    height: 20.h,
+                    width: 20.h,
+                  ),
                 ),
+                
               ],
             ),
           ),
@@ -117,9 +124,9 @@ class AddVoucherBottomsheet extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgFrame9217Gray60001,
-            height: 44.h,
-            width: 44.h,
+            imagePath: ImageConstant.imgDiscountPercentGrey,
+            height: 25.h,
+            width: 25.h,
           ),
           Expanded(
             child: Padding(
@@ -155,9 +162,9 @@ class AddVoucherBottomsheet extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgFrame9217Gray60001,
-            height: 44.h,
-            width: 44.h,
+            imagePath: ImageConstant.imgDiscountPercentGrey,
+            height: 25.h,
+            width: 25.h,
           ),
           Expanded(
             child: Padding(

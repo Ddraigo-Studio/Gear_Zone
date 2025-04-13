@@ -9,6 +9,7 @@ import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/tab_page/product_tab_page.dart';
+import '../../widgets/cart_icon_button.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -18,7 +19,6 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  TextEditingController descriptionEditTextController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -86,29 +86,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         },
       ),
       actions: [
-        IconButton(
-          icon: Container(
-            width: 45.h,
-            height: 45.h,
-            decoration: AppDecoration.fillDeepPurpleF.copyWith(
-              borderRadius: BorderRadiusStyle.circleBorder28,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  offset: Offset(0, 2),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-            padding: EdgeInsets.all(8.h),
-            child: AppbarImage(
-              imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
-              height: 20.h,
-              width: 20.h,
-            ),
-          ),
+        CartIconButton(
           onPressed: () {
-            // Hành động khi nhấn vào nút giỏ hàng
+            // Navigate to cart screen
+            Navigator.pushNamed(context, AppRoutes.myCartScreen);
           },
         ),
       ],
