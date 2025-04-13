@@ -23,7 +23,7 @@ class AppbarSubtitleTwo extends StatelessWidget {
         },
         child: Text(
           text,
-          style: theme.textTheme.headlineSmall!.copyWith(
+          style: CustomTextStyles.headlineSmallBalooBhaijaan2.copyWith(
             color: appTheme.gray900,
           ),
         ),

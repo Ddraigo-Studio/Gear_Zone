@@ -84,7 +84,7 @@ class ImageConstant {
   static String imgArrowLeftOnprimary = '$iconPath/img_arrow_left_onprimary.svg';
   static String imgImage29 = '$imagePath/img_image_29.png';
   static String imgImage30 = '$imagePath/img_image_30.png';
-  static String imgArrowDown = '$iconPath/icon_arrow_down_purple.svg.svg';
+  static String imgArrowDown = '$iconPath/icon_arrow_down_purple.svg';
   static String imgImage31 = '$imagePath/img_image_31.png';
 
   static String imgIconsaxBrokenArrowleft2Gray50001 = '$iconPath/img_iconsax_broken_arrowleft2_gray_500_01.svg';
@@ -118,9 +118,9 @@ class ImageConstant {
   static String imgImage3 = '$imagePath/img_success.png';
   static String imgImage16x16 = '$imagePath/img_image_16x16.png';
   static String imgFrame9217 = '$imagePath/img_frame_9217.svg';
-  static String imgPolygon1 = '$iconPath/img_polygon_1.svg';
-  static String imgFrame9217Gray60001 = '$iconPath/img_frame_9217_gray_600_01.svg';
-  static String imgPolygon1WhiteA700 = '$iconPath/img_polygon_1_white_a700.svg';
+  static String imgPolygon1 = '$iconPath/polygon.svg';
+  static String imgDiscountPercentPur = '$iconPath/icon_discount_percent_pur.svg';
+  static String imgDiscountPercentGrey = '$iconPath/icon_discount_percent_grey.svg';
   static String imgProfile = '$imagePath/img_profile.png';
   static String imgMaskGroup = '$imagePath/img_mask_group.png';
   static String imgFa6SolidMapLocation = '$iconPath/img_solid_map_location.svg';

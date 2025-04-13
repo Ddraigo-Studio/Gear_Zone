@@ -7,6 +7,7 @@ import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
+import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 
@@ -195,10 +196,10 @@ class OrdersDetailScreen extends StatelessWidget {
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
         horizontal: 16.h,
-        vertical: 12.h,
+        vertical: 8.h,
       ),
       decoration: AppDecoration.outlineBlack9004.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder5,
+        borderRadius: BorderRadiusStyle.roundedBorder12,
       ),
       child: Column(
         spacing: 4,
@@ -223,86 +224,30 @@ class OrdersDetailScreen extends StatelessWidget {
                   ),
                 ),
                 Spacer(),
-                CustomImageView(
-                  imagePath: ImageConstant.imgArrowRight,
-                  height: 24.h,
-                  width: 26.h,
+                IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16.h),
+                        ),
+                      ),
+                      builder: (BuildContext context) {
+                        return AddVoucherBottomsheet();
+                      },
+                    );
+                  },
+                  icon: CustomImageView(
+                    imagePath: ImageConstant.imgArrowRight,
+                  ),
                 ),
               ],
             ),
           ),
-          SizedBox(
-            width: double.maxFinite,
-            child: Divider(
-              color: appTheme.gray500.withValues(
-                alpha: 0.9,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4.h, right: 10.h),
-                  child: CustomIconButton(
-                    height: 34.h,
-                    width: 34.h,
-                    padding: EdgeInsets.all(6.h),
-                    decoration: IconButtonStyleHelper.fillDeepPurpleTL16,
-                    child: CustomImageView(
-                      imagePath: ImageConstant.imgDiscount,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Giảm 10%",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyles.titleMediumBalooBhai2Gray700.copyWith(
-                            height: 1.60,
-                          ),
-                        ),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: Row(
-                            children: [
-                              Text(
-                                "Đơn tối thiểu:",
-                                style: CustomTextStyles.titleSmallInterGray700,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 4.h),
-                                child: Text(
-                                  "1.000.000đ",
-                                  style: CustomTextStyles.titleSmallInterRed500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      ],
-                    ),
-                  ),
-                ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgDelete,
-                  height: 20.h,
-                  width: 20.h,
-                  margin: EdgeInsets.only(bottom: 12.h),
-                )
-              ],
-            ),
-          ),
+          
+          PromoItem(),
         ],
       ),
     );
@@ -487,4 +432,97 @@ class OrdersDetailScreen extends StatelessWidget {
     );
   }
 
+}
+
+class PromoItem extends StatefulWidget {
+  const PromoItem({
+    super.key,
+  });
+
+  @override
+  State<PromoItem> createState() => _PromoItemState();
+}
+
+class _PromoItemState extends State<PromoItem> {
+  bool _isVisible = true;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isVisible) return SizedBox.shrink(); // Return an empty widget if not visible
+
+    return Container(
+      width: double.maxFinite,
+      
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.maxFinite,
+            child: Divider(
+              color: appTheme.gray500.withValues(
+                alpha: 0.9,
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(bottom: 4.h, right: 10.h),
+                child: CustomIconButton(
+                  height: 34.h,
+                  width: 34.h,
+                  padding: EdgeInsets.all(6.h),
+                  decoration: IconButtonStyleHelper.fillDeepPurpleTL16,
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgDiscount,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Giảm 10%",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyles.titleMediumBalooBhai2Gray700.copyWith(
+                        height: 1.60,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          "Đơn tối thiểu:",
+                          style: CustomTextStyles.titleSmallInterGray700,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(left: 4.h),
+                          child: Text(
+                            "1.000.000đ",
+                            style: CustomTextStyles.titleSmallInterRed500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isVisible = false; // Hide the widget when delete is pressed
+                  });
+                },
+                icon: CustomImageView(
+                  imagePath: ImageConstant.imgDelete,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -16,9 +16,9 @@ class ListVoucherItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgFrame9217,
-            height: 44.h,
-            width: 44.h,
+            imagePath: ImageConstant.imgDiscountPercentPur,
+            height: 25.h,
+            width: 25.h,
           ),
           Expanded(
             child: Padding(
