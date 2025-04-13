@@ -285,8 +285,6 @@ class SearchResultScreen extends StatelessWidget {
               imagePath: ImageConstant.imgArrowRightDeepPurple500,
             ),
           ),
-
-
         ],
       ),
     );

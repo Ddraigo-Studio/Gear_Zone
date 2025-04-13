@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../Order/order_history_screen.dart';
 import '../Setting/setting_screen.dart';
 import 'home_initial_page.dart';
 
 class HomeScreen extends StatefulWidget {
-  HomeScreen({super.key});
+  const HomeScreen({super.key});
 
   @override
   HomeScreenState createState() => HomeScreenState();
@@ -19,7 +20,7 @@ class HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     HomeInitialPage(),
     DefaultWidget(), // Bạn có thể thay thế với màn hình thích hợp
-    DefaultWidget(),
+    OrdersHistoryScreen(),
     SettingsScreen(), // Trang Setting
   ];
 

@@ -79,7 +79,7 @@ class AddVoucherBottomsheet extends StatelessWidget {
                   style: CustomTextStyles.titleMediumInterBluegray600,
                 ),
                 CustomImageView(
-                  imagePath: ImageConstant.imgImage16x16,
+                  imagePath: ImageConstant.imgX,
                   height: 16.h,
                   width: 18.h,
                 ),

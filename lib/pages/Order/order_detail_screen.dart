@@ -4,6 +4,7 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/Items/order_item.dart';
 import '../../widgets/Items/order_timeline_item.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
+import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_icon_button.dart';
@@ -49,24 +50,26 @@ class OrdersDetailScreen extends StatelessWidget {
     );
   }
 
-  /// Section Widget
+
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      height: 72.h,
-      leadingWidth: 64.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-        margin: EdgeInsets.only(
-          left: 24.h,
-          top: 16.h,
-          bottom: 16.h,
-        ),
-      ),
+    return AppBar(
+      toolbarHeight: 80.h,
+      backgroundColor: Colors.white,
       centerTitle: true,
+      leading: IconButton(
+        icon: AppbarLeadingImage(
+          imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
+          height: 25.h,
+          width: 25.h,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
       title: AppbarSubtitleTwo(
         text: "Thông tin đơn hàng",
+        
       ),
-      styleType: Style.bgFillWhiteA700,
     );
   }
 
@@ -243,14 +246,14 @@ class OrdersDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(bottom: 4.h),
+                  padding: EdgeInsets.only(bottom: 4.h, right: 10.h),
                   child: CustomIconButton(
                     height: 34.h,
                     width: 34.h,
                     padding: EdgeInsets.all(6.h),
                     decoration: IconButtonStyleHelper.fillDeepPurpleTL16,
                     child: CustomImageView(
-                      imagePath: ImageConstant.imgUser,
+                      imagePath: ImageConstant.imgDiscount,
                     ),
                   ),
                 ),
@@ -334,7 +337,7 @@ class OrdersDetailScreen extends StatelessWidget {
                   padding: EdgeInsets.only(left: 10.h),
                   child: Text(
                     "Chi tiết thanh toán",
-                    style: CustomTextStyles.bodyLargeGray50001,
+                    style: CustomTextStyles.titleMediumBalooBhai2Gray700,
                   ),
                 ),
               ],
