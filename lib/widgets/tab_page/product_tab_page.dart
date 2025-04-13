@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_text_style.dart';
 
@@ -132,8 +133,8 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                     angle: isExpandedSummary
                         ? 3.14159
                         : 0, // 3.14159 radians is 180 degrees for flipping the image
-                    child: Image.asset(
-                      "assets/icons/icon_arrow_down_purple.png",
+                    child: SvgPicture.asset(
+                      "assets/icons/icon_arrow_down_purple.svg",
                       height: 16.h,
                       width: 18.h,
                     ),
@@ -146,7 +147,6 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
       ),
     );
   }
-
 
   // Tab 2: Cấu hình
   Widget _buildTabInfoInfoConfig(BuildContext context) {
@@ -211,8 +211,8 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                     angle: isExpandedConfig
                         ? 3.14159
                         : 0,
-                    child: Image.asset(
-                      "assets/icons/icon_arrow_down_purple.png",
+                    child: SvgPicture.asset(
+                      "assets/icons/icon_arrow_down_purple.svg",
                       height: 16.h,
                       width: 18.h,
                     ),
@@ -269,8 +269,8 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                       angle: isExpandedDescription
                           ? 3.14159
                           : 0, 
-                      child: Image.asset(
-                        "assets/icons/icon_arrow_down_purple.png",
+                      child: SvgPicture.asset(
+                        "assets/icons/icon_arrow_down_purple.svg",
                         height: 16.h,
                         width: 18.h,
                       ),

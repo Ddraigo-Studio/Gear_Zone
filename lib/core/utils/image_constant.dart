@@ -84,7 +84,7 @@ class ImageConstant {
   static String imgArrowLeftOnprimary = '$iconPath/img_arrow_left_onprimary.svg';
   static String imgImage29 = '$imagePath/img_image_29.png';
   static String imgImage30 = '$imagePath/img_image_30.png';
-  static String imgArrowDown = '$iconPath/icon_arrow_down_purple.svg.svg';
+  static String imgArrowDown = '$iconPath/icon_arrow_down_purple.svg';
   static String imgImage31 = '$imagePath/img_image_31.png';
 
   static String imgIconsaxBrokenArrowleft2Gray50001 = '$iconPath/img_iconsax_broken_arrowleft2_gray_500_01.svg';
