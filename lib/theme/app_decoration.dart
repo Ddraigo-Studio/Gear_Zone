@@ -142,13 +142,13 @@ class AppDecoration {
     boxShadow: [
       BoxShadow(
         color: appTheme.black900.withValues(
-          alpha: 0.25,
+          alpha: 0.1,
         ),
-        spreadRadius: 2.h,
-        blurRadius: 2.h,
+        spreadRadius: 1.h,
+        blurRadius: 1.h,
         offset: Offset(
           0,
-          2,
+          1,
         ),
       ),
     ],

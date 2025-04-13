@@ -10,6 +10,7 @@ class AppbarLeadingImage extends StatelessWidget {
     this.width,
     this.onTap,
     this.margin,
+    this.color,
   });
 
   final double? height;
@@ -17,16 +18,21 @@ class AppbarLeadingImage extends StatelessWidget {
   final String? imagePath;
   final Function? onTap;
   final EdgeInsetsGeometry? margin;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: margin ?? EdgeInsets.zero,
-      child: AppbarImage(
+      child: InkWell(
+        onTap: onTap != null ? () => onTap!() : null,
+        child: AppbarImage(
           imagePath: imagePath,
           height: height ?? 20.h,
           width: width ?? 20.h,
+          color: color?? Colors.black54,
         ),
+      ),
     );
   }
 }
