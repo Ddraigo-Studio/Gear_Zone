@@ -86,12 +86,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         },
       ),
       actions: [
-        CartIconButton(
-          onPressed: () {
-            // Navigate to cart screen
-            Navigator.pushNamed(context, AppRoutes.myCartScreen);
-          },
-        ),
+        CartIconButton(),
       ],
     );
   }
