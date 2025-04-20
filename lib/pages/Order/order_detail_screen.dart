@@ -246,7 +246,6 @@ class OrdersDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          
           PromoItem(),
         ],
       ),

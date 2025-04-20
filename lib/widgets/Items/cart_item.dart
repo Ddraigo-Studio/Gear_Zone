@@ -11,6 +11,8 @@ class CartItem extends StatelessWidget {
   final double originalPrice;
   final Function(int) onQuantityChanged;
   final VoidCallback onDelete;
+  final bool isSelected;
+  final Function(bool) onSelectionChanged;
 
   const CartItem({
     super.key,
@@ -22,6 +24,8 @@ class CartItem extends StatelessWidget {
     required this.originalPrice,
     required this.onQuantityChanged,
     required this.onDelete,
+    this.isSelected = false,
+    required this.onSelectionChanged,
   });
 
   @override
@@ -29,6 +33,34 @@ class CartItem extends StatelessWidget {
     return SwipeActionCell(
       backgroundColor: Colors.transparent,
       key: ObjectKey(productName),
+      leadingActions: [
+        SwipeAction(
+          forceAlignmentToBoundary: true,
+          performsFirstActionWithFullSwipe: true,
+          color: Colors.transparent,
+          content: Container(
+            width: 35.h,
+            height: 35.h,
+            decoration: BoxDecoration(
+              color: appTheme.deepPurpleA200,
+              borderRadius: BorderRadius.circular(8.h),
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                onSelectionChanged(!isSelected);
+              },
+              icon: Icon(
+                isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                color: Colors.white,
+                size: 20.h
+              ),
+            ),
+          ),
+          onTap: (handler) async {
+          },
+        ),
+      ],
       trailingActions: [
         SwipeAction(
           forceAlignmentToBoundary: true,
@@ -43,21 +75,22 @@ class CartItem extends StatelessWidget {
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
-              onPressed: () {}, // Empty onPressed to handle tap in onTap
+              onPressed: () {
+                onDelete();
+              },
               icon: Icon(Icons.delete_outline, color: Colors.white, size: 20.h),
             ),
           ),
           onTap: (handler) async {
-            await handler(true);
-            onDelete();
           },
         ),
       ],
+      // Removed invalid 'onTap' parameter as it is not supported by SwipeActionCell
       child: Container(
         padding: EdgeInsets.all(8.h),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.h),
-          color: Colors.white,
+          color: isSelected ? Color(0xFFEEE6FF) : Colors.white,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -66,12 +99,34 @@ class CartItem extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CustomImageView(
-                  imagePath: imagePath,
-                  height: 64.h,
-                  width: 64.h,
-                  radius: BorderRadius.circular(4.h),
-                  margin: EdgeInsets.only(left: 8.h),
+                Stack(
+                  alignment: Alignment.topLeft,
+                  children: [
+                    CustomImageView(
+                      imagePath: imagePath,
+                      height: 64.h,
+                      width: 64.h,
+                      radius: BorderRadius.circular(4.h),
+                      margin: EdgeInsets.only(left: 8.h),
+                    ),
+                    if (isSelected)
+                      Positioned(
+                        left: 2.h,
+                        top: 2.h,
+                        child: Container(
+                          padding: EdgeInsets.all(2.h),
+                          decoration: BoxDecoration(
+                            color: appTheme.deepPurpleA200,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 12.h,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 Expanded(
                   child: Padding(
@@ -113,8 +168,8 @@ class CartItem extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 32.h,
-                        height: 32.h,
+                        width: 30.h,
+                        height: 30.h,
                         decoration: BoxDecoration(
                           color: appTheme.deepPurpleA200,
                           borderRadius: BorderRadiusStyle.circleBorder20,
@@ -140,8 +195,8 @@ class CartItem extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        width: 32.h,
-                        height: 32.h,
+                        width: 30.h,
+                        height: 30.h,
                         decoration: BoxDecoration(
                           color: appTheme.deepPurpleA200,
                           borderRadius: BorderRadiusStyle.circleBorder20,

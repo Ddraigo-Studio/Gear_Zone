@@ -6,6 +6,7 @@ class CartItem {
   int quantity;
   final double originalPrice;
   final double discountedPrice;
+  bool isSelected;
 
   CartItem({
     required this.productId,
@@ -15,6 +16,7 @@ class CartItem {
     required this.quantity,
     required this.originalPrice,
     required this.discountedPrice,
+    this.isSelected = false,
   });
 
   double get totalPrice => discountedPrice * quantity;
@@ -27,6 +29,7 @@ class CartItem {
     int? quantity,
     double? originalPrice,
     double? discountedPrice,
+    bool? isSelected,
   }) {
     return CartItem(
       productId: productId ?? this.productId,
@@ -36,6 +39,7 @@ class CartItem {
       quantity: quantity ?? this.quantity,
       originalPrice: originalPrice ?? this.originalPrice,
       discountedPrice: discountedPrice ?? this.discountedPrice,
+      isSelected: isSelected ?? this.isSelected,
     );
   }
 }

@@ -7,8 +7,7 @@ import '../../widgets/Items/cart_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/custom_checkbox_button.dart';
-import '../../widgets/custom_elevated_button.dart';
-import '../../widgets/custom_icon_button.dart';
+import '../Checkout/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -25,8 +24,8 @@ class CartScreen extends StatelessWidget {
         child: Column(
           children: [
             _buildCartListSection(context),
-            SizedBox(height: 16.h),
-            _buildPromoCodeSection(context),
+            // SizedBox(height: 16.h),
+            // _buildPromoCodeSection(context),
             SizedBox(height: 16.h),
             _buildPaymentInfoSection(context),
           ],
@@ -84,6 +83,7 @@ class CartScreen extends StatelessWidget {
                   quantity: item.quantity,
                   discountedPrice: item.discountedPrice,
                   originalPrice: item.originalPrice,
+                  isSelected: item.isSelected,
                   onQuantityChanged: (quantity) {
                     cartController.updateQuantity(
                       item.productId,
@@ -94,6 +94,13 @@ class CartScreen extends StatelessWidget {
                   onDelete: () {
                     cartController.removeItem(item.productId, item.color);
                   },
+                  onSelectionChanged: (selected) {
+                    cartController.toggleItemSelection(
+                      item.productId, 
+                      item.color, 
+                      selected
+                    );
+                  },
                 );
               },
             )
@@ -103,78 +110,39 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPromoCodeSection(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 8.h,
-        vertical: 6.h,
-      ),
-      decoration: AppDecoration.outlineGray50001.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
-            height: 24.h,
-            width: 26.h,
-            margin: EdgeInsets.only(left: 6.h),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 12.h),
-            child: Text(
-              "Mã giảm giá",
-              style: CustomTextStyles.bodyMediumRed500,
-            ),
-          ),
-          Spacer(),
-          CustomIconButton(
-            height: 40.h,
-            width: 40.h,
-            padding: EdgeInsets.all(12.h),
-            decoration: IconButtonStyleHelper.fillPrimaryTL20,
-            child: CustomImageView(
-              imagePath: ImageConstant.imgIconsaxBrokenArrowright2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPaymentInfoSection(BuildContext context) {
+    final cartController = Provider.of<CartController>(context);
+    final selectedPrice = cartController.selectedItemsPrice;
+    final shippingFee = 8000.0;
+    final tax = 10000.0;
+    final discount = 8000.0;
+    final totalPrice = selectedPrice + shippingFee + tax - discount;
+    
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: 8.h,
         vertical: 10.h,
       ),
-      decoration: AppDecoration.fillDeepPurpleF.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
+      decoration: BoxDecoration(
+            color: appTheme.deepPurple1003f, // Màu tím nhạt
+            borderRadius: BorderRadius.circular(12.h),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        spacing: 6.h,
         children: [
-          _buildPriceRow(
-            context,
+          _buildSummaryRow(
             title: "Phí vận chuyển",
-            price: "8.000đ",
+            price: "${shippingFee.toInt()}đ",
           ),
-          _buildPriceRow(
-            context,
+          _buildSummaryRow(
             title: "Thuế",
-            price: "10.000đ",
+            price: "${tax.toInt()}đ",
           ),
-          _buildPriceRow(
-            context,
-            title: "Voucher",
-            price: "- 8.000đ",
-          ),
-          const Divider(),
-          _buildPriceRow(
-            context,
+          Divider(),
+          _buildSummaryRow(
             title: "Tổng",
-            price: "17.390.000đ",
+            price: "${totalPrice.toInt()}đ",
             isTotal: true,
           ),
         ],
@@ -183,6 +151,8 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCheckoutRow(BuildContext context) {
+    final cartController = Provider.of<CartController>(context);
+    
     return Container(
       height: 80.h,
       padding: EdgeInsets.symmetric(
@@ -195,42 +165,75 @@ class CartScreen extends StatelessWidget {
         children: [
           CustomCheckboxButton(
             text: "Chọn tất cả",
-            value: true,
-            onChange: (value) {},
+            value: cartController.allItemsSelected,
+            onChange: (value) {
+              cartController.selectAllItems(value ?? false);
+            },
           ),
-          CustomElevatedButton(
-            height: 52.h,
-            width: 152.h,
-            text: "Thanh toán",
-            buttonStyle: CustomButtonStyles.outlineBlackTL10,
-            buttonTextStyle: theme.textTheme.titleLarge!,
-          )
+          Container(
+            height: 48.h,
+            width: 120.h,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cartController.selectedItemCount > 0 
+                    ? appTheme.deepPurpleA200 
+                    : Colors.grey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24.h),
+                ),
+              ),
+              onPressed: cartController.selectedItemCount > 0 
+                  ? () {
+                      // Lấy danh sách các sản phẩm đã chọn
+                      final selectedItems = cartController.getSelectedItems();
+                      // Chuyển đến màn hình thanh toán với danh sách sản phẩm đã chọn
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(
+                          builder: (context) => CheckoutScreen(
+                            selectedItems: selectedItems,
+                          ),
+                        ),
+                      );
+                    } 
+                  : null,
+              child: Text(
+                "Thanh toán",
+                style: CustomTextStyles.bodyLargeBlack900.copyWith(color: Colors.white),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPriceRow(
-    BuildContext context, {
+  Widget _buildSummaryRow({
     required String title,
     required String price,
     bool isTotal = false,
+    Color? priceColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: isTotal 
-              ? CustomTextStyles.bodyLargeBlack900
-              : CustomTextStyles.bodyLargeGray700,
+          style: isTotal
+              ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.red400,
+                )
+              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.gray70001,
+                ),
         ),
         Text(
           price,
           style: isTotal
-              ? theme.textTheme.titleLarge!.copyWith(color: appTheme.gray900)
-              : theme.textTheme.bodyLarge!.copyWith(color: appTheme.gray900),
-        )
+              ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold
+                  .copyWith(color: appTheme.red400)
+              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(color: appTheme.gray900,),
+        ),
       ],
     );
   }
