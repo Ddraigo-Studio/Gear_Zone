@@ -1,62 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../controller/cart_controller.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/Items/cart_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
-import '../../widgets/app_bar/appbar_subtitle_one.dart';
+import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/custom_checkbox_button.dart';
-import '../../widgets/custom_elevated_button.dart';
-import '../../widgets/custom_icon_button.dart';
+import '../Checkout/checkout_screen.dart';
 
-// ignore_for_file: must_be_immutable
-class MyCartScreen extends StatelessWidget {
-  MyCartScreen({super.key});
-
-  bool chnttccone = false;
+class CartScreen extends StatelessWidget {
+  const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: appTheme.whiteA700,
+      resizeToAvoidBottomInset: false,
       appBar: _buildAppBar(context),
-      body: SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            children: [
-              Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.only(
-                  left: 16.h,
-                  top: 24.h,
-                  right: 16.h,
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(height: 2.h),
-                    _buildCartListSection(context),
-                    SizedBox(height: 76.h),
-                    _buildPromoCodeSection(context),
-                    SizedBox(height: 10.h),
-                    _buildPaymentInfoSection(context)
-                  ],
-                ),
-              ),
-            ],
-          ),
+      backgroundColor: appTheme.gray10001,
+      body: Container(
+        width: double.maxFinite,
+        padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 24.h),
+        child: Column(
+          children: [
+            _buildCartListSection(context),
+            // SizedBox(height: 16.h),
+            // _buildPromoCodeSection(context),
+            SizedBox(height: 16.h),
+            _buildPaymentInfoSection(context),
+          ],
         ),
       ),
       bottomNavigationBar: _buildCheckoutRow(context),
     );
   }
 
-  /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      elevation: 2,
       toolbarHeight: 80.h,
-      backgroundColor: appTheme.whiteA700,
+      backgroundColor: Colors.white,
+      centerTitle: true,
+      shadowColor: Colors.black.withOpacity(0.4),
+      elevation: 1,
       leading: IconButton(
         icon: AppbarLeadingImage(
           imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
@@ -67,149 +52,107 @@ class MyCartScreen extends StatelessWidget {
           Navigator.pop(context);
         },
       ),
-      centerTitle: true,
-      title: AppbarSubtitleOne(
+      title: AppbarSubtitleTwo(
         text: "Giỏ hàng",
       ),
     );
   }
 
-  /// Section Widget
   Widget _buildCartListSection(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        spacing: 16,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            "Sữa",
-            style: theme.textTheme.bodyLarge,
-          ),
-          ListView.separated(
-            padding: EdgeInsets.zero,
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            separatorBuilder: (context, index) {
-              return SizedBox(
-                height: 16.h,
-              );
-            },
-            itemCount: 2,
-            itemBuilder: (context, index) {
-              return CartItem();
-            },
-          )
-
-        ],
+    final cartController = Provider.of<CartController>(context);
+    
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListView.separated(
+              padding: EdgeInsets.zero,
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              separatorBuilder: (context, index) {
+                return SizedBox(height: 16.h);
+              },
+              itemCount: cartController.items.length,
+              itemBuilder: (context, index) {
+                final item = cartController.items[index];
+                return CartItem(
+                  productName: item.productName,
+                  imagePath: item.imagePath,
+                  color: item.color,
+                  quantity: item.quantity,
+                  discountedPrice: item.discountedPrice,
+                  originalPrice: item.originalPrice,
+                  isSelected: item.isSelected,
+                  onQuantityChanged: (quantity) {
+                    cartController.updateQuantity(
+                      item.productId,
+                      item.color,
+                      quantity,
+                    );
+                  },
+                  onDelete: () {
+                    cartController.removeItem(item.productId, item.color);
+                  },
+                  onSelectionChanged: (selected) {
+                    cartController.toggleItemSelection(
+                      item.productId, 
+                      item.color, 
+                      selected
+                    );
+                  },
+                );
+              },
+            )
+          ],
+        ),
       ),
     );
   }
 
-  /// Section Widget
-  Widget _buildPromoCodeSection(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 8.h),
-      padding: EdgeInsets.symmetric(
-        horizontal: 8.h,
-        vertical: 6.h,
-      ),
-      decoration: AppDecoration.outlineGray50001.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-      ),
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
-            height: 24.h,
-            width: 26.h,
-            margin: EdgeInsets.only(left: 6.h),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 12.h,
-                bottom: 6.h,
-              ),
-              child: Text(
-                "Mã giảm giá",
-                style: CustomTextStyles.bodyMediumRed500,
-              ),
-            ),
-          ),
-          Spacer(),
-          CustomIconButton(
-            height: 40.h,
-            width: 40.h,
-            padding: EdgeInsets.all(12.h),
-            decoration: IconButtonStyleHelper.fillPrimaryTL20,
-            child: CustomImageView(
-              imagePath: ImageConstant.imgIconsaxBrokenArrowright2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
   Widget _buildPaymentInfoSection(BuildContext context) {
+    final cartController = Provider.of<CartController>(context);
+    final selectedPrice = cartController.selectedItemsPrice;
+    final shippingFee = 8000.0;
+    final tax = 10000.0;
+    final discount = 8000.0;
+    final totalPrice = selectedPrice + shippingFee + tax - discount;
+    
     return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 8.h),
       padding: EdgeInsets.symmetric(
         horizontal: 8.h,
         vertical: 10.h,
       ),
-      decoration: AppDecoration.fillDeepPurpleF.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
+      decoration: BoxDecoration(
+            color: appTheme.deepPurple1003f, // Màu tím nhạt
+            borderRadius: BorderRadius.circular(12.h),
       ),
       child: Column(
-        spacing: 12,
         mainAxisSize: MainAxisSize.min,
+        spacing: 6.h,
         children: [
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildContentRow(
-              context,
-              title: "Phí vận chuyển",
-              info: "2020.000 đ",
-            ),
+          _buildSummaryRow(
+            title: "Phí vận chuyển",
+            price: "${shippingFee.toInt()}đ",
           ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildContentRow(
-              context,
-              title: "Thuế",
-              info: "10.000 đ",
-            ),
+          _buildSummaryRow(
+            title: "Thuế",
+            price: "${tax.toInt()}đ",
           ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildContentRow(
-              context,
-              title: "Voucher",
-              info: "- 8.000 đ",
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildContentRow(
-              context,
-              title: "Tổng",
-              info: "17.390.000 đ",
-            ),
+          Divider(),
+          _buildSummaryRow(
+            title: "Tổng",
+            price: "${totalPrice.toInt()}đ",
+            isTotal: true,
           ),
         ],
       ),
     );
   }
 
-  /// Section Widget
   Widget _buildCheckoutRow(BuildContext context) {
+    final cartController = Provider.of<CartController>(context);
+    
     return Container(
       height: 80.h,
       padding: EdgeInsets.symmetric(
@@ -217,56 +160,81 @@ class MyCartScreen extends StatelessWidget {
         vertical: 14.h,
       ),
       decoration: AppDecoration.fillWhiteA,
-      width: double.maxFinite,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Padding(
-            padding: EdgeInsets.only(left: 8.h),
-            child: CustomCheckboxButton(
-              text: "Chọn tất cả",
-              // value: chnttcone,
-              onChange: (value) {
-                // chnttcone = value;
-              },
+          CustomCheckboxButton(
+            text: "Chọn tất cả",
+            value: cartController.allItemsSelected,
+            onChange: (value) {
+              cartController.selectAllItems(value ?? false);
+            },
+          ),
+          Container(
+            height: 48.h,
+            width: 120.h,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cartController.selectedItemCount > 0 
+                    ? appTheme.deepPurpleA200 
+                    : Colors.grey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24.h),
+                ),
+              ),
+              onPressed: cartController.selectedItemCount > 0 
+                  ? () {
+                      // Lấy danh sách các sản phẩm đã chọn
+                      final selectedItems = cartController.getSelectedItems();
+                      // Chuyển đến màn hình thanh toán với danh sách sản phẩm đã chọn
+                      Navigator.push(
+                        context, 
+                        MaterialPageRoute(
+                          builder: (context) => CheckoutScreen(
+                            selectedItems: selectedItems,
+                          ),
+                        ),
+                      );
+                    } 
+                  : null,
+              child: Text(
+                "Thanh toán",
+                style: CustomTextStyles.bodyLargeBlack900.copyWith(color: Colors.white),
+              ),
             ),
           ),
-          CustomElevatedButton(
-            height: 52.h,
-            width: 152.h,
-            text: "Thanh toán",
-            buttonStyle: CustomButtonStyles.outlineBlackTL10,
-            buttonTextStyle: theme.textTheme.titleLarge!,
-          )
         ],
       ),
     );
   }
 
-  /// Common widget
-  Widget _buildContentRow(
-    BuildContext context, {
+  Widget _buildSummaryRow({
     required String title,
-    required String info,
+    required String price,
+    bool isTotal = false,
+    Color? priceColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: CustomTextStyles.bodyLargeGray700.copyWith(
-            color: appTheme.gray700,
-          ),
+          style: isTotal
+              ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.red400,
+                )
+              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.gray70001,
+                ),
         ),
         Text(
-          info,
-          style: theme.textTheme.bodyLarge!.copyWith(
-            color: appTheme.gray900,
-          ),
+          price,
+          style: isTotal
+              ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold
+                  .copyWith(color: appTheme.red400)
+              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(color: appTheme.gray900,),
         ),
       ],
     );
   }
-
-
 }
