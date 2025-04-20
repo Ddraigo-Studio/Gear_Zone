@@ -5,7 +5,6 @@ import '../core/app_export.dart';
 import 'app_bar/appbar_image.dart';
 
 class CartIconButton extends StatelessWidget {
-  final VoidCallback onPressed;
   final double? iconSize;
   final EdgeInsetsGeometry? padding;
   final Color buttonColor;
@@ -13,7 +12,6 @@ class CartIconButton extends StatelessWidget {
 
   const CartIconButton({
     super.key,
-    required this.onPressed,
     this.iconSize = 45,
     this.padding,
     Color? buttonColor,
@@ -51,7 +49,7 @@ class CartIconButton extends StatelessWidget {
                   color: iconColor,
                 ),
               ),
-              onPressed: onPressed,
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.myCartScreen),
             ),
             if (itemCount > 0)
               Positioned(

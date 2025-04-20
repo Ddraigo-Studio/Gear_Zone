@@ -244,11 +244,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       ),
       actions: [
         CartIconButton(
-          onPressed: () {
-            // Your action here
-          },
           buttonColor: Colors.white, // Background color of the button
-          iconColor: appTheme.deepPurple400, // Color of the icon
+          iconColor: theme.primaryColor, // Color of the icon
         ),
       ],
       

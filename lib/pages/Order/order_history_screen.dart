@@ -79,12 +79,7 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
         text: "Lịch sử đơn hàng",
       ),
       actions: [
-        CartIconButton(
-          onPressed: () {
-            // Navigate to cart screen
-            Navigator.pushNamed(context, AppRoutes.myCartScreen);
-          },
-        ),
+        CartIconButton(),
       ],
     );
   }

@@ -90,27 +90,38 @@ class CustomCheckboxButton extends StatelessWidget {
       ],
     );
 
-Widget get textWidget => Text(
+  Widget get textWidget => Text(
       text ?? "",
       textAlign: textAlignment ?? TextAlign.start,
       overflow: overflow,
       style: textStyle ?? CustomTextStyles.bodyMediumGray50001,
     );
 
-Widget get checkboxWidget => SizedBox(
-      height: iconSize ?? 18.h,
-      width: iconSize ?? 18.h,
-      child: Checkbox(
-        visualDensity: VisualDensity(
-          vertical: -4,
-          horizontal: -4,
+  Widget get checkboxWidget => InkWell(
+      onTap: () {
+        value = !(value ?? false);
+        onChange(value!);
+      },
+      child: Container(
+        height: iconSize ?? 20.h,
+        width: iconSize ?? 20.h,
+        decoration: BoxDecoration(
+          color: (value ?? false) ? appTheme.deepPurpleA200 : Colors.transparent,
+          border: Border.all(
+            color: (value ?? false) ? appTheme.deepPurpleA200 : appTheme.gray60001,
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(4.h),
         ),
-        value: value ?? false,
-        checkColor: appTheme.deepPurple400,
-        onChanged: (value) {
-          onChange(value!);
-        },
+        child: (value ?? false)
+            ? Center(
+                child: Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: (iconSize ?? 20.h) * 0.7,
+                ),
+              )
+            : null,
       ),
     );
-
 }

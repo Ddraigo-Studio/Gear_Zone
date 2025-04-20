@@ -87,7 +87,7 @@ class AppRoutes {
     plashScreen: (context) => PlashScreenScreen(),
     categoriesScreen: (context) => CategoriesScreen(),
     productDetail: (context) => ProductDetailScreen(),
-    myCartScreen: (context) => MyCartScreen(),
+    myCartScreen: (context) => CartScreen(),
     checkoutScreen: (context) => CheckoutScreen(), 
     methodCheckoutScreen: (context) => PaymentMethodScreen(),
     ordersDetailScreen: (context) => OrdersDetailScreen(), 
