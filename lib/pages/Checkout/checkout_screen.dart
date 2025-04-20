@@ -1,311 +1,329 @@
 import 'package:flutter/material.dart';
-import '../../../core/app_export.dart';
-import '../../../theme/custom_button_style.dart';
-import '../../../widgets/app_bar/appbar_leading_iconbutton.dart';
-import '../../../widgets/app_bar/appbar_subtitle_one.dart';
-import '../../../widgets/app_bar/custom_app_bar.dart';
-import '../../../widgets/custom_elevated_button.dart';
-import '../../../widgets/custom_icon_button.dart';
-import '../../widgets/Items/checkout_item.dart';
+import 'package:provider/provider.dart';
+import '../../controller/checkout_controller.dart';
+import '../../controller/cart_controller.dart';
+import '../../core/app_export.dart';
+import '../../model/Cart.dart';
+import '../../theme/custom_button_style.dart';
+import '../../widgets/app_bar/appbar_leading_image.dart';
+import '../../widgets/app_bar/appbar_subtitle_two.dart';
+import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
+import '../../widgets/custom_elevated_button.dart';
+import '../Order/order_detail_screen.dart';
 
-class CheckoutScreen extends StatelessWidget {
-  const CheckoutScreen({super.key});
+class CheckoutScreen extends StatefulWidget {
+  final List<CartItem>? selectedItems;
+
+  const CheckoutScreen({
+    super.key,
+    this.selectedItems,
+  });
+
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  late CheckoutController _checkoutController;
+  bool _isProcessing = false;
+  bool _isVoucherApplied = true; // Để hiển thị ví dụ voucher đã được áp dụng
+
+  @override
+  void initState() {
+    super.initState();
+    _checkoutController = CheckoutController();
+
+    // Lấy danh sách sản phẩm đã chọn
+    List<CartItem> itemsToCheckout;
+    if (widget.selectedItems != null && widget.selectedItems!.isNotEmpty) {
+      itemsToCheckout = widget.selectedItems!;
+    } else {
+      final cartController = CartController();
+      itemsToCheckout = cartController.getSelectedItems();
+    }
+
+    _checkoutController.setItems(itemsToCheckout);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: appTheme.gray100,
-      appBar: _buildAppBar(context),
-      body: SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.symmetric(horizontal: 16.h),
-              child: Column(
-                spacing: 22,
-                children: [
-                  SizedBox(height: 42.h),
-                  _buildAddressSection(context),
-                  _buildCartList(context),
-                  _buildPaymentMethod(context),
-                  _buildPromoCode(context),
-                  _buildPaymentDetails(context)
-                ],
-              ),
-            ),
+    return ChangeNotifierProvider.value(
+      value: _checkoutController,
+      child: Scaffold(
+        backgroundColor: appTheme.gray10001,
+        appBar: _buildAppBar(context),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildAddressSection(context),
+              SizedBox(height: 16.h),
+              _buildItemsSection(context),
+              SizedBox(height: 16.h),
+              _buildPaymentMethodSection(context),
+              SizedBox(height: 16.h),
+              _buildVoucherSection(context),
+              SizedBox(height: 16.h),
+              _buildOrderSummarySection(context),
+            ],
           ),
         ),
+        bottomNavigationBar: _buildPlaceOrderButton(context),
       ),
-      bottomNavigationBar: _buildPlaceOrderButton(context),
     );
   }
 
-  /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 64.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-        margin: EdgeInsets.only(
-          left: 24.h,
-          top: 10.h,
-          bottom: 5.h,
-        ),
-      ),
+    return AppBar(
+      toolbarHeight: 80.h,
+      backgroundColor: Colors.white,
       centerTitle: true,
-      title: AppbarSubtitleOne(
+      shadowColor: Colors.black.withOpacity(0.4),
+      elevation: 1,
+      leading: IconButton(
+        icon: AppbarLeadingImage(
+          imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
+          height: 25.h,
+          width: 25.h,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      title: AppbarSubtitleTwo(
         text: "Thanh toán",
       ),
     );
   }
 
-  /// Section Widget
   Widget _buildAddressSection(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10.h,
-        vertical: 8.h,
+      margin: EdgeInsets.all(16.h),
+      padding: EdgeInsets.all(16.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.h),
       ),
-      decoration: AppDecoration.fillWhiteA.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-      ),
-      width: double.maxFinite,
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgMingcuteLocationLine,
-            height: 24.h,
-            width: 24.h,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Row(
-                    children: [
-                      Text(
-                        "Nguyễn Văn A",
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 10.h),
-                        child: Text(
-                          "093896356",
-                          style: CustomTextStyles.bodyMediumGray900_1,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.location_on,
+                color: appTheme.red400,
+                size: 24.h,
+              ),
+              SizedBox(width: 12.h),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Nguyễn Văn A",
+                          style: CustomTextStyles
+                              .titleMediumBaloo2Gray500SemiBold
+                              .copyWith(
+                            color: appTheme.gray70001,
+                          ),
                         ),
+                        Text(
+                          "093896356",
+                          style:
+                              CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      "Đường 32/2 quận 10, TP. Hồ Chí Minh",
+                      style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold
+                          .copyWith(
+                        color: appTheme.gray70001,
                       ),
-                    ],
-                  ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                Text(
-                  "Đường 32/2 quận 10, TP. Hồ Chí Minh ",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyles.bodyMediumBlack900_1.copyWith(
-                    height: 1.60,
-                  ),
+              ),
+              SizedBox(width: 8.h),
+              IconButton(
+                icon: Icon(
+                  Icons.arrow_forward_ios,
+                  color: appTheme.gray700,
+                  size: 20.h,
                 ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-                  height: 24.h,
-                  width: 24.h,
-                ),
-              ],
-            ),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-            height: 24.h,
-            width: 24.h,
+                onPressed: () {
+                  // Điều hướng đến trang chọn địa chỉ
+                },
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  /// Section Widget
-  Widget _buildCartList(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 6.h,
-      ),
-      decoration: AppDecoration.fillWhiteA,
-      child: Column(
-        children: [
-          Text(
-            "Đơn hàng của bạn",
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: CustomTextStyles.titleMediumBalooBhaijaan2Gray900.copyWith(
-              height: 1.60,
-            ),
+  Widget _buildItemsSection(BuildContext context) {
+    return Consumer<CheckoutController>(
+      builder: (context, controller, child) {
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: 16.h),
+          padding: EdgeInsets.all(16.h),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.h),
           ),
-          SizedBox(height: 12.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Divider(),
-          ),
-          SizedBox(height: 8.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Row(
-              children: [
-                CustomImageView(
-                  imagePath: ImageConstant.imgImage33,
-                  height: 42.h,
-                  width: 64.h,
-                ),
-                Expanded(
-                  child: Column(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Đơn hàng của bạn",
+                style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
+              ),
+              SizedBox(height: 16.h),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: controller.items.length,
+                separatorBuilder: (context, index) => Divider(height: 24.h),
+                itemBuilder: (context, index) {
+                  final item = controller.items[index];
+                  return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 222.h,
-                        child: Text(
-                          "Laptop ASUS Vivobook 14 OLED A1405VA KM095W",
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyles.bodySmallBalooBhaiGray900
-                              .copyWith(
-                            height: 1.60,
-                          ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.h),
+                        child: Image.asset(
+                          item.imagePath,
+                          width: 80.h,
+                          height: 80.h,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Row(
+                      SizedBox(width: 12.h),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Màu sắc: bạc",
-                                    style:
-                                        CustomTextStyles.labelMediumGray60001,
-                                  ),
-                                  Text(
-                                    "Số lượng: 1",
-                                    style:
-                                        CustomTextStyles.labelMediumGray60001,
-                                  ),
-                                ],
-                              ),
+                            Text(
+                              item.productName,
+                              style: CustomTextStyles.bodyMediumGray900,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            Expanded(
-                              child: Column(
-                                spacing: 2,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    "17.390.000đ",
-                                    style: theme.textTheme.labelLarge,
+                            SizedBox(height: 4.h),
+                            Text(
+                              "Màu sắc: ${item.color}",
+                              style: CustomTextStyles.labelLargeGray60001,
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              "Số lượng: ${item.quantity}",
+                              style: CustomTextStyles.labelLargeGray60001,
+                            ),
+                            SizedBox(height: 4.h),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "${item.discountedPrice.toInt()}đ",
+                                  style:
+                                      CustomTextStyles.titleSmallGabaritoRed500,
+                                ),
+                                SizedBox(width: 8.h),
+                                Text(
+                                  "${item.originalPrice.toInt()}đ",
+                                  style:
+                                      CustomTextStyles.labelMedium11.copyWith(
+                                    decoration: TextDecoration.lineThrough,
                                   ),
-                                  Text(
-                                    "20.990.000đ",
-                                    style:
-                                        theme.textTheme.labelMedium!.copyWith(
-                                      decoration: TextDecoration.lineThrough,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
                     ],
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentMethodSection(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      padding: EdgeInsets.all(16.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.h),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.payment_rounded,
+                  color: appTheme.deepPurpleA200,
+                  size: 24.h,
+                ),
+                SizedBox(width: 12.h),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Phương thức thanh toán",
+                        style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                          color: appTheme.gray70001,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        "Chưa chọn phương thức thanh toán",
+                        style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 24.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Divider(),
-          ),
-          SizedBox(height: 10.h),
-          ListView.builder(
-            padding: EdgeInsets.zero,
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: 1,
-            itemBuilder: (context, index) {
-              return CheckoutItem();
+          IconButton(
+            icon: Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: appTheme.gray700,
+              size: 20.h,
+            ),
+            onPressed: () {
+              // Điều hướng đến trang chọn phương thức thanh toán
             },
           ),
-          SizedBox(height: 10.h),
         ],
       ),
     );
   }
 
-  /// Section Widget
-  Widget _buildPaymentMethod(BuildContext context) {
+  Widget _buildVoucherSection(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10.h,
-        vertical: 8.h,
-      ),
-      decoration: AppDecoration.fillWhiteA.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-      ),
-      width: double.maxFinite,
-      child: Row(
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgFluentPayment16Filled,
-            height: 24.h,
-            width: 24.h,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Phương thức thanh toán",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyles.bodyMediumBlack900_2.copyWith(
-                    height: 1.60,
-                  ),
-                ),
-                Text(
-                  "Chưa chọn phương thức thanh toán",
-                  style: CustomTextStyles.bodyMediumGray900_1,
-                )
-              ],
-            ),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-            height: 24.h,
-            width: 24.h,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildPromoCode(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 12.h,
-      ),
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      padding: EdgeInsets.all(16.h),
+      
       decoration: AppDecoration.outlineBlack9004.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder5,
+        borderRadius: BorderRadiusStyle.roundedBorder12,
       ),
       child: Column(
         spacing: 4,
@@ -318,8 +336,7 @@ class CheckoutScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CustomImageView(
-                  imagePath:
-                      ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
+                  imagePath: ImageConstant.imgIconsaxBrokenDiscountshape,
                   height: 24.h,
                   width: 26.h,
                 ),
@@ -331,219 +348,193 @@ class CheckoutScreen extends StatelessWidget {
                   ),
                 ),
                 Spacer(),
-                CustomImageView(
-                  imagePath: ImageConstant.imgArrowRight,
-                  height: 24.h,
-                  width: 26.h,
+                IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16.h),
+                        ),
+                      ),
+                      builder: (BuildContext context) {
+                        return AddVoucherBottomsheet();
+                      },
+                    );
+                  },
+                  icon: CustomImageView(
+                    imagePath: ImageConstant.imgArrowRight,
+                  ),
                 ),
               ],
             ),
           ),
-          SizedBox(
-            width: double.maxFinite,
-            child: Divider(
-              color: appTheme.gray500.withValues(
-                alpha: 0.9,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4.h),
-                  child: CustomIconButton(
-                    height: 34.h,
-                    width: 34.h,
-                    padding: EdgeInsets.all(6.h),
-                    decoration: IconButtonStyleHelper.fillGreen,
-                    child: CustomImageView(
-                      imagePath: ImageConstant.imgUser,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Giảm 10%",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyles.titleMediumBalooBhai2Gray700
-                              .copyWith(
-                            height: 1.60,
-                          ),
-                        ),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: Row(
-                            children: [
-                              Text(
-                                "Đơn tối thiểu:",
-                                style: CustomTextStyles.titleSmallInterGray700,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 4.h),
-                                child: Text(
-                                  "1.000.000đ",
-                                  style: CustomTextStyles.titleSmallInterRed500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgDelete,
-                  height: 20.h,
-                  width: 20.h,
-                  margin: EdgeInsets.only(bottom: 12.h),
-                ),
-              ],
-            ),
-          ),
+          PromoItem(),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentDetails(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.all(10.h),
-      decoration: AppDecoration.fillDeepPurpleF.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-      ),
-      child: Column(
-        spacing: 12,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Chi tiết thanh toán",
-            style: CustomTextStyles.bodyLargeBlack900,
+  Widget _buildOrderSummarySection(BuildContext context) {
+    return Consumer<CheckoutController>(
+      builder: (context, controller, child) {
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: 16.h),
+          padding: EdgeInsets.all(16.h),
+          decoration: BoxDecoration(
+            color: appTheme.deepPurple1003f, // Màu tím nhạt
+            borderRadius: BorderRadius.circular(12.h),
           ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildPriceInfo(
-              context,
-              title: "Tổng tiền hàng",
-              price: "\$8.00",
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildPriceInfo(
-              context,
-              title: "Tổng tiền phí vận chuyển",
-              price: "\$8.00",
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildPriceInfo(
-              context,
-              title: "Giảm giá phí vận chuyển",
-              price: "\$8.00",
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildPriceInfo(
-              context,
-              title: "Thuế",
-              price: "\$0.00",
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: _buildPriceInfo(
-              context,
-              title: "Voucher",
-              price: "- 8.000 đ",
-            ),
-          ),
-          SizedBox(
-            width: double.maxFinite,
-            child: Divider(
-              indent: 8.h,
-              endIndent: 8.h,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Tổng thanh toán",
-                style: CustomTextStyles.bodyLargeGray900,
+                "Chi tiết thanh toán",
+                style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
               ),
-              Text(
-                "3.000.000 VND",
-                style: theme.textTheme.bodyLarge!.copyWith(
-                  color: appTheme.gray900,
-                ),
-              )
+              SizedBox(height: 16.h),
+              _buildSummaryRow(
+                title: "Tổng tiền hàng",
+                price: "\$8.00",
+              ),
+              SizedBox(height: 8.h),
+              _buildSummaryRow(
+                title: "Tổng tiền phí vận chuyển",
+                price: "\$8.00",
+              ),
+              SizedBox(height: 8.h),
+              _buildSummaryRow(
+                title: "Giảm giá phí vận chuyển",
+                price: "\$8.00",
+              ),
+              SizedBox(height: 8.h),
+              _buildSummaryRow(
+                title: "Thuế",
+                price: "\$0.00",
+              ),
+              SizedBox(height: 8.h),
+              _buildSummaryRow(
+                title: "Voucher",
+                price: "- 8.000 đ",
+                priceColor: appTheme.red400,
+              ),
+              Divider(height: 24.h),
+              _buildSummaryRow(
+                title: "Tổng thanh toán",
+                price: "${controller.totalPrice.toInt()}đ",
+                isTotal: true,
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  /// Section Widget
-  Widget _buildPlaceOrderButton(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 24.h,
-        vertical: 18.h,
-      ),
-      decoration: AppDecoration.fillWhiteA,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomElevatedButton(
-            height: 64.h,
-            text: "Đặt hàng",
-            buttonStyle: CustomButtonStyles.outlineBlackTL32,
-            buttonTextStyle: theme.textTheme.titleLarge!,
-          )
-        ],
-      ),
-    );
-  }
-
-  /// Common widget
-  Widget _buildPriceInfo(
-    BuildContext context, {
+  Widget _buildSummaryRow({
     required String title,
     required String price,
+    bool isTotal = false,
+    Color? priceColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: CustomTextStyles.bodyLargeGray700.copyWith(
-            color: appTheme.gray700,
-          ),
+          style: isTotal
+              ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.red400,
+                )
+              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.gray70001,
+                ),
         ),
         Text(
           price,
-          style: theme.textTheme.bodyLarge!.copyWith(
-            color: appTheme.gray900,
-          ),
-        )
+          style: isTotal
+              ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold
+                  .copyWith(color: appTheme.red400)
+              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.gray900,
+                ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildPlaceOrderButton(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 16.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Container(
+        height: 48.h,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: appTheme.deepPurpleA200,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24.h),
+            ),
+            padding: EdgeInsets.symmetric(vertical: 16.h),
+          ),
+          onPressed: _isProcessing
+              ? null
+              : () async {
+                  setState(() {
+                    _isProcessing = true;
+                  });
+
+                  final success = await _checkoutController.completeCheckout();
+
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Đặt hàng thành công!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+
+                    Future.delayed(Duration(seconds: 2), () {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.homeScreen,
+                        (route) => false,
+                      );
+                    });
+                  } else {
+                    setState(() {
+                      _isProcessing = false;
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Có lỗi xảy ra khi đặt hàng.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+          child: Text(
+            _isProcessing ? "Đang xử lý..." : "Đặt hàng",
+            style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+              fontSize: 18.h,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
