@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model/Cart.dart';
+import '../model/cart.dart';
 
 class CartController extends ChangeNotifier {
   // Singleton pattern
