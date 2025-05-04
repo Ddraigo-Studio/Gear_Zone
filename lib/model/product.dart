@@ -1,12 +1,11 @@
 class ProductModel {
-  String id; // ID sản phẩm (do Firestore tạo hoặc tự định nghĩa)
-  String name; // Tên sản phẩm
-  String description; // Mô tả sản phẩm
-  double price; // Giá sản phẩm
-  String imageUrl; // URL hình ảnh sản phẩm
-  String category; // Danh mục sản phẩm
+  String id; 
+  String name; 
+  String description; 
+  double price; 
+  String imageUrl; 
+  String category;
 
-  // Constructor để tạo ProductModel
   ProductModel({
     required this.id,
     required this.name,
@@ -16,7 +15,6 @@ class ProductModel {
     required this.category,
   });
 
-  // Chuyển dữ liệu từ Firestore (Map) thành đối tượng ProductModel
   factory ProductModel.fromMap(Map<String, dynamic> data) {
     return ProductModel(
       id: data["id"] ?? "",
@@ -28,7 +26,6 @@ class ProductModel {
     );
   }
 
-  // Chuyển đối tượng ProductModel thành Map để lưu vào Firestore
   Map<String, dynamic> toMap() {
     return {
       "id": id,
