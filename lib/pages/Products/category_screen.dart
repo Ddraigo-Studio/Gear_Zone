@@ -63,12 +63,7 @@ class CategoriesScreen extends StatelessWidget {
       ),
       centerTitle: true, // Nếu muốn tiêu đề căn giữa
       actions: [
-        CartIconButton(
-          onPressed: () {
-            // Navigate to cart screen
-            Navigator.pushNamed(context, AppRoutes.myCartScreen);
-          },
-        ),
+        CartIconButton(),
       ],
     );
   }
