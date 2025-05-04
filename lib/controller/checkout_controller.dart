@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../model/Cart.dart';
+import '../model/cart.dart';
 
 class CheckoutController extends ChangeNotifier {
   // Singleton pattern
