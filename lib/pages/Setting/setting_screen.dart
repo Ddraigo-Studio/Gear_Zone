@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../Profile/edit_profile_screen.dart';
+import '../Profile/list_address_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -30,7 +32,6 @@ class SettingsScreen extends StatelessWidget {
                   SizedBox(height: 10.h),
                   _buttonLogout(context),
                   SizedBox(height: 10.h),
-                  
                 ],
               ),
             ),
@@ -175,10 +176,20 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            "Chỉnh sửa",
-            style: CustomTextStyles.labelLargePrimary,
-          ),
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfileScreen(),
+                ),
+              );
+            },
+            child: Text(
+              "Chỉnh sửa",
+              style: CustomTextStyles.labelLargePrimary,
+            ),
+          )
         ],
       ),
     );
@@ -206,6 +217,14 @@ class SettingsScreen extends StatelessWidget {
       ),
       buttonStyle: CustomButtonStyles.fillWhiteA,
       buttonTextStyle: CustomTextStyles.titleMediumGabaritoGray900SemiBold,
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ListAddressScreen(),
+          ),
+        );
+      },
     );
   }
 
