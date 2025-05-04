@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../pages/Products/product_detail.dart';
-import '../../widgets/custom_icon_button.dart';
+import '../custom_icon_button.dart';
 
 class ProductCarouselItem extends StatelessWidget {
   final String imagePath;

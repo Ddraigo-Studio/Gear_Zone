@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../controller/cart_controller.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/Items/cart_item.dart';
+import '../../widgets/items/cart_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/custom_checkbox_button.dart';

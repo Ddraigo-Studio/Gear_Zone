@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/Items/order_item.dart';
-import '../../widgets/Items/order_timeline_item.dart';
+import '../../widgets/items/order_item.dart';
+import '../../widgets/items/order_timeline_item.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
