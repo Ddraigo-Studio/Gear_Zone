@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/Items/recently_viewed_item.dart';
+import '../../widgets/items/recently_viewed_item.dart';
 import '../../widgets/app_bar/appbar_title_searchview_one.dart';
 import '../../widgets/banner_slider.dart';
 import '../../widgets/cart_icon_button.dart';
