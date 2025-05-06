@@ -66,7 +66,7 @@ class EditProfileScreen extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgImage42,
+            imagePath: ImageConstant.imgBgEditProfile,
             height: 356.h,
             width: double.maxFinite,
           ),
