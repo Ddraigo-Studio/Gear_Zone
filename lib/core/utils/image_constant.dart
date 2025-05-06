@@ -122,17 +122,17 @@ class ImageConstant {
   static String imgDiscountPercentPur = '$iconPath/icon_discount_percent_pur.svg';
   static String imgDiscountPercentGrey = '$iconPath/icon_discount_percent_grey.svg';
   static String imgProfile = '$imagePath/img_profile.png';
-  static String imgMaskGroup = '$imagePath/img_mask_group.png';
+  static String imgMaskGroup = '$imagePath/img_bg_profile.png';
   static String imgFa6SolidMapLocation = '$iconPath/img_solid_map_location.svg';
   static String imgBxSupport = '$iconPath/img_bx_support.svg';
 
   static String imgTeenyiconspasswordoutline = '$iconPath/img_password_outline_purple.svg';
   static String imgThumbsup = '$iconPath/img_logout.svg';
-  static String imgImage42 = '$imagePath/img_bg_edit_profile.png';
-  static String imgLockGray500012x24 = '$iconPath/img_lock_gray_500_01_22x24.svg';
+  static String imgBgEditProfile = '$imagePath/img_bg_edit_profile.png';
+  static String imgLockGray500012x24 = '$iconPath/img_lock_gray_500_01.svg';
   static String imgCall = '$iconPath/img_call.svg';
   static String imgDownload = '$iconPath/img_download.svg';
-  static String imgTablerEdit = '$imagePath/img_tabler_edit.svg';
+  static String imgTablerEdit = '$iconPath/img_tabler_edit.svg';
   static String imgGgAdd = '$iconPath/img_gg_add.svg';
   static String imgHeartIconlyProFill = '$iconPath/img_heart_iconly_pro_fill.svg';
   static String imageNotFound = 'assets/images/image_not_found.png';
