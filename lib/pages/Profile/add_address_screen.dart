@@ -1,126 +1,116 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import 'package:dvhcvn/dvhcvn.dart' as dvhcvn;
+import '../../model/address.dart';
 
 // ignore_for_file: must_be_immutable
-class AddAddressScreen extends StatelessWidget {
-  AddAddressScreen({super.key});
-
-  TextEditingController nameInputController = TextEditingController();
-  TextEditingController phoneInputController = TextEditingController();
-  List<String> dropdownItemList = ["Item One", "Item Two", "Item Three"];
-  List<String> dropdownItemList1 = ["Item One", "Item Two", "Item Three"];
-  List<String> dropdownItemList2 = ["Item One", "Item Two", "Item Three"];
-  TextEditingController addressInputController = TextEditingController();
+class AddAddressScreen extends StatefulWidget {
+  const AddAddressScreen({super.key});
 
   @override
+  State<AddAddressScreen> createState() => _AddAddressScreenState();
+}
+
+class _AddAddressScreenState extends State<AddAddressScreen> {
+  TextEditingController nameInputController = TextEditingController();
+  TextEditingController phoneInputController = TextEditingController();
+  TextEditingController addressInputController = TextEditingController();
+
+  late AddressData addressData;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Thêm listener cho các TextEditingController
+    nameInputController.addListener(_updateButtonState);
+    phoneInputController.addListener(_updateButtonState);
+    addressInputController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    // Gọi notifyListeners để cập nhật UI
+    if (addressData != null) {
+      addressData.refresh();
+    }
+  }
+
+  @override 
+  void dispose() {
+    // Xóa listener khi widget bị hủy
+    nameInputController.removeListener(_updateButtonState);
+    phoneInputController.removeListener(_updateButtonState);
+    addressInputController.removeListener(_updateButtonState);
+    nameInputController.dispose();
+    phoneInputController.dispose();
+    addressInputController.dispose();
+    super.dispose();
+  }
+  
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: appTheme.whiteA700,
-      resizeToAvoidBottomInset: false,
-      appBar: _buildAppBar(context),
-      body: SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.only(
-                    left: 16.h,
-                    top: 32.h,
-                    right: 16.h,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Column(
-                          spacing: 16,
-                          children: [
-                            _buildNameInput(context),
-                            _buildPhoneInput(context),
-                            CustomDropDown(
-                              icon: Container(
-                                margin: EdgeInsets.only(left: 16.h),
-                                child: CustomImageView(
-                                  imagePath:
-                                      ImageConstant.imgIconsaxBrokenArrowdown2,
-                                  height: 24.h,
-                                  width: 24.h,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              iconSize: 24.h,
-                              hintText: "Tính",
-                              items: dropdownItemList,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12.h,
-                                vertical: 10.h,
-                              ),
-                            ),
-                            CustomDropDown(
-                              icon: Container(
-                                margin: EdgeInsets.only(left: 16.h),
-                                child: CustomImageView(
-                                  imagePath:
-                                      ImageConstant.imgIconsaxBrokenArrowdown2,
-                                  height: 24.h,
-                                  width: 24.h,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              iconSize: 24.h,
-                              hintText: "Quận/huyện",
-                              items: dropdownItemList1,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12.h,
-                                vertical: 10.h,
-                              ),
-                            ),
-                            CustomDropDown(
-                              icon: Container(
-                                margin: EdgeInsets.only(left: 16.h),
-                                child: CustomImageView(
-                                  imagePath:
-                                      ImageConstant.imgIconsaxBrokenArrowdown2,
-                                  height: 24.h,
-                                  width: 24.h,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              iconSize: 24.h,
-                              hintText: "Phường/ Thị xã",
-                              items: dropdownItemList2,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12.h,
-                                vertical: 10.h,
-                              ),
-                            ),
-                            _buildAddressInput(context),
-                          ],
+    return ChangeNotifierProvider(
+      create: (_) {
+        addressData = AddressData();
+        return addressData;
+      },
+      child: Scaffold(
+        backgroundColor: appTheme.whiteA700,
+        resizeToAvoidBottomInset: false,
+        appBar: _buildAppBar(context),
+        body: SafeArea(
+          top: false,
+          child: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.only(
+                      left: 16.h,
+                      top: 32.h,
+                      right: 16.h,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        SizedBox(
+                          width: double.maxFinite,
+                          child: Column(
+                            children: [
+                              _buildNameInput(context),
+                              SizedBox(height: 16.h),
+                              _buildPhoneInput(context),
+                              SizedBox(height: 16.h),
+                              _buildProvinceSelector(context),
+                              SizedBox(height: 16.h),
+                              _buildDistrictSelector(context),
+                              SizedBox(height: 16.h),
+                              _buildWardSelector(context),
+                              SizedBox(height: 16.h),
+                              _buildAddressInput(context),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildSaveButtonSection(context),
       ),
-      bottomNavigationBar: _buildSaveButtonSection(context),
     );
   }
 
@@ -135,6 +125,9 @@ class AddAddressScreen extends StatelessWidget {
           top: 8.h,
           bottom: 8.h,
         ),
+        onTap: () {
+          Navigator.pop(context);
+        },
       ),
       centerTitle: true,
       title: AppbarSubtitleTwo(
@@ -148,10 +141,10 @@ class AddAddressScreen extends StatelessWidget {
     return CustomTextFormField(
       controller: nameInputController,
       hintText: "Họ và tên",
-      hintStyle: CustomTextStyles.bodyLargeGray900,
+      hintStyle: CustomTextStyles.bodyLargeGray700,
       contentPadding: EdgeInsets.symmetric(
         horizontal: 12.h,
-        vertical: 10.h,
+        vertical: 12.h,
       ),
     );
   }
@@ -161,10 +154,130 @@ class AddAddressScreen extends StatelessWidget {
     return CustomTextFormField(
       controller: phoneInputController,
       hintText: "Số điện thoại",
-      hintStyle: CustomTextStyles.bodyLargeGray900,
+      textInputType: TextInputType.phone,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Vui lòng nhập số điện thoại";
+        } else if (!RegExp(r'^\d{10,11}$').hasMatch(value)) {
+          return "Số điện thoại không hợp lệ";
+        }
+        return null;
+      },
+      hintStyle: CustomTextStyles.bodyLargeGray700,
       contentPadding: EdgeInsets.symmetric(
         horizontal: 12.h,
-        vertical: 10.h,
+        vertical: 12.h,
+      ),
+    );
+  }
+
+  /// Section Widget: Province Selector
+  Widget _buildProvinceSelector(BuildContext context) {
+    return Consumer<AddressData>(
+      builder: (context, data, _) => InkWell(
+        onTap: () => _selectProvince(context, data),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.h),
+            border: Border.all(color: appTheme.gray300, width: 1),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                data.province?.name ?? "Chọn Tỉnh/Thành phố",
+                style: data.province != null
+                    ? CustomTextStyles.bodyLargeGray700
+                    : CustomTextStyles.bodyLargeGray900,
+              ),
+              CustomImageView(
+                imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
+                height: 24.h,
+                width: 24.h,
+                fit: BoxFit.contain,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Section Widget: District Selector
+  Widget _buildDistrictSelector(BuildContext context) {
+    return Consumer<AddressData>(
+      builder: (context, data, _) => InkWell(
+        onTap: data.province != null ? () => _selectDistrict(context, data) : null,
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
+          decoration: BoxDecoration(
+            color: data.province != null ? Colors.white : appTheme.gray100,
+            borderRadius: BorderRadius.circular(8.h),
+            border: Border.all(color: appTheme.gray300, width: 1),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                data.district?.name ?? 
+                (data.province != null 
+                  ? "Chọn Quận/Huyện" 
+                  : "Vui lòng chọn Tỉnh/Thành phố trước"),
+                style: data.district != null
+                    ? CustomTextStyles.bodyLargeGray700
+                    : CustomTextStyles.bodyLargeGray900,
+              ),
+              CustomImageView(
+                imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
+                height: 24.h,
+                width: 24.h,
+                fit: BoxFit.contain,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Section Widget: Ward Selector
+  Widget _buildWardSelector(BuildContext context) {
+    return Consumer<AddressData>(
+      builder: (context, data, _) => InkWell(
+        onTap: data.district != null ? () => _selectWard(context, data) : null,
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
+          decoration: BoxDecoration(
+            color: data.district != null ? Colors.white : appTheme.gray100,
+            borderRadius: BorderRadius.circular(8.h),
+            border: Border.all(color: appTheme.gray300, width: 1),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                data.ward?.name ?? 
+                (data.district != null 
+                  ? "Chọn Phường/Xã" 
+                  : "Vui lòng chọn Quận/Huyện trước"),
+                style: data.ward != null
+                    ? CustomTextStyles.bodyLargeGray700
+                    : CustomTextStyles.bodyLargeGray900,
+              ),
+              CustomImageView(
+                imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
+                height: 24.h,
+                width: 24.h,
+                fit: BoxFit.contain,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -174,20 +287,49 @@ class AddAddressScreen extends StatelessWidget {
     return CustomTextFormField(
       controller: addressInputController,
       hintText: "Số nhà, tên đường ...",
-      hintStyle: CustomTextStyles.bodyLargeGray900,
+      hintStyle: CustomTextStyles.bodyLargeGray700,
+      textInputType: TextInputType.multiline,
       textInputAction: TextInputAction.done,
-      maxLines: 4,
+      maxLines: 5,
       contentPadding: EdgeInsets.fromLTRB(12.h, 10.h, 12.h, 12.h),
     );
   }
 
   /// Section Widget
   Widget _buildSaveButton(BuildContext context) {
-    return CustomElevatedButton(
-      height: 64.h,
-      text: "Lưu",
-      buttonStyle: CustomButtonStyles.fillPrimaryTL30,
-      buttonTextStyle: theme.textTheme.titleLarge!,
+    return Consumer<AddressData>(
+      builder: (context, data, _) => ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        minimumSize: Size(double.infinity, 60.h),
+        shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30.h),
+        ),
+        backgroundColor: (data.province != null && data.district != null && data.ward != null &&
+                nameInputController.text.isNotEmpty && phoneInputController.text.isNotEmpty &&
+                addressInputController.text.isNotEmpty)
+          ? appTheme.deepPurple400
+          : appTheme.gray300,
+      ),
+      onPressed: (data.province != null && data.district != null && data.ward != null &&
+            nameInputController.text.isNotEmpty && phoneInputController.text.isNotEmpty &&
+            addressInputController.text.isNotEmpty)
+        ? () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+            content: Text('Đã lưu địa chỉ mới!'),
+            backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+          }
+        : null,
+      child: Text(
+        "Lưu",
+        style: theme.textTheme.titleLarge!.copyWith(
+        color: Colors.white,
+        ),
+      ),
+      ),
     );
   }
 
@@ -203,6 +345,102 @@ class AddAddressScreen extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [_buildSaveButton(context)],
+      ),
+    );
+  }
+
+  // Methods to select address levels
+  void _selectProvince(BuildContext context, AddressData data) async {
+    final selected = await _showSelectionBottomSheet<dvhcvn.Level1>(
+      context: context,
+      title: "Chọn Tỉnh/Thành phố",
+      items: dvhcvn.level1s,
+    );
+    
+    if (selected != null) {
+      data.province = selected;
+    }
+  }
+
+  void _selectDistrict(BuildContext context, AddressData data) async {
+    if (data.province == null) return;
+    
+    final selected = await _showSelectionBottomSheet<dvhcvn.Level2>(
+      context: context,
+      title: "Chọn Quận/Huyện",
+      items: data.province!.children,
+    );
+    
+    if (selected != null) {
+      data.district = selected;
+    }
+  }
+
+  void _selectWard(BuildContext context, AddressData data) async {
+    if (data.district == null) return;
+    
+    final selected = await _showSelectionBottomSheet<dvhcvn.Level3>(
+      context: context,
+      title: "Chọn Phường/Xã",
+      items: data.district!.children,
+    );
+    
+    if (selected != null) {
+      data.ward = selected;
+    }
+  }
+
+  // Generic bottom sheet to select an entity
+  Future<T?> _showSelectionBottomSheet<T extends dvhcvn.Entity>({
+    required BuildContext context,
+    required String title,
+    required List<T> items,
+  }) {
+    return showModalBottomSheet<T>(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        padding: EdgeInsets.symmetric(vertical: 16.h),
+        child: Column(
+          children: [
+            Container(
+              height: 5.h,
+              width: 40.h,
+              margin: EdgeInsets.only(bottom: 16.h),
+              decoration: BoxDecoration(
+                color: appTheme.gray300,
+                borderRadius: BorderRadius.circular(2.5.h),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 8.h),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18.h,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Divider(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return ListTile(
+                    title: Text(item.name),
+                    onTap: () => Navigator.of(context).pop(item),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -32,6 +32,7 @@ dependencies:
   bitsdojo_window: ^0.1.6
   google_fonts: ^6.2.1
   provider: ^6.1.4
+  dvhcvn: ^2.1.20250301
 
 dev_dependencies:
   flutter_test:

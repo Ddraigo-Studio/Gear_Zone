@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
+import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_icon_button.dart';
 
 class ListAddressScreen extends StatelessWidget {
@@ -15,17 +14,32 @@ class ListAddressScreen extends StatelessWidget {
       appBar: _buildAppBar(context),
       body: SafeArea(
         top: false,
-        child: Container(
-          width: double.maxFinite,
-          padding: EdgeInsets.only(
-            left: 16.h,
-            top: 58.h,
-            right: 16.h,
+        child: SingleChildScrollView(
+          child: Container(
+            width: double.maxFinite,
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.h,
+              vertical: 16.h,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [_buildAddressListColumn(context)],
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [_buildAddressListColumn(context)],
-          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50.h),
+        ),
+        onPressed: () {
+          // Xử lý khi nhấn nút thêm địa chỉ mới
+          Navigator.pushNamed(context, AppRoutes.addAddressScreen);
+        },
+        backgroundColor: appTheme.deepPurpleA200,
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
         ),
       ),
     );
@@ -33,17 +47,22 @@ class ListAddressScreen extends StatelessWidget {
 
   /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 64.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-        margin: EdgeInsets.only(
-          left: 24.h,
-          top: 8.h,
-          bottom: 8.h,
-        ),
-      ),
+    return AppBar(
+      toolbarHeight: 80.h,
+      backgroundColor: Colors.white,
       centerTitle: true,
+      shadowColor: Colors.black.withOpacity(0.4),
+      elevation: 1,
+      leading: IconButton(
+        icon: AppbarLeadingImage(
+          imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
+          height: 25.h,
+          width: 25.h,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
       title: AppbarSubtitleTwo(
         text: "Thông tin nhận hàng",
       ),
@@ -100,30 +119,36 @@ class ListAddressScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: Divider(
                     endIndent: 4.h,
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
-                  child: _buildCompanyAddressRow(
-                    context,
-                    drsanjoseOne: "Dr. San Jose, South ",
-                    p09385336256One: " (09385336256)"
-                  ),
+                  child: _buildAddressRow(context,
+                      drsanjoseOne: "Dr. San Jose, South ",
+                      p09385336256One: " (09385336256)"),
                 ),
-                SizedBox(height: 2.h,),
+                SizedBox(
+                  height: 2.h,
+                ),
                 Text(
                   "2715 Ash Dr. San Jose, South Dakota 83475",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyles.titleMediumBalooBhai2Gray900,
+                  style: CustomTextStyles.titleMediumBalooBhai2Gray700,
                 ),
-                SizedBox(height: 2.h,)
+                SizedBox(
+                  height: 2.h,
+                )
               ],
             ),
           ),
@@ -168,7 +193,7 @@ class ListAddressScreen extends StatelessWidget {
                 SizedBox(height: 8.h),
                 SizedBox(
                   width: double.maxFinite,
-                  child: _buildCompanyAddressRow(
+                  child: _buildAddressRow(
                     context,
                     drsanjoseOne: "Dr. San Jose, South ",
                     p09385336256One: " (09385336256) ",
@@ -179,7 +204,7 @@ class ListAddressScreen extends StatelessWidget {
                   "2715 Ash Dr. San Jose, South Dakota 83475",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyles.titleMediumBalooBhai2Gray900,
+                  style: CustomTextStyles.titleMediumBalooBhai2Gray700,
                 ),
                 SizedBox(height: 2.h),
               ],
@@ -194,52 +219,60 @@ class ListAddressScreen extends StatelessWidget {
             decoration: AppDecoration.fillWhiteA.copyWith(
               borderRadius: BorderRadiusStyle.roundedBorder5,
             ),
-            child: Column(
-              spacing: 8,
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Divider(),
-                ),
-                Container(
-                  width: double.maxFinite,
-                  margin: EdgeInsets.symmetric(horizontal: 8.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: 124.h,
-                        child: Text(
-                          "Thêm địa chỉ mới",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyles.bodyLargePrimary,
-                        ),
-                      ),
-                      CustomIconButton(
-                        height: 24.h,
-                        width: 24.h,
-                        padding: EdgeInsets.all(2.h),
-                        decoration: IconButtonStyleHelper.none,
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgGgAdd,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 2.h),
-              ],
-            ),
+            child: _buildAddAddressRow(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCompanyAddressRow(
+  Widget _buildAddAddressRow(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.pushNamed(context, AppRoutes.addAddressScreen);
+      },
+      child: Column(
+        spacing: 8,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: double.maxFinite,
+            child: Divider(),
+          ),
+          Container(
+            width: double.maxFinite,
+            margin: EdgeInsets.symmetric(horizontal: 8.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  child: Text(
+                    "Thêm địa chỉ mới",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: CustomTextStyles.titleMediumGabaritoPrimary,
+                  ),
+                ),
+                CustomIconButton(
+                  height: 25.h,
+                  width: 25.h,
+                  padding: EdgeInsets.all(2.h),
+                  decoration: IconButtonStyleHelper.none,
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgGgAdd,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 2.h),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddressRow(
     BuildContext context, {
     required String drsanjoseOne,
     required String p09385336256One,
@@ -247,22 +280,20 @@ class ListAddressScreen extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 136.h,
           child: Text(
             drsanjoseOne,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyLarge!.copyWith(
+            style: CustomTextStyles.titleMediumBalooBhai2Gray900.copyWith(
               color: appTheme.gray900,
             ),
           ),
         ),
         Container(
-          width: 92.h,
           margin: EdgeInsets.only(left: 10.h),
           child: Text(
             p09385336256One,
             overflow: TextOverflow.ellipsis,
-            style: CustomTextStyles.bodyMediumGray50001.copyWith(
+            style: CustomTextStyles.titleMediumBalooBhai2Gray900.copyWith(
               color: appTheme.gray50001,
             ),
           ),
@@ -270,5 +301,4 @@ class ListAddressScreen extends StatelessWidget {
       ],
     );
   }
-
 }
