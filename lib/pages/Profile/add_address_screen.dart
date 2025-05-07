@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
-import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
+import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'package:dvhcvn/dvhcvn.dart' as dvhcvn;
 import '../../model/address.dart';
@@ -116,20 +113,22 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      leadingWidth: 64.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
-        margin: EdgeInsets.only(
-          left: 24.h,
-          top: 8.h,
-          bottom: 8.h,
+    return AppBar(
+      toolbarHeight: 80.h,
+      backgroundColor: Colors.white,
+      centerTitle: true,
+      shadowColor: Colors.black.withOpacity(0.4),
+      elevation: 1,
+      leading: IconButton(
+        icon: AppbarLeadingImage(
+          imagePath: ImageConstant.imgIconsaxBrokenArrowleft2,
+          height: 25.h,
+          width: 25.h,
         ),
-        onTap: () {
+        onPressed: () {
           Navigator.pop(context);
         },
       ),
-      centerTitle: true,
       title: AppbarSubtitleTwo(
         text: "Địa chỉ mới",
       ),
