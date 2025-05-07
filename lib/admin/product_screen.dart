@@ -194,7 +194,7 @@ class ProductScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
-                              fontSize: 12,
+                              fontSize: 14, // Tăng kích thước từ 12 lên 14
                             ),
                           ),
                         ),
@@ -205,7 +205,7 @@ class ProductScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
-                              fontSize: 12,
+                              fontSize: 14, // Tăng kích thước từ 12 lên 14
                             ),
                           ),
                         ),
@@ -216,7 +216,7 @@ class ProductScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
-                              fontSize: 12,
+                              fontSize: 14, // Tăng kích thước từ 12 lên 14
                             ),
                           ),
                         ),
@@ -227,7 +227,7 @@ class ProductScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
-                              fontSize: 12,
+                              fontSize: 14, // Tăng kích thước từ 12 lên 14
                             ),
                           ),
                         ),
@@ -238,7 +238,7 @@ class ProductScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
-                              fontSize: 12,
+                              fontSize: 14, // Tăng kích thước từ 12 lên 14
                             ),
                           ),
                         ),
@@ -249,7 +249,7 @@ class ProductScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
-                              fontSize: 12,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -363,7 +363,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Beigi Coffe (Navy)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Có sẵn',
       },
       {
@@ -371,7 +371,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Beigi Coffe (Navy)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Hết hàng',
       },
       {
@@ -379,7 +379,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Story Honzo (Cream)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Có sẵn',
       },
       {
@@ -387,7 +387,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Kanky Kitadakate (Green)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Hết hàng',
       },
       {
@@ -395,7 +395,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Story Honzo (Black)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Có sẵn',
       },
       {
@@ -403,7 +403,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Story Honzo (Cream)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Hết hàng',
       },
       {
@@ -411,7 +411,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Beigi Coffe (Navy)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Hết hàng',
       },
       {
@@ -419,7 +419,7 @@ class ProductScreen extends StatelessWidget {
         'name': 'Kanky Kitadakate (Green)',
         'price': '\$20.00',
         'quantity': '234',
-        'date': '04/17/23 at 8:25 PM',
+        'date': '04/17/23\nat 8:25 PM', // Thay đổi format ngày giờ với \n để xuống dòng
         'status': 'Có sẵn',
       },
     ];
@@ -467,14 +467,14 @@ class ProductScreen extends StatelessWidget {
                       Text(
                         product['id']!,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10, // Giảm kích thước từ 11 xuống 10 (nhỏ hơn header 4 size)
                           color: Theme.of(context).primaryColor,
                         ),
                       ),
                       Text(
                         product['name']!,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12, // Giảm kích thước từ 13 xuống 12 (nhỏ hơn header 2 size)
                         ),
                       ),
                     ],
@@ -485,15 +485,30 @@ class ProductScreen extends StatelessWidget {
           ),
           Expanded(
             flex: 1,
-            child: Text(product['price']!),
+            child: Text(
+              product['price']!,
+              style: const TextStyle(
+                fontSize: 12, // Giảm kích thước xuống 12 (nhỏ hơn header 2 size)
+              ),
+            ),
           ),
           Expanded(
             flex: 1,
-            child: Text(product['quantity']!),
+            child: Text(
+              product['quantity']!,
+              style: const TextStyle(
+                fontSize: 12, // Giảm kích thước xuống 12 (nhỏ hơn header 2 size)
+              ),
+            ),
           ),
           Expanded(
             flex: 1,
-            child: Text(product['date']!),
+            child: Text(
+              product['date']!,
+              style: const TextStyle(
+                fontSize: 12, // Giảm kích thước xuống 12 (nhỏ hơn header 2 size)
+              ),
+            ),
           ),
           Expanded(
             flex: 1,
@@ -506,7 +521,7 @@ class ProductScreen extends StatelessWidget {
               child: Text(
                 product['status']!,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12, // Thống nhất kích thước chữ với các mục khác
                   color: isAvailable ? Colors.green : Colors.red,
                 ),
                 textAlign: TextAlign.center,
@@ -516,7 +531,8 @@ class ProductScreen extends StatelessWidget {
           SizedBox(
             width: 100,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
                   icon: const Icon(Icons.visibility_outlined, size: 20),
@@ -651,14 +667,14 @@ class ProductScreen extends StatelessWidget {
                     Text(
                       product['id']!,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10, // Giảm kích thước từ 11 xuống 10 (nhỏ hơn header 4 size)
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
                     Text(
                       product['name']!,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 12, // Giảm kích thước từ 13 xuống 12 (nhỏ hơn header 2 size)
                       ),
                     ),
                   ],

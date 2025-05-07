@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg_provider/flutter_svg_provider.dart';
 import 'package:gear_zone/core/app_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
@@ -93,6 +95,8 @@ class Sidebar extends StatelessWidget {
                     context,
                     icon: Icons.inventory_2_outlined,
                     title: 'Sản phẩm',
+                    index: 1,
+                    currentIndex: appProvider.currentScreen,
                     detail: '119',
                   ),
 
@@ -101,7 +105,7 @@ class Sidebar extends StatelessWidget {
                     icon: Icons.receipt_outlined,
                     title: 'Giao dịch',
                     detail: '441',
-                    index: 1,
+                    index: 7,
                     currentIndex: appProvider.currentScreen,
                   ),
 
@@ -270,14 +274,14 @@ class Sidebar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFF2F6FF) : Colors.transparent,
-          border: isSelected
-              ? Border(
-                  left: BorderSide(
-                    color: Theme.of(context).primaryColor,
-                    width: 4,
-                  ),
-                )
-              : null,
+          border: Border(
+            left: BorderSide(
+              color: isSelected
+                  ? Theme.of(context).primaryColor
+                  : Colors.transparent,
+              width: 4,
+            ),
+          )
         ),
         child: Row(
           children: [
@@ -326,25 +330,54 @@ class Sidebar extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String title,
+    required int index,
+    required int currentIndex,
     String? detail,
   }) {
+    final isSelected = index == currentIndex;
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final themeColor = Theme.of(context).primaryColor;
+
     return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      // Sử dụng Theme để loại bỏ đường viền màu đen của ExpansionTile
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        expansionTileTheme: ExpansionTileThemeData(
+          backgroundColor: Colors.transparent,
+          collapsedBackgroundColor: Colors.transparent,
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: Colors.transparent)
+          ),
+        ),
+      ),
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16.0),
-        leading: Icon(icon, size: 18, color: Colors.grey[600]),
-        title: Row(
+        onExpansionChanged: (isExpanded) {
+          appProvider.setCurrentScreen(index);
+          if (Responsive.isMobile(context)) {
+            Navigator.pop(context);
+          }
+        },
+        initiallyExpanded: isSelected,
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+        leading: Icon(
+          icon, 
+          size: 18, 
+          color: isSelected ? themeColor : Colors.grey[600],
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            color: isSelected ? themeColor : Colors.black87,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-              ),
-            ),
-            if (detail != null) ...[
-              const Spacer(),
+            if (detail != null)
               Container(
+                margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEEEEE),
@@ -358,31 +391,63 @@ class Sidebar extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
+            Icon(
+              Icons.expand_more,
+              size: 18,
+              color: Colors.grey[600],
+            ),
           ],
         ),
-        iconColor: Colors.grey,
-        collapsedIconColor: Colors.grey,
-        childrenPadding: const EdgeInsets.only(left: 48),
+        iconColor: themeColor,
+        collapsedIconColor: Colors.grey[600],
         children: [
-          _buildNestedSubMenuItem(context, 'LapTop'),
-          _buildNestedSubMenuItem(context, 'Máy tính bàn'),
-          _buildNestedSubMenuItem(context, 'Chuột'),
-          _buildNestedSubMenuItem(context, 'Linh kiện'),
+          // Giữ lại Container với border bên trái màu tím
+          Padding(
+            padding: const EdgeInsets.only(left: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildNestedSubMenuItem(context, 'Laptop', isActive: false),
+                _buildNestedSubMenuItem(context, 'Chuột', isActive: false),
+                _buildNestedSubMenuItem(context, 'Màn hình', isActive: true),
+                _buildNestedSubMenuItem(context, 'PC', isActive: false),
+              ],
+            ),
+          )
         ],
       ),
     );
   }
 
-  Widget _buildNestedSubMenuItem(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: InkWell(
-        onTap: () {},
-        child: Text(
-          title,
-          style: const TextStyle(fontSize: 14),
-        ),
+  Widget _buildNestedSubMenuItem(BuildContext context, String title, {bool isActive = false}) {
+    // Màu tím chủ đạo của ứng dụng khi active
+    final themeColor = Theme.of(context).primaryColor;
+    
+    return InkWell(
+      onTap: () {},
+      child: Row(
+        children: [
+          // Sử dụng SvgPicture.asset thay thế Container
+          SvgPicture.asset(
+            'icons/icon_line.svg',
+            fit: BoxFit.cover,
+            // Thay đổi màu của SVG tùy theo trạng thái active
+            colorFilter: ColorFilter.mode(
+              isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
+              BlendMode.srcIn,
+              
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              color: isActive ? themeColor : Colors.grey[600],
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }
