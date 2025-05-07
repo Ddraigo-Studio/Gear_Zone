@@ -44,6 +44,12 @@ import '../pages/Setting/setting_screen.dart';
 
 import '../pages/Voucher/voucher_detail_screen.dart';
 
+// Admin
+import '../admin/dashboard_screen.dart';
+import '../admin/product_screen.dart';
+import '../admin/product_detail_screen.dart';
+import '../admin/customer_screen.dart';
+import '../admin/admin_screen.dart';
 
 class AppRoutes {
   static const String addProfileScreen = '/add_profile_screen';
@@ -77,6 +83,13 @@ class AppRoutes {
   static const String appNavigationScreen = '/app_navigation_screen';
   static const String initialRoute = '/initialRoute';
 
+  // Admin routes
+  static const String admin = '/admin';
+  static const String adminDashboard = '/admin/dashboard';
+  static const String adminProducts = '/admin/products';
+  static const String adminProductDetail = '/admin/product_detail_screen';
+  static const String adminCustomers = '/admin/customers';
+
   static Map<String, WidgetBuilder> routes = {
     addProfileScreen: (context) => AddProfileScreen(),
     addressNewScreen: (context) => AddressNewScreen(),
@@ -97,6 +110,13 @@ class AppRoutes {
     editProfileScreen: (context) => EditProfileScreen(), 
     listAddressScreen: (context) => ListAddressScreen(), 
     addAddressScreen: (context) => AddAddressScreen(),
-    initialRoute: (context) => HomeScreen(),
+    initialRoute: (context) => AdminScreen(),
+
+    // Admin routes
+    admin: (context) => const AdminScreen(),
+    adminDashboard: (context) => const DashboardScreen(),
+    adminProducts: (context) => const ProductScreen(), 
+    adminProductDetail: (context) => const ProductDetail(),
+    adminCustomers: (context) => const CustomerScreen(),
   };
 }
