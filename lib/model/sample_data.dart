@@ -1,0 +1,228 @@
+import '../model/product.dart';
+import '../core/utils/image_constant.dart';
+
+class SampleData {
+  // Dữ liệu sản phẩm cho giao diện người dùng
+  static final List<Map<String, String>> uiProducts = [
+    {
+      'imagePath': ImageConstant.imgImage1,
+      'productName': 'Huawei Matebook X13',
+      'discountPrice': '17.390.000đ',
+      'originalPrice': '20.990.000đ',
+      'discountPercent': '31%',
+      'rating': '5.0',
+    },
+    {
+      'imagePath': ImageConstant.imgProduct4,
+      'productName': 'Dell XPS 13',
+      'discountPrice': '21.990.000đ',
+      'originalPrice': '24.990.000đ',
+      'discountPercent': '20%',
+      'rating': '4.8',
+    },
+    {
+      'imagePath': ImageConstant.imgImage1,
+      'productName': 'MacBook Pro M1',
+      'discountPrice': '28.990.000đ',
+      'originalPrice': '32.990.000đ',
+      'discountPercent': '12%',
+      'rating': '4.9',
+    },
+  ];
+
+  // Dữ liệu sản phẩm cho admin
+  static final List<Map<String, String>> adminProducts = [
+    {
+      'id': '021231',
+      'name': 'Beigi Coffe (Navy)',
+      'price': '\$20.00',
+      'quantity': '234',
+      'date': '04/17/23\nat 8:25 PM',
+      'status': 'Có sẵn',
+    },
+    {
+      'id': '021231',
+      'name': 'Beigi Coffe (Navy)',
+      'price': '\$20.00',
+      'quantity': '234',
+      'date': '04/17/23\nat 8:25 PM',
+      'status': 'Hết hàng',
+    },
+    {
+      'id': '021231',
+      'name': 'Story Honzo (Cream)',
+      'price': '\$20.00',
+      'quantity': '234',
+      'date': '04/17/23\nat 8:25 PM',
+      'status': 'Có sẵn',
+    },
+    {
+      'id': '021231',
+      'name': 'Kanky Kitadakate (Green)',
+      'price': '\$20.00',
+      'quantity': '234',
+      'date': '04/17/23\nat 8:25 PM',
+      'status': 'Hết hàng',
+    },
+    {
+      'id': '021231',
+      'name': 'Story Honzo (Black)',
+      'price': '\$20.00',
+      'quantity': '234',
+      'date': '04/17/23\nat 8:25 PM',
+      'status': 'Có sẵn',
+    },
+  ];
+
+  // Dữ liệu đơn hàng
+  static final List<Map<String, dynamic>> orders = [
+    {
+      'imagePath': 'assets/images/_product_1.png',
+      'productName': 'Laptop Gaming',
+      'color': 'Black',
+      'quantity': 1,
+      'price': 999.0,
+      'status': 'Chờ xử lý',
+    },
+    {
+      'imagePath': 'assets/images/_product_1.png',
+      'productName': 'Mechanical Keyboard',
+      'color': 'White',
+      'quantity': 2,
+      'price': 89.0,
+      'status': 'Đang giao',
+    },
+    {
+      'imagePath': 'assets/images/_product_1.png',
+      'productName': 'Gaming Mouse',
+      'color': 'Red',
+      'quantity': 1,
+      'price': 59.0,
+      'status': 'Đã nhận',
+    },
+    {
+      'imagePath': 'assets/images/_product_1.png',
+      'productName': 'Headset',
+      'color': 'Black',
+      'quantity': 1,
+      'price': 24.0,
+      'status': 'Trả hàng',
+    },
+    {
+      'imagePath': 'assets/images/_product_1.png',
+      'productName': 'Monitor',
+      'color': 'Black',
+      'quantity': 1,
+      'price': 249.0,
+      'status': 'Đã hủy',
+    },
+  ];
+  
+  // Danh sách sản phẩm mẫu sử dụng ProductModel để sử dụng trong ứng dụng
+  static List<ProductModel> sampleProducts = [
+    ProductModel(
+      id: "LP001",
+      name: "Acer Swift Edge SFA16 41 R3L6",
+      description: "Ultra-thin, ultra-lightweight 16-inch laptop with premium OLED display and powerful AMD Ryzen processor.",
+      price: 17390000,
+      originalPrice: 20990000,
+      imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png",
+      additionalImages: [
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png",
+        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png"
+      ],
+      category: "Laptop",
+      brand: "Acer",
+      model: "SFA16 41 R3L6",
+      processor: "AMD Ryzen™ 7 6800U",
+      ram: "16GB LPDDR5 6400MHz",
+      storage: "1TB PCIe NVMe SSD",
+      graphicsCard: "AMD Radeon Graphics",
+      display: "16 inch WQUXGA (3840 x 2400) OLED",
+      operatingSystem: "Windows 11 Home",
+      wifi: "Wi-Fi 6E AX211",
+      bluetooth: "Bluetooth 5.2",
+      battery: "54Wh 3-cell Li-ion",
+      weight: "1.1 kg",
+      color: "Flax White",
+      ports: ["2x USB-C", "2x USB-A", "HDMI", "Audio Jack"],
+      quantity: "234",
+      status: "Có sẵn",
+      inStock: true,
+      discount: 17,
+      promotions: ["Balo Acer", "Chuột không dây logitech", "PMH 200.000đ"],
+      warranty: "12 tháng",
+    ),
+    ProductModel(
+      id: "LP002",
+      name: "Dell XPS 13",
+      description: "The XPS 13 features a stunning InfinityEdge display in a compact design that's portable yet powerful.",
+      price: 21990000,
+      originalPrice: 24990000,
+      imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png",
+      category: "Laptop",
+      brand: "Dell",
+      model: "XPS 13 9310",
+      processor: "Intel Core i7-1165G7",
+      ram: "16GB LPDDR4x",
+      storage: "512GB PCIe NVMe SSD",
+      graphicsCard: "Intel Iris Xe Graphics",
+      display: "13.4 inch FHD+ (1920 x 1200) InfinityEdge",
+      operatingSystem: "Windows 11 Pro",
+      wifi: "Wi-Fi 6",
+      bluetooth: "Bluetooth 5.1",
+      battery: "52Wh",
+      weight: "1.2 kg",
+      color: "Platinum Silver",
+      ports: ["2x Thunderbolt 4", "MicroSD card reader", "Audio Jack"],
+      quantity: "122",
+      status: "Có sẵn",
+      inStock: true,
+      discount: 12,
+      promotions: ["Túi chống sốc", "Chuột Dell không dây"],
+      warranty: "24 tháng",
+    ),
+    ProductModel(
+      id: "LP003",
+      name: "MacBook Air M2",
+      description: "Redesigned around the next-generation M2 chip, MacBook Air is strikingly thin and delivers exceptional performance.",
+      price: 28990000,
+      originalPrice: 33990000,
+      imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png",
+      category: "Laptop",
+      brand: "Apple",
+      model: "MacBook Air M2",
+      processor: "Apple M2 Chip",
+      ram: "8GB Unified Memory",
+      storage: "256GB SSD",
+      graphicsCard: "Apple M2 GPU",
+      display: "13.6 inch Liquid Retina Display",
+      operatingSystem: "macOS Ventura",
+      wifi: "Wi-Fi 6",
+      bluetooth: "Bluetooth 5.0",
+      battery: "Up to 18 hours",
+      weight: "1.24 kg",
+      color: "Midnight",
+      ports: ["2x Thunderbolt 3", "MagSafe 3", "Audio Jack"],
+      quantity: "50",
+      status: "Hết hàng",
+      inStock: false,
+      discount: 15,
+      promotions: ["Apple Care 1 năm", "Balo Apple"],
+      warranty: "12 tháng",
+    ),
+  ];
+
+  // Tạo ProductModel từ createdAt hiện tại
+  static ProductModel createProductWithCurrentDate() {
+    return ProductModel(
+      id: "LP${DateTime.now().millisecondsSinceEpoch.toString().substring(9, 13)}",
+      name: "Sản phẩm mới",
+      description: "Mô tả sản phẩm mới",
+      price: 0,
+      imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png",
+      category: "Laptop",
+      createdAt: DateTime.now(),
+    );
+  }
+}

@@ -134,8 +134,8 @@ class ListAddressScreen extends StatelessWidget {
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildAddressRow(context,
-                      drsanjoseOne: "Dr. San Jose, South ",
-                      p09385336256One: " (09385336256)"),
+                      name: "Dr. San Jose, South ",
+                      phoneNumber: " (09385336256)"),
                 ),
                 SizedBox(
                   height: 2.h,
@@ -195,8 +195,8 @@ class ListAddressScreen extends StatelessWidget {
                   width: double.maxFinite,
                   child: _buildAddressRow(
                     context,
-                    drsanjoseOne: "Dr. San Jose, South ",
-                    p09385336256One: " (09385336256) ",
+                    name: "Dr. San Jose, South ",
+                    phoneNumber: " (09385336256) ",
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -274,14 +274,14 @@ class ListAddressScreen extends StatelessWidget {
 
   Widget _buildAddressRow(
     BuildContext context, {
-    required String drsanjoseOne,
-    required String p09385336256One,
+    required String name,
+    required String phoneNumber,
   }) {
     return Row(
       children: [
         SizedBox(
           child: Text(
-            drsanjoseOne,
+            name,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyles.titleMediumBalooBhai2Gray900.copyWith(
               color: appTheme.gray900,
@@ -291,7 +291,7 @@ class ListAddressScreen extends StatelessWidget {
         Container(
           margin: EdgeInsets.only(left: 10.h),
           child: Text(
-            p09385336256One,
+            phoneNumber,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyles.titleMediumBalooBhai2Gray900.copyWith(
               color: appTheme.gray50001,

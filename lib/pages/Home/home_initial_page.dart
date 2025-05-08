@@ -7,6 +7,7 @@ import '../../widgets/cart_icon_button.dart';
 import '../../widgets/items/categories_list_item.dart';
 import '../../widgets/items/product_carousel_item_widget.dart';
 import '../Products/category_screen.dart';
+import '../../model/sample_data.dart';
 
 class HomeInitialPage extends StatefulWidget {
   const HomeInitialPage({super.key});
@@ -513,26 +514,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
 
   /// Section Widget
   Widget _buildNeweProductSection(BuildContext context) {
-    final List<Map<String, String>> products = [
-      {
-        'imagePath': ImageConstant.imgImage1,
-        'productName': 'Huawei Matebook X13',
-        'discountPrice': '17.390.000đ',
-        'originalPrice': '20.990.000đ',
-        'discountPercent': '31%',
-        'rating': '5.0',
-      },
-      {
-        'imagePath': ImageConstant.imgProduct4,
-        'productName': 'Dell XPS 13',
-        'discountPrice': '21.990.000đ',
-        'originalPrice': '24.990.000đ',
-        'discountPercent': '20%',
-        'rating': '4.5',
-      },
-      // Thêm các sản phẩm khác ở đây
-    ];
-
+    final List<Map<String, String>> products = SampleData.uiProducts;
+    
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
       height: 260.h,
@@ -559,26 +542,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   }
 
   Widget _buildWishListSection(BuildContext context) {
-    final List<Map<String, String>> products = [
-      {
-        'imagePath': ImageConstant.imgImage1,
-        'productName': 'Huawei Matebook X13',
-        'discountPrice': '17.390.000đ',
-        'originalPrice': '20.990.000đ',
-        'discountPercent': '31%',
-        'rating': '5.0',
-      },
-      {
-        'imagePath': ImageConstant.imgProduct4,
-        'productName': 'Dell XPS 13',
-        'discountPrice': '21.990.000đ',
-        'originalPrice': '24.990.000đ',
-        'discountPercent': '20%',
-        'rating': '4.5',
-      },
-      // Thêm các sản phẩm khác ở đây
-    ];
-
+    final List<Map<String, String>> products = SampleData.uiProducts;
+    
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
       height: 260.h,
