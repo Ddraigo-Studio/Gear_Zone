@@ -45,10 +45,10 @@ import '../pages/Setting/setting_screen.dart';
 import '../pages/Voucher/voucher_detail_screen.dart';
 
 // Admin
-import '../admin/dashboard_screen.dart';
-import '../admin/product_screen.dart';
-import '../admin/product_detail_screen.dart';
-import '../admin/customer_screen.dart';
+import '../admin/Dashboard/dashboard_screen.dart';
+import '../admin/Product/product_screen.dart';
+import '../admin/Product/product_detail_screen.dart';
+import '../admin/Customer/customer_screen.dart';
 import '../admin/admin_screen.dart';
 
 class AppRoutes {
@@ -85,10 +85,10 @@ class AppRoutes {
 
   // Admin routes
   static const String admin = '/admin';
-  static const String adminDashboard = '/admin/dashboard';
-  static const String adminProducts = '/admin/products';
-  static const String adminProductDetail = '/admin/product_detail_screen';
-  static const String adminCustomers = '/admin/customers';
+  static const String adminDashboard = '/admin/Dashboard/dashboard';
+  static const String adminProducts = '/admin/Product/products';
+  static const String adminProductDetail = '/admin/Product/product_detail_screen';
+  static const String adminCustomers = '/admin/Customer/customers';
 
   static Map<String, WidgetBuilder> routes = {
     addProfileScreen: (context) => AddProfileScreen(),

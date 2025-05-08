@@ -3,10 +3,10 @@ import '../core/utils/responsive.dart';
 import '../widgets/admin_widgets/sidebar.dart';
 import '../core/app_provider.dart';
 import 'package:provider/provider.dart';
-import 'dashboard_screen.dart';
-import 'product_screen.dart';
-import 'product_detail_screen.dart';
-import 'customer_screen.dart';
+import 'Dashboard/dashboard_screen.dart';
+import 'Product/product_screen.dart';
+import 'Product/product_detail_screen.dart';
+import 'Customer/customer_screen.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -20,30 +20,33 @@ class AdminScreen extends StatelessWidget {
           children: [
             // Show sidebar only on desktop
             if (Responsive.isDesktop(context)) const Sidebar(),
-            
+
             // Main content area
             Expanded(
-              child: Column(
-                children: [
-                  // Header with search bar and notifications
-                  if (!Responsive.isMobile(context)) _buildHeader(context),
-                  
-                  // Main content
-                  Expanded(
-                    child: Consumer<AppProvider>(
-                      builder: (context, appProvider, _) {
+              child: Container(
+                color: Color(0xffF6F6F6),
+                child: Column(
+                  children: [
+                    // Header with search bar and notifications
+                    if (!Responsive.isMobile(context)) _buildHeader(context),
+
+                    // Main content
+                    Expanded(
+                      child: Consumer<AppProvider>(
+                          builder: (context, appProvider, _) {
                         return _buildCurrentScreen(appProvider.currentScreen);
-                      }
+                      }),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
       // Show drawer on mobile
-      drawer: Responsive.isDesktop(context) ? null : const Drawer(child: Sidebar()),
+      drawer:
+          Responsive.isDesktop(context) ? null : const Drawer(child: Sidebar()),
     );
   }
 
@@ -95,7 +98,7 @@ class AdminScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          
+
           // Notification badges
           Stack(
             children: [
@@ -151,8 +154,6 @@ class AdminScreen extends StatelessWidget {
               ),
             ],
           ),
-          
-          
         ],
       ),
     );

@@ -134,6 +134,7 @@ class CustomerScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
+                              fontSize: 16,
                             ),
                           ),
                         ),
@@ -144,6 +145,7 @@ class CustomerScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
+                              fontSize: 16,
                             ),
                           ),
                         ),
@@ -154,6 +156,7 @@ class CustomerScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
+                              fontSize: 16,
                             ),
                           ),
                         ),
@@ -164,6 +167,7 @@ class CustomerScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey.shade700,
+                              fontSize: 16,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -209,7 +213,7 @@ class CustomerScreen extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            const Text('1'),
+                            const Text('1', style: TextStyle(fontSize: 14)),
                             const SizedBox(width: 4),
                             const Icon(Icons.keyboard_arrow_down, size: 16),
                           ],
@@ -372,24 +376,34 @@ class CustomerScreen extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 100,
+            width: 120, // Increased from 100 to 120 to accommodate the buttons
             child: Row(
+              mainAxisSize: MainAxisSize.min, // Set to min to avoid expansion
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.visibility_outlined, size: 20),
+                  icon: const Icon(Icons.visibility_outlined, size: 18), // Reduced size
                   onPressed: () {},
                   color: Colors.grey,
+                  padding: const EdgeInsets.all(4), // Reduced padding
+                  constraints: const BoxConstraints(), // Remove default constraints
+                  visualDensity: VisualDensity.compact, // More compact
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  icon: const Icon(Icons.edit_outlined, size: 18), // Reduced size
                   onPressed: () {},
                   color: Colors.grey,
+                  padding: const EdgeInsets.all(4), // Reduced padding
+                  constraints: const BoxConstraints(), // Remove default constraints
+                  visualDensity: VisualDensity.compact, // More compact
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outlined, size: 20),
+                  icon: const Icon(Icons.delete_outlined, size: 18), // Reduced size
                   onPressed: () {},
                   color: Colors.grey,
+                  padding: const EdgeInsets.all(4), // Reduced padding
+                  constraints: const BoxConstraints(), // Remove default constraints
+                  visualDensity: VisualDensity.compact, // More compact
                 ),
               ],
             ),
