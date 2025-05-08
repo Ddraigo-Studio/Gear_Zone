@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../model/product.dart';
-
+import '../../admin_screen.dart';  // Import để truy cập AppProvider
+import '../../../core/app_provider.dart';  // Import AppProvider
+import 'package:provider/provider.dart';   // Import Provider
 
 final List<ProductModel> sampleProducts = [
   ProductModel(
@@ -53,6 +55,7 @@ TableRow buildProductTableRow(
     BuildContext context, int index, List<ProductModel> products) {
   final product = products[index % products.length];
   final isAvailable = product.status == 'Có sẵn' || product.inStock;
+  final appProvider = Provider.of<AppProvider>(context, listen: false);
 
   return TableRow(
     decoration: BoxDecoration(
@@ -204,7 +207,10 @@ TableRow buildProductTableRow(
               IconButton(
                 icon: const Icon(Icons.visibility_outlined,
                     size: 20), // Tăng kích thước icon
-                onPressed: () {},
+                onPressed: () {
+                  // Chuyển đến màn hình chi tiết sản phẩm
+                  appProvider.setCurrentScreen(2); // Index 2 là ProductDetail
+                },
                 color: Colors.grey,
                 padding: const EdgeInsets.all(4), // Thêm padding
                 constraints: const BoxConstraints(),
@@ -259,6 +265,7 @@ Widget buildMobileProductItem(
     Function(int)? onExpandToggle}) {
   
   bool isAvailable = product.status == 'Có sẵn' || product.inStock;
+  final appProvider = Provider.of<AppProvider>(context, listen: false);
 
   return Container(
     decoration: BoxDecoration(
@@ -436,7 +443,10 @@ Widget buildMobileProductItem(
                       children: [
                         IconButton(
                           icon: const Icon(Icons.visibility_outlined, size: 20),
-                          onPressed: () {},
+                          onPressed: () {
+                            // Chuyển đến màn hình chi tiết sản phẩm
+                            appProvider.setCurrentScreen(2); // Index 2 là ProductDetail
+                          },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),

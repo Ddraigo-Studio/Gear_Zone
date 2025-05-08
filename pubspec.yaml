@@ -34,6 +34,7 @@ dependencies:
   provider: ^6.1.4
   dvhcvn: ^2.1.20250301
   fl_chart: ^0.63.0
+  dotted_border: ^2.1.0
 
 dev_dependencies:
   flutter_test:
