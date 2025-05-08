@@ -13,7 +13,6 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   
 
-  // Quản lý trạng thái mở rộng cho các item dạng mobile
   late List<bool> _expandedItems;
   
   @override
@@ -27,7 +26,6 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
   
-  // Xử lý sự kiện khi click vào nút mở rộng/thu gọn
   void _toggleExpanded(int index) {
     setState(() {
       _expandedItems[index] = !_expandedItems[index];
@@ -285,9 +283,8 @@ class _ProductScreenState extends State<ProductScreen> {
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-                                // Ngày nhập
                                 Text(
-                                  'Ngày nhập',
+                                  'Ngày tạo',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.grey.shade700,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
+import 'package:dotted_border/dotted_border.dart';
 
 class ProductDetail extends StatelessWidget {
   const ProductDetail({super.key});
@@ -17,7 +18,7 @@ class ProductDetail extends StatelessWidget {
           const Text(
             'Sản phẩm',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -35,7 +36,7 @@ class ProductDetail extends StatelessWidget {
                 child: const Text(
                   'Bảng điều khiển',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: Colors.grey,
                   ),
                 ),
@@ -51,23 +52,7 @@ class ProductDetail extends StatelessWidget {
                 child: const Text(
                   'Sản phẩm',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'LapTop',
-                  style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: Colors.grey,
                   ),
                 ),
@@ -81,9 +66,9 @@ class ProductDetail extends StatelessWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  'Sửa sản phẩm',
+                  'Laptop',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     color: Theme.of(context).primaryColor,
                   ),
                 ),
@@ -125,19 +110,33 @@ class ProductDetail extends StatelessWidget {
               OutlinedButton(
                 onPressed: () {},
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  foregroundColor: Colors.grey[700],
+                  side: BorderSide(color: Colors.grey[300]!),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                child: const Text('Discard Changes'),
+                child: const Text(
+                  'Discard Changes',
+                  style: TextStyle(fontSize: 13),
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: const Color(0xFF7E3FF2),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                child: const Text('Save Changes'),
+                child: const Text(
+                  'Save Changes',
+                  style: TextStyle(fontSize: 13),
+                ),
               ),
             ],
           ),
@@ -148,7 +147,7 @@ class ProductDetail extends StatelessWidget {
 
   Widget _buildProductInfoSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -166,192 +165,259 @@ class ProductDetail extends StatelessWidget {
           const Text(
             'Thông tin sản phẩm',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           const Text(
             'Lorem ipsum dolor sit amet consectetur. Non ac nulla aliquam aenean in velit mattis.',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: Colors.grey,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           
           // Product code
           const Text(
             'Mã sản phẩm',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextFormField(
             decoration: InputDecoration(
               hintText: 'Nhập mã sản phẩm',
+              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
+                borderSide: BorderSide(color: Colors.grey.shade300),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              isDense: true,
             ),
+            style: const TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
           // Product name
           const Text(
             'Tên sản phẩm',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextFormField(
             decoration: InputDecoration(
               hintText: 'Nhập tên sản phẩm',
+              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
+                borderSide: BorderSide(color: Colors.grey.shade300),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              isDense: true,
             ),
+            style: const TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
           // Product description
           const Text(
             'Thông tin về sản phẩm',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextFormField(
-            maxLines: 4,
+            maxLines: 3,
             decoration: InputDecoration(
               hintText: 'Nhập thông tin sản phẩm',
+              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
+                borderSide: BorderSide(color: Colors.grey.shade300),
               ),
-              contentPadding: const EdgeInsets.all(16),
+              contentPadding: const EdgeInsets.all(12),
             ),
+            style: const TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
-          // Product category
-          const Text(
-            'Danh mục sản phẩm',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              hintText: 'Chọn mục sản phẩm',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+          // Category and Price in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product category
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Danh mục sản phẩm',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      hint: Text('Chọn mục sản phẩm', 
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down, size: 20),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        isDense: true,
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'laptop',
+                          child: Text('Laptop', style: TextStyle(fontSize: 12)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'desktop',
+                          child: Text('Máy tính bàn', style: TextStyle(fontSize: 12)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'mouse',
+                          child: Text('Chuột', style: TextStyle(fontSize: 12)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'components',
+                          child: Text('Linh kiện', style: TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                      onChanged: (value) {},
+                    ),
+                  ],
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            items: const [
-              DropdownMenuItem(
-                value: 'laptop',
-                child: Text('Laptop'),
-              ),
-              DropdownMenuItem(
-                value: 'desktop',
-                child: Text('Máy tính bàn'),
-              ),
-              DropdownMenuItem(
-                value: 'mouse',
-                child: Text('Chuột'),
-              ),
-              DropdownMenuItem(
-                value: 'components',
-                child: Text('Linh kiện'),
+              const SizedBox(width: 12),
+              // Price
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Giá',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        hintText: 'Nhập giá sản phẩm',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        isDense: true,
+                      ),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
             ],
-            onChanged: (value) {},
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
-          // Price
-          const Text(
-            'Giá',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            decoration: InputDecoration(
-              hintText: 'Nhập giá sản phẩm',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+          // Quantity and Status in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Quantity
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Số lượng',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        hintText: 'Nhập số lượng',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        isDense: true,
+                      ),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Quantity
-          const Text(
-            'Số lượng',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            decoration: InputDecoration(
-              hintText: 'Nhập số lượng',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Status
-          const Text(
-            'Trạng thái sản phẩm',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              hintText: 'Chọn trạng thái',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            items: const [
-              DropdownMenuItem(
-                value: 'available',
-                child: Text('Có sẵn'),
-              ),
-              DropdownMenuItem(
-                value: 'out_of_stock',
-                child: Text('Hết hàng'),
-              ),
-              DropdownMenuItem(
-                value: 'discontinued',
-                child: Text('Ngừng kinh doanh'),
+              const SizedBox(width: 12),
+              // Status
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Trạng thái sản phẩm',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      hint: Text('Chọn trạng thái', 
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down, size: 20),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        isDense: true,
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'available',
+                          child: Text('Có sẵn', style: TextStyle(fontSize: 12)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'out_of_stock',
+                          child: Text('Hết hàng', style: TextStyle(fontSize: 12)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'discontinued',
+                          child: Text('Ngừng kinh doanh', style: TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                      onChanged: (value) {},
+                    ),
+                  ],
+                ),
               ),
             ],
-            onChanged: (value) {},
           ),
         ],
       ),
@@ -360,7 +426,7 @@ class ProductDetail extends StatelessWidget {
 
   Widget _buildProductImageSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -378,19 +444,19 @@ class ProductDetail extends StatelessWidget {
           const Text(
             'Hình ảnh sản phẩm',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           RichText(
             text: TextSpan(
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
               children: [
                 const TextSpan(
                   text: 'Chú ý: ',
                   style: TextStyle(
-                    color: Colors.purple,
+                    color: Color(0xFF7E3FF2),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -398,7 +464,7 @@ class ProductDetail extends StatelessWidget {
                   text: 'Định dạng ảnh ',
                 ),
                 TextSpan(
-                  text: 'SVG, PNG, or JPG (kích cỡ tối đa 4mb)',
+                  text: 'PNG, or JPG (kích cỡ tối đa 4mb)',
                   style: TextStyle(
                     color: Colors.grey.shade700,
                   ),
@@ -406,69 +472,76 @@ class ProductDetail extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           
           // Main product image
           Container(
             width: double.infinity,
-            height: 200,
+            height: 160,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: NetworkImage('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png'),
-                fit: BoxFit.cover,
-                onError: (exception, stackTrace) {},
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Image.network(
+              'https://product.hstatic.net/200000722513/product/pc_case_xigmatek_-_26_82498939d3bc46308cf3b15fd293d616_1024x1024.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Center(
+                child: Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
-          // Additional images
+          // Additional images row
           Row(
             children: [
               Expanded(
                 child: _buildImageUploadBox(context, 'Ảnh 2'),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildImageUploadBox(context, 'Ảnh 3'),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildImageUploadBox(context, 'Ảnh 4'),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildImageUploadBox(context, 'Ảnh 4'),
         ],
       ),
     );
   }
 
   Widget _buildImageUploadBox(BuildContext context, String label) {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.blue.shade200,
-          style: BorderStyle.solid,
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.image,
-              size: 32,
-              color: Theme.of(context).primaryColor.withOpacity(0.5),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
+    return DottedBorder(
+      color: Colors.blue.shade200,
+      strokeWidth: 1.5,
+      dashPattern: [6, 3],           // 6px line, 3px gap
+      borderType: BorderType.RRect,  // bo tròn
+      radius: const Radius.circular(4),
+      child: Container(
+        height: 80,
+        width: double.infinity,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.image_outlined,
+                size: 24,
+                color: Theme.of(context).primaryColor.withOpacity(0.5),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
