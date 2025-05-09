@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../widgets/items/categories_list_item.dart';
 import '../../widgets/items/recently_viewed_item.dart';
-import '../../widgets/app_bar/appbar_title_searchview_one.dart';
 import '../../widgets/banner_slider.dart';
 import '../../widgets/cart_icon_button.dart';
-import '../../widgets/items/categories_list_item.dart';
 import '../../widgets/items/product_carousel_item_widget.dart';
 import '../Products/category_screen.dart';
 import '../../model/sample_data.dart';
+import '../../core/utils/responsive.dart';
+import '../../widgets/service_section.dart';
 
 class HomeInitialPage extends StatefulWidget {
   const HomeInitialPage({super.key});
@@ -19,27 +20,100 @@ class HomeInitialPage extends StatefulWidget {
 // ignore_for_file: must_be_immutable
 class HomeInitialPageState extends State<HomeInitialPage> {
   TextEditingController searchController = TextEditingController();
-
-  final List<Map<String, String>> categories = [
+  final List<Map<String, dynamic>> categories = [
     {
-      'imagePath': ImageConstant.imgMacbookAirRetinaM1240x160,
-      'categoryName': 'Laptop'
+      'imagePath': 'category/img_laptop.png',
+      'categoryName': 'Laptop',
+      'icon': Icons.laptop
     },
-    {'imagePath': ImageConstant.imgProfile, 'categoryName': 'Laptop Gaming'},
-    {'imagePath': ImageConstant.imgEllipse3, 'categoryName': 'PC'},
-    {'imagePath': ImageConstant.imgEllipse4, 'categoryName': 'Tản nhiệt'},
     {
-      'imagePath': ImageConstant.imgEllipse356x56,
-      'categoryName': 'Accessories'
+      'imagePath': 'category/img_laptop.png',
+      'categoryName': 'Laptop Gaming',
+      'icon': Icons.laptop_mac
+    },
+    {
+      'imagePath': 'category/img_pc.png',
+      'categoryName': 'PC',
+      'icon': Icons.desktop_windows
+    },
+    {
+      'imagePath': 'category/img_screen.png',
+      'categoryName': 'Màn hình',
+      'icon': Icons.monitor
+    },
+    {
+      'imagePath': 'category/img_mainboard.png',
+      'categoryName': 'Mainboard',
+      'icon': Icons.dashboard
+    },
+    {
+      'imagePath': 'category/img_cpu.png',
+      'categoryName': 'CPU',
+      'icon': Icons.memory
+    },
+    {
+      'imagePath': 'category/ing_VGA.png',
+      'categoryName': 'VGA',
+      'icon': Icons.video_settings
+    },
+    {
+      'imagePath': 'category/img_ram.png',
+      'categoryName': 'RAM',
+      'icon': Icons.sd_card
+    },
+    {
+      'imagePath': 'category/img_hard_dish.png',
+      'categoryName': 'Ổ cứng',
+      'icon': Icons.storage
+    },
+    {
+      'imagePath': 'category/img_case.png',
+      'categoryName': 'Case',
+      'icon': Icons.computer
+    },
+    {
+      'imagePath': 'category/img_fan.png',
+      'categoryName': 'Tản nhiệt',
+      'icon': Icons.ac_unit
+    },
+    {
+      'imagePath': 'category/img_nguon.png',
+      'categoryName': 'Nguồn',
+      'icon': Icons.power
+    },
+    {
+      'imagePath': 'category/img_mainboard.png',
+      'categoryName': 'Bàn phím',
+      'icon': Icons.keyboard
+    },
+    {
+      'imagePath': 'category/img_mouse.png',
+      'categoryName': 'Chuột',
+      'icon': Icons.mouse
+    },
+    {
+      'imagePath': 'category/img_headphone.png',
+      'categoryName': 'Tai nghe',
+      'icon': Icons.headset
+    },
+    {
+      'imagePath': 'category/img_volumn.png',
+      'categoryName': 'Loa',
+      'icon': Icons.speaker
+    },
+    {
+      'imagePath': 'category/img_micro.png',
+      'categoryName': 'Micro',
+      'icon': Icons.mic
     },
   ];
-
-
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.maxFinite,
-      decoration: AppDecoration.fillWhiteA,
+      decoration: BoxDecoration(
+        color: Responsive.isDesktop(context) ? Colors.white : Colors.grey[100],
+      ),
       child: Column(
         children: [
           SizedBox(
@@ -53,29 +127,37 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 12.h),
-                    // _buildBannerSection(context),
+                    SizedBox(height: 0.h),
                     MyBannerSlider(),
-                    SizedBox(height: 40.h),
-                    Container(
-                      width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 40.h),
+                    SizedBox(height: 24.h),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16.h, 16.h, 16.h, 8.h),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: 2.h),
-                              child: Text(
-                                "Danh mục",
-                                style: CustomTextStyles
-                                    .titleMediumGabaritoGray900Bold,
+                          Row(
+                            children: [
+                              Container(
+                                width: 4.h,
+                                height: 20.h,
+                                decoration: BoxDecoration(
+                                  color: appTheme.deepPurple400,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
-                            ),
+                              SizedBox(width: 8.h),
+                              Text(
+                                "Danh mục sản phẩm",
+                                style: TextStyle(
+                                  fontSize: 16.fSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: appTheme.deepPurple400,
+                                ),
+                              ),
+                            ],
                           ),
-                          GestureDetector(
-                            onTap: () {
+                          TextButton(
+                            onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -84,18 +166,19 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                             },
                             child: Text(
                               "Xem tất cả",
-                              style: CustomTextStyles.labelLargePoppinsBlack900,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14.fSize,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 16.h),
-                    _buildCategoriesList(context),
-                    SizedBox(height: 38.h),
+                    _buildCategoriesList(context), SizedBox(height: 20.h),
                     Container(
                       width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 24.h),
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
                         context,
                         titleName: "Mới nhất",
@@ -108,7 +191,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                     SizedBox(height: 40.h),
                     Container(
                       width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 24.h),
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
                         context,
                         titleName: "Top bán chạy",
@@ -117,12 +200,11 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildProductCarousel(context),
-                    SizedBox(height: 40.h),
+                    _buildProductCarousel(context), SizedBox(height: 20.h),
 
                     Container(
                       width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 24.h),
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
                         context,
                         titleName: "PC bán chạy nhất",
@@ -131,12 +213,11 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildLaptopTopSell(context),
-                    SizedBox(height: 40.h),
+                    _buildLaptopTopSell(context), SizedBox(height: 20.h),
 
                     Container(
                       width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 24.h),
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
                         context,
                         titleName: "Mục yêu thích",
@@ -146,6 +227,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                     ),
                     SizedBox(height: 16.h),
                     _buildWishListSection(context),
+                    SizedBox(height: 24.h),
+                    // Service section
+                    ServiceSection(),
                     SizedBox(height: 24.h),
                   ],
                 ),
@@ -168,256 +252,235 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.only(right: 10.h),
-              height: 24.h,
-              width: 14.h,
-              decoration: ( 
-                  BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(6.h),
-                )
+              width: 4.h,
+              height: 20.h,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
+            SizedBox(width: 8.h),
             Text(
               titleName,
-              style: CustomTextStyles.titleMediumGabaritoRed500.copyWith(
+              style: TextStyle(
+                fontSize: 16.fSize,
+                fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
           ],
         ),
-        Text(
-          seeAll,
-          style: CustomTextStyles.labelLargePoppinsBlack900
+        TextButton(
+          onPressed: () {},
+          child: Text(
+            seeAll,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14.fSize,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  /// Section Widget: AppBar
+  /// Section Widget: AppBar  PreferredSizeWidget _buildAppBar(BuildContext context) {
+
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final isDesktop = Responsive.isDesktop(context);
     return AppBar(
-      toolbarHeight: 75.h,
+      elevation: 0,
+      toolbarHeight: isDesktop ? 55.h : 75.h,
       backgroundColor: appTheme.deepPurple400,
-      leadingWidth: 70.h,
+      automaticallyImplyLeading: false,
+      leadingWidth: isDesktop ? 55.h : 70.h,
       leading: Container(
-        alignment: Alignment.center,
-        margin: EdgeInsets.only(left: 16.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(
+        padding: EdgeInsets.only(left: isDesktop ? 12.h : 16.h),
+        child: Container(
+          width: isDesktop ? 30.h : 35.h,
+          height: isDesktop ? 30.h : 35.h,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
             color: Colors.white,
-            width: 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              offset: Offset(0, 2),
-              blurRadius: 2,
+          child: ClipOval(
+            child: Image.asset(
+              ImageConstant.imgLogo,
+              fit: BoxFit.cover,
             ),
-          ],
-        ),
-        child: ClipOval(
-          child: Image.asset(
-            ImageConstant.imgLogo,
-            fit: BoxFit.cover,
           ),
         ),
       ),
-      centerTitle: true,
-      title: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.h), 
-        child: SizedBox(
-          width: double.maxFinite,
-          child: Center(
-            child: AppbarTitleSearchviewOne(
-              margin: EdgeInsets.only(left: 8.h, right: 8.h),
-              hintText: "Tìm kiếm",
-              controller: searchController,
+      centerTitle: false,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Responsive.isDesktop(context)
+              ? Text(
+                  'GearZone',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.fSize,
+                  ),
+                )
+              : Container(), // Empty container for mobile
+          Responsive.isDesktop(context)
+              ? Spacer()
+              : SizedBox(width: 10.h), // Empty container for mobile
+          Flexible(
+            child: Container(
+              height: isDesktop ? 30.h : 35.h,
+              width: isDesktop ? 200.h : 400.h,
+              margin: EdgeInsets.symmetric(vertical: isDesktop ? 6.h : 8.h),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5.h),
+              ),              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Tìm kiếm sản phẩm',
+                  hintStyle: TextStyle(
+                    color: Colors.grey,
+                    fontSize: isDesktop ? 11.h : 12.h,
+                  ),
+                  isDense: true,
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.only(left: 8.h, right: 4.h),
+                    child: Icon(
+                      Icons.search, 
+                      color: Colors.grey, 
+                      size: 15.h ,
+                    ),
+                  ),
+                  prefixIconConstraints: BoxConstraints(
+                    minWidth: isDesktop ? 30.h : 36.h,
+                    minHeight: isDesktop ? 30.h : 36.h,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8.h),
+                ),
+                textAlignVertical: TextAlignVertical.center,
+                style: TextStyle(
+                  fontSize: isDesktop ? 11.h : 12.h,
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
       actions: [
-        CartIconButton(
-          buttonColor: Colors.white, // Background color of the button
-          iconColor: theme.primaryColor, // Color of the icon
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 4.h : 6.h),
+          child: isDesktop
+              ? Row(
+                children: [
+                  IconButton(
+                      icon: Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 22.h,
+                      ),
+                      onPressed: () {},
+                  
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.favorite_border_outlined,
+                        color: Colors.white,
+                        size: 22.h,
+                      ),
+                      onPressed: () {},
+                  
+                    ),
+                ],
+              )
+                :Container()
         ),
+        CartIconButton(
+          iconSize: isDesktop ? 22.h : null,
+          buttonColor: Colors.white,
+          iconColor: appTheme.deepPurple400,
+        ),
+        if (Responsive.isDesktop(context))
+          Container(
+            margin: EdgeInsets.only(left: 6.h, right: 12.h),
+            child: InkWell(
+              onTap: () {
+                // TODO: Xử lý khi nhấp vào user
+              },
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                radius: 16.h,
+                child: Icon(
+                  Icons.person,
+                  size: 20.h,
+                  color: appTheme.deepPurple400,
+                ),
+              ),
+            ),
+          )
+        else
+          SizedBox(width: 8.h),
       ],
-      
     );
   }
-
-  // /// Section Widget
-  // Widget _buildBannerSection(BuildContext context) {
-  //   return Container(
-  //     height: 194.h,
-  //     width: double.maxFinite,
-  //     margin: EdgeInsets.only(left: 16.h, right: 16.h),
-  //     child: Stack(
-  //       alignment: Alignment.bottomCenter,
-  //       children: [
-  //         Align(
-  //           alignment: Alignment.center,
-  //           child: Container(
-  //             height: 188.h,
-  //             child: Stack(
-  //               alignment: Alignment.bottomCenter,
-  //               children: [
-  //                 Container(
-  //                   height: 148.h,
-  //                   width: 358.h,
-  //                   margin: EdgeInsets.only(bottom: 12.h),
-  //                   decoration: BoxDecoration(
-  //                     borderRadius: BorderRadius.circular(24.h),
-  //                     gradient: LinearGradient(
-  //                       begin: Alignment(-0.06, 0.06),
-  //                       end: Alignment(1.02, 1),
-  //                       colors: [
-  //                         appTheme.pinkA700,
-  //                         theme.colorScheme.primaryContainer
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 Align(
-  //                   alignment: Alignment.centerLeft,
-  //                   child: Container(
-  //                     height: 188.h,
-  //                     margin: EdgeInsets.only(left: 18.h),
-  //                     child: Stack(
-  //                       alignment: Alignment.bottomLeft,
-  //                       children: [
-  //                         Align(
-  //                           alignment: Alignment.centerRight,
-  //                           child: Container(
-  //                             height: 188.h,
-  //                             margin: EdgeInsets.only(left: 60.h),
-  //                             child: Stack(
-  //                               alignment: Alignment.bottomRight,
-  //                               children: [
-  //                                 CustomImageView(
-  //                                   imagePath: ImageConstant.imgSwitch,
-  //                                   height: 120.h,
-  //                                   width: 154.h,
-  //                                 ),
-  //                                 CustomImageView(
-  //                                   imagePath: ImageConstant.imgUnnamed1,
-  //                                   height: 136.h,
-  //                                   width: 138.h,
-  //                                   alignment: Alignment.topLeft,
-  //                                 ),
-  //                                 CustomImageView(
-  //                                   imagePath: ImageConstant.imgThiTKChAC,
-  //                                   height: 102.h,
-  //                                   width: 144.h,
-  //                                   alignment: Alignment.topRight,
-  //                                   margin: EdgeInsets.only(
-  //                                     top: 10.h,
-  //                                     right: 62.h,
-  //                                   ),
-  //                                 ),
-  //                               ],
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         Align(
-  //                           alignment: Alignment.topLeft,
-  //                           child: Container(
-  //                             width: 88.h,
-  //                             margin: EdgeInsets.only(top: 34.h),
-  //                             child: Text(
-  //                               "Gear\n Zone",
-  //                               maxLines: 2,
-  //                               overflow: TextOverflow.ellipsis,
-  //                               style: CustomTextStyles
-  //                                   .headlineSmallAoboshiOneOrange300,
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         Container(
-  //                           width: 70.h,
-  //                           margin: EdgeInsets.only(bottom: 44.h),
-  //                           child: Column(
-  //                             mainAxisSize: MainAxisSize.min,
-  //                             crossAxisAlignment: CrossAxisAlignment.end,
-  //                             children: [
-  //                               Text(
-  //                                 "Giảm ngay",
-  //                                 maxLines: 1,
-  //                                 overflow: TextOverflow.ellipsis,
-  //                                 textAlign: TextAlign.center,
-  //                                 style: CustomTextStyles
-  //                                     .bodySmallSigmarOneWhiteA700,
-  //                               ),
-  //                               Padding(
-  //                                 padding: EdgeInsets.only(right: 4.h),
-  //                                 child: Text(
-  //                                   "40%",
-  //                                   style:
-  //                                       CustomTextStyles.titleLargeAoboshiOne,
-  //                                 ),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                         Container(
-  //                           margin: EdgeInsets.only(bottom: 22.h),
-  //                           padding: EdgeInsets.symmetric(horizontal: 4.h),
-  //                           decoration: AppDecoration.fillWhiteA.copyWith(
-  //                             borderRadius: BorderRadiusStyle.roundedBorder8,
-  //                           ),
-  //                           child: Text(
-  //                             "free shipping".toUpperCase(),
-  //                             textAlign: TextAlign.center,
-  //                             style: theme.textTheme.labelSmall,
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //         Padding(
-  //           padding: const EdgeInsets.only(bottom: 12.0),
-  //           child: Text(
-  //             "Số lượng có hạn!!!",
-  //             style: CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   /// Section Widget
   Widget _buildCategoriesList(BuildContext context) {
-    return Container(
-      height: 90.h,
-      margin: EdgeInsets.symmetric(horizontal: 16.h),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.only(right: 16.h),
-            child: CategoriesListItem(
-              imagePath: categories[index]['imagePath']!,
-              categoryName: categories[index]['categoryName']!,
-            ),
-          );
-        },
-      ),
-    );
+    // Sử dụng GridView cho màn hình desktop và ListView.builder cho màn hình điện thoại
+    if (Responsive.isDesktop(context)) {
+      // Desktop view - sử dụng GridView như cũ
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.h),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 10,
+            childAspectRatio: 0.95,
+            crossAxisSpacing: 4.h,
+            mainAxisSpacing: 8.h,
+          ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return CategoriesListItem(
+              imagePath: category['imagePath'] as String,
+              categoryName: category['categoryName'] as String,
+              icon: category['icon'] as IconData,
+            );
+          },
+        ),
+      );
+    } else {      // Mobile view - sử dụng ListView.builder với scroll ngang
+      return Container(
+        height: 75.h, // Tăng chiều cao để tránh overflow
+        margin: EdgeInsets.symmetric(vertical: 4.h),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: categories.length,
+          padding: EdgeInsets.symmetric(horizontal: 12.h),
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return Container(
+              width: 58.h,
+              margin: EdgeInsets.symmetric(horizontal: 3.h),
+              child: CategoriesListItem(
+                imagePath: category['imagePath'] as String,
+                categoryName: category['categoryName'] as String,
+                icon: category['icon'] as IconData,
+              ),
+            );
+          },
+        ),
+      );
+    }
   }
+
+  // Widget phụ để tạo mỗi mục danh mục
 
   /// Section Widget
   Widget _buildProductCarousel(BuildContext context) {
@@ -439,7 +502,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
         'discountPercent': '20%',
         'rating': '4.5',
       },
-      // Thêm các sản phẩm khác ở đây
     ];
 
     return Container(
@@ -515,7 +577,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   /// Section Widget
   Widget _buildNeweProductSection(BuildContext context) {
     final List<Map<String, String>> products = SampleData.uiProducts;
-    
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
       height: 260.h,
@@ -543,7 +605,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
 
   Widget _buildWishListSection(BuildContext context) {
     final List<Map<String, String>> products = SampleData.uiProducts;
-    
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
       height: 260.h,

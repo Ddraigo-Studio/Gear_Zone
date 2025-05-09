@@ -48,6 +48,7 @@ flutter:
     - lib/images/imagesecond.png
     - assets/images/
     - assets/icons/
+    - assets/categoty/
   fonts:
     - family: Baloo 2
       fonts:
