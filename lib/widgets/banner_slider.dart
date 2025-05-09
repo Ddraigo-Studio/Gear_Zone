@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:gear_zone/core/utils/size_utils.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../theme/theme_helper.dart';
@@ -13,11 +14,11 @@ class MyBannerSlider extends StatefulWidget {
 
 class _MyBannerSliderState extends State<MyBannerSlider> {
   final myitems = [
-    Image.asset('assets/images/banner_appbar.png'),
-    Image.asset('assets/images/banner_appbar2.png'),
-    Image.asset('assets/images/banner_appbar_3.png'),
-    Image.asset('assets/images/banner_appbar4.png'),
-    Image.asset('assets/images/banner_appbar5.png'),
+    'assets/images/banner_appbar.png',
+    'assets/images/banner_appbar2.png',
+    'assets/images/banner_appbar_3.png',
+    'assets/images/banner_appbar4.png',
+    'assets/images/banner_appbar5.png',
   ];
 
   int myCurrentIndex = 0;
@@ -26,24 +27,74 @@ class _MyBannerSliderState extends State<MyBannerSlider> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
+        Container(          
           width: double.infinity,
           child: CarouselSlider(
             options: CarouselOptions(
               autoPlay: true,
-              height: 200, // Ensure it's constrained within the container
+              height: 250.h, // Tăng chiều cao để phù hợp với thiết kế mới
               autoPlayCurve: Curves.fastOutSlowIn,
               autoPlayAnimationDuration: const Duration(milliseconds: 800),
               autoPlayInterval: const Duration(seconds: 2),
-              enlargeCenterPage: true,
-              aspectRatio: 2.0,
+              enlargeCenterPage: false,
+              viewportFraction: 1.0,
               onPageChanged: (index, reason) {
                 setState(() {
                   myCurrentIndex = index;
                 });
               },
             ),
-            items: myitems,
+            items: myitems.map((item) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(item),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.black.withOpacity(0.6),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'LAPTOP GAMING',
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Thách thức mọi cuộc chơi',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
           ),
         ),
         SizedBox(height: 8), // Add some space between the slider and the indicator
