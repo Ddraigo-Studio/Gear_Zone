@@ -36,6 +36,9 @@ dependencies:
   fl_chart: ^0.63.0
   dotted_border: ^2.1.0
 
+  flutter_image_compress: ^2.1.0
+  image_picker: ^1.0.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -48,7 +51,6 @@ flutter:
     - lib/images/imagesecond.png
     - assets/images/
     - assets/icons/
-    - assets/categoty/
   fonts:
     - family: Baloo 2
       fonts:

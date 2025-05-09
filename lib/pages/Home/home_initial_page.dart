@@ -22,87 +22,87 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   TextEditingController searchController = TextEditingController();
   final List<Map<String, dynamic>> categories = [
     {
-      'imagePath': 'category/img_laptop.png',
+      'imagePath': 'https://i.imgur.com/N1Dv3pw.png',
       'categoryName': 'Laptop',
       'icon': Icons.laptop
     },
     {
-      'imagePath': 'category/img_laptop.png',
+      'imagePath': 'https://i.imgur.com/N1Dv3pw.png',
       'categoryName': 'Laptop Gaming',
       'icon': Icons.laptop_mac
     },
     {
-      'imagePath': 'category/img_pc.png',
+      'imagePath': 'https://i.imgur.com/4Qw0lmd.png',
       'categoryName': 'PC',
       'icon': Icons.desktop_windows
     },
     {
-      'imagePath': 'category/img_screen.png',
+      'imagePath': 'https://i.imgur.com/0yMhS1R.png',
       'categoryName': 'Màn hình',
       'icon': Icons.monitor
     },
     {
-      'imagePath': 'category/img_mainboard.png',
+      'imagePath': 'https://i.imgur.com/nEyJTEK.png',
       'categoryName': 'Mainboard',
       'icon': Icons.dashboard
     },
     {
-      'imagePath': 'category/img_cpu.png',
+      'imagePath': 'https://i.imgur.com/LmEoUkv.png',
       'categoryName': 'CPU',
       'icon': Icons.memory
     },
     {
-      'imagePath': 'category/ing_VGA.png',
+      'imagePath': 'https://i.imgur.com/nY37Hjd.png',
       'categoryName': 'VGA',
       'icon': Icons.video_settings
     },
     {
-      'imagePath': 'category/img_ram.png',
+      'imagePath': 'https://i.imgur.com/ktYbmtd.png',
       'categoryName': 'RAM',
       'icon': Icons.sd_card
     },
     {
-      'imagePath': 'category/img_hard_dish.png',
+      'imagePath': 'https://i.imgur.com/Xx9NBUE.png',
       'categoryName': 'Ổ cứng',
       'icon': Icons.storage
     },
     {
-      'imagePath': 'category/img_case.png',
+      'imagePath': 'https://i.imgur.com/ppGKk80.png',
       'categoryName': 'Case',
       'icon': Icons.computer
     },
     {
-      'imagePath': 'category/img_fan.png',
+      'imagePath': 'https://i.imgur.com/c2rDlae.png',
       'categoryName': 'Tản nhiệt',
       'icon': Icons.ac_unit
     },
     {
-      'imagePath': 'category/img_nguon.png',
+      'imagePath': 'https://i.imgur.com/6Coz29c.png',
       'categoryName': 'Nguồn',
       'icon': Icons.power
     },
     {
-      'imagePath': 'category/img_mainboard.png',
+      'imagePath': 'https://i.imgur.com/nEyJTEK.png',
       'categoryName': 'Bàn phím',
       'icon': Icons.keyboard
     },
     {
-      'imagePath': 'category/img_mouse.png',
+      'imagePath': 'https://i.imgur.com/IWvvZin.png',
       'categoryName': 'Chuột',
       'icon': Icons.mouse
     },
     {
-      'imagePath': 'category/img_headphone.png',
+      'imagePath': 'https://i.imgur.com/OTN7mRy.png',
       'categoryName': 'Tai nghe',
       'icon': Icons.headset
     },
     {
-      'imagePath': 'category/img_volumn.png',
+      'imagePath': 'https://i.imgur.com/SDRzcJZ.png',
       'categoryName': 'Loa',
       'icon': Icons.speaker
     },
     {
-      'imagePath': 'category/img_micro.png',
+      'imagePath': 'https://i.imgur.com/7xMJ2k4.png',
       'categoryName': 'Micro',
       'icon': Icons.mic
     },
