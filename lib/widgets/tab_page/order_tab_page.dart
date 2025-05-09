@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../controller/orders_controller.dart';
 import '../../pages/Order/order_detail_screen.dart';
-import '../Items/ordered_item.dart';
+import '../items/ordered_item.dart';
 import '../../core/app_export.dart';
 
 class OrderTabPage extends StatelessWidget {

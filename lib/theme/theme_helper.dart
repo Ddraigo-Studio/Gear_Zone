@@ -264,4 +264,5 @@ class LightCodeColors {
   Color get yellow50 => Color(0xFFFFFBEB);
   Color get yellow700 => Color(0xFFF4BD2F);
   Color get yellow900 => Color(0xFFEC6D26);
+
 }
