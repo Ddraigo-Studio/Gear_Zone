@@ -3,6 +3,8 @@ import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../Order/order_history_screen.dart';
 import '../Setting/setting_screen.dart';
+import '../../widgets/home_widgets/responsive_home_layout.dart';
+import '../../core/utils/responsive.dart';
 import 'home_initial_page.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,15 +32,17 @@ class HomeScreenState extends State<HomeScreen> {
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         top: false,
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _screens,
+        child: ResponsiveHomeLayout(
+          child: IndexedStack(
+            index: _currentIndex,
+            children: _screens,
+          ),
         ),
       ),
-      bottomNavigationBar: SizedBox(
+      bottomNavigationBar: !Responsive.isDesktop(context) ? SizedBox(
         width: double.maxFinite,
         child: _buildBottomBar(context),
-      ),
+      ) : null,
     );
   }
 
