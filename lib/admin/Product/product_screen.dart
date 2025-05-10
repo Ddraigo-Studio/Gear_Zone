@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
+import 'package:provider/provider.dart';
 import '../../../model/product.dart';
 import 'Items/product_row_item.dart';
+import '../../../core/app_provider.dart';  // Im
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -175,7 +177,10 @@ class _ProductScreenState extends State<ProductScreen> {
                         color: const Color(0xFF7C3AED),
                       ),
                       child: TextButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          // Chuyển đến màn hình chi tiết sản phẩm
+                          Provider.of<AppProvider>(context, listen: false).setCurrentScreen(4); 
+                        },
                         icon: const Icon(Icons.add,
                             color: Colors.white, size: 18),
                         label: const Text(

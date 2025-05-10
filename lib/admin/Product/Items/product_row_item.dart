@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../model/product.dart';
-import '../../admin_screen.dart';  // Import để truy cập AppProvider
 import '../../../core/app_provider.dart';  // Import AppProvider
 import 'package:provider/provider.dart';   // Import Provider
 
@@ -203,30 +202,34 @@ TableRow buildProductTableRow(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              IconButton(
+            children: [              IconButton(
                 icon: const Icon(Icons.visibility_outlined,
                     size: 20), // Tăng kích thước icon
                 onPressed: () {
-                  // Chuyển đến màn hình chi tiết sản phẩm
-                  appProvider.setCurrentScreen(2); // Index 2 là ProductDetail
+                  // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
+                  appProvider.setCurrentScreen(2, isViewOnly: true); // Index 2 là ProductDetail
                 },
                 color: Colors.grey,
                 padding: const EdgeInsets.all(4), // Thêm padding
                 constraints: const BoxConstraints(),
                 visualDensity: VisualDensity.compact,
                 splashRadius: 20,
+                tooltip: 'Xem sản phẩm',
               ),
               const SizedBox(width: 8), // Thêm khoảng cách giữa các icon
               IconButton(
+                onPressed: () {
+                  // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
+                  appProvider.setCurrentScreen(2, isViewOnly: false); // Index 2 là ProductDetail
+                },
                 icon: const Icon(Icons.edit_outlined,
                     size: 20), // Tăng kích thước icon
-                onPressed: () {},
                 color: Colors.grey,
                 padding: const EdgeInsets.all(4), // Thêm padding
                 constraints: const BoxConstraints(),
                 visualDensity: VisualDensity.compact,
                 splashRadius: 20,
+                tooltip: 'Sửa sản phẩm',
               ),
               const SizedBox(width: 8), // Thêm khoảng cách giữa các icon
               IconButton(
@@ -440,24 +443,27 @@ Widget buildMobileProductItem(
                       ),
                     ),
                     Row(
-                      children: [
-                        IconButton(
+                      children: [                        IconButton(
                           icon: const Icon(Icons.visibility_outlined, size: 20),
                           onPressed: () {
-                            // Chuyển đến màn hình chi tiết sản phẩm
-                            appProvider.setCurrentScreen(2); // Index 2 là ProductDetail
+                            // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
+                            appProvider.setCurrentScreen(2, isViewOnly: true); // Index 2 là ProductDetail
                           },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
+                          tooltip: 'Xem sản phẩm',
                         ),
-                        const SizedBox(width: 16),
-                        IconButton(
+                        const SizedBox(width: 16),                        IconButton(
                           icon: const Icon(Icons.edit_outlined, size: 20),
-                          onPressed: () {},
+                          onPressed: () {
+                            // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
+                            appProvider.setCurrentScreen(2, isViewOnly: false); // Index 2 là ProductDetail
+                          },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
+                          tooltip: 'Sửa sản phẩm',
                         ),
                         const SizedBox(width: 16),
                         IconButton(
