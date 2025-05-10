@@ -478,8 +478,6 @@ class ProductDetailState extends State<ProductDetail> {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               isDense: true,
-              filled: widget.isViewOnly,
-              fillColor: widget.isViewOnly ? Colors.grey.shade100 : null,
             ),
             style: const TextStyle(fontSize: 13),
             readOnly: widget.isViewOnly,
@@ -586,10 +584,9 @@ class ProductDetailState extends State<ProductDetail> {
                           borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 3),
+                            horizontal: 10, vertical: 4),
                         isDense: true,
                         filled: widget.isViewOnly,
-                        fillColor: widget.isViewOnly ? Colors.grey.shade100 : null,
                       ),
                       items: const [
                         DropdownMenuItem(
@@ -651,7 +648,7 @@ class ProductDetailState extends State<ProductDetail> {
                           borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 3),
+                            horizontal: 10, vertical: 4),
                         isDense: true,
                       ),
                       items: const [

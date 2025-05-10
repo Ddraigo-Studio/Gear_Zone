@@ -28,12 +28,21 @@ class ProductAddState extends State<ProductAddScreen> {
 
   String? _selectedCategory;
   String? _selectedStatus;
-
   // Variables for image handling
   File? _mainImage;
   List<File> _additionalImages = [];
   bool _isUploadingImages = false;
-
+  
+  // Variables for image URLs
+  String _mainImageUrl = '';
+  List<String> _additionalImageUrls = List.filled(3, '');
+  
+  // Toggle between file upload and URL
+  bool _isUrlInput = false;
+  
+  final TextEditingController _mainImageUrlController = TextEditingController();
+  List<TextEditingController> _additionalImageUrlControllers = List.generate(3, (_) => TextEditingController());
+  
   String? _validatePrice(String? value) {
     if (value == null || value.isEmpty) {
       return 'Vui lòng nhập giá';
@@ -60,7 +69,6 @@ class ProductAddState extends State<ProductAddScreen> {
     }
     return null;
   }
-
   String? _validateQuantity(String? value) {
     if (value == null || value.isEmpty) {
       return 'Vui lòng nhập số lượng';
@@ -76,6 +84,96 @@ class ProductAddState extends State<ProductAddScreen> {
 
   // Khởi tạo controller
   final ProductController _productController = ProductController();
+  
+  // Phương thức để chọn ảnh từ thư viện
+  Future<File?> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      return File(image.path);
+    }
+    return null;
+  }
+  
+  // Phương thức để chọn ảnh chính
+  Future<void> _pickMainImage() async {
+    final File? pickedImage = await _pickImage();
+    if (pickedImage != null) {
+      setState(() {
+        _mainImage = pickedImage;
+      });
+    }
+  }
+  
+  // Phương thức để chọn ảnh phụ
+  Future<void> _pickAdditionalImage(int index) async {
+    final File? pickedImage = await _pickImage();
+    if (pickedImage != null) {
+      setState(() {
+        while (_additionalImages.length <= index) {
+          _additionalImages.add(File(''));
+        }
+        _additionalImages[index] = pickedImage;
+      });
+    }
+  }
+  
+  // Phương thức để upload tất cả ảnh và lấy URLs
+  Future<Map<String, dynamic>> _uploadAllImages(String productId) async {
+    String mainImageUrl = '';
+    List<String> additionalImageUrls = [];
+    
+    setState(() {
+      _isUploadingImages = true;
+    });
+    
+    try {
+      // Nếu người dùng chọn ảnh từ thiết bị
+      if (!_isUrlInput) {
+        // Upload ảnh chính
+        if (_mainImage != null) {
+          mainImageUrl = await _productController.uploadProductImage(
+            _mainImage!, 
+            productId, 
+            isMainImage: true
+          ) ?? '';
+        }
+        
+        // Upload ảnh phụ
+        for (int i = 0; i < _additionalImages.length; i++) {
+          if (_additionalImages[i].path.isNotEmpty) {
+            String? url = await _productController.uploadProductImage(
+              _additionalImages[i], 
+              productId, 
+              isMainImage: false
+            );
+            if (url != null && url.isNotEmpty) {
+              additionalImageUrls.add(url);
+            }
+          }
+        }
+      } else {
+        // Nếu người dùng nhập URL
+        mainImageUrl = _mainImageUrlController.text;
+        
+        for (var controller in _additionalImageUrlControllers) {
+          if (controller.text.isNotEmpty) {
+            additionalImageUrls.add(controller.text);
+          }
+        }
+      }
+    } finally {
+      setState(() {
+        _isUploadingImages = false;
+      });
+    }
+    
+    return {
+      'mainImageUrl': mainImageUrl,
+      'additionalImageUrls': additionalImageUrls
+    };
+  }
 
   // Phương thức xử lý khi nhấn nút lưu
   void _saveForm(BuildContext context) async {
@@ -130,17 +228,33 @@ class ProductAddState extends State<ProductAddScreen> {
         status: _selectedStatus ?? 'out_of_stock',
         inStock: _selectedStatus == 'available',
         discount: int.tryParse(_discountController.text) ?? 0,
-      );
-
-      // Lưu sản phẩm vào Firestore
+      );      // Lưu sản phẩm vào Firestore (chưa có ảnh)
       String? productId;
       if (_idController.text.isEmpty) {
         productId = await _productController.addProduct(product);
       } else {
-        bool success = await _productController.updateProduct(product);
-        if (success) {
-          productId = product.id;
-        }
+        productId = product.id;
+      }
+      
+      // Upload hình ảnh và cập nhật URLs
+      if (productId != null) {
+        // Hiển thị trạng thái đang upload ảnh
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đang tải lên hình ảnh...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        
+        // Upload ảnh và lấy URL
+        Map<String, dynamic> imageUrls = await _uploadAllImages(productId);
+        
+        // Cập nhật product model với URLs
+        product.imageUrl = imageUrls['mainImageUrl'];
+        product.additionalImages = imageUrls['additionalImageUrls'];
+        
+        // Cập nhật lại product vào Firestore
+        await _productController.updateProduct(product);
       }
 
       // Đóng dialog loading
@@ -180,6 +294,29 @@ class ProductAddState extends State<ProductAddScreen> {
         ),
       );
     }
+  }
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to URL controllers to update the UI when they change
+    _mainImageUrlController.addListener(_updateMainImageUrlPreview);
+  }
+
+  @override
+  void dispose() {
+    _mainImageUrlController.removeListener(_updateMainImageUrlPreview);
+    _mainImageUrlController.dispose();
+    for (var controller in _additionalImageUrlControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  // Update the main image URL preview when the text changes
+  void _updateMainImageUrlPreview() {
+    setState(() {
+      _mainImageUrl = _mainImageUrlController.text;
+    });
   }
 
   @override
@@ -298,7 +435,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                   ),
                   child: const Text(
-                    'Discard Changes',
+                    'Bỏ thay đổi',
                     style: TextStyle(fontSize: 13),
                   ),
                 ),
@@ -361,32 +498,32 @@ class ProductAddState extends State<ProductAddScreen> {
           ),
           const SizedBox(height: 20),
 
-          // ID sản phẩm
-          const Text(
-            'ID sản phẩm',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          TextFormField(
-            controller: _idController,
-            decoration: InputDecoration(
-              hintText: 'ID sản phẩm được tạo tự động',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
-              enabled: false,
-            ),
-            style: const TextStyle(fontSize: 13),
-          ),
-          const SizedBox(height: 12),
+          // // ID sản phẩm
+          // const Text(
+          //   'ID sản phẩm',
+          //   style: TextStyle(
+          //     fontSize: 13,
+          //     fontWeight: FontWeight.w500,
+          //   ),
+          // ),
+          // const SizedBox(height: 6),
+          // TextFormField(
+          //   controller: _idController,
+          //   decoration: InputDecoration(
+          //     hintText: 'ID sản phẩm được tạo tự động',
+          //     hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+          //     border: OutlineInputBorder(
+          //       borderRadius: BorderRadius.circular(4),
+          //       borderSide: BorderSide(color: Colors.grey.shade300),
+          //     ),
+          //     contentPadding:
+          //         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          //     isDense: true,
+          //     enabled: false,
+          //   ),
+          //   style: const TextStyle(fontSize: 13),
+          // ),
+          // const SizedBox(height: 12),
 
           // Mã sản phẩm (Seri)
           const Text(
@@ -1462,7 +1599,6 @@ class ProductAddState extends State<ProductAddScreen> {
       ),
     );
   }
-
   Widget _buildProductImageSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1511,77 +1647,268 @@ class ProductAddState extends State<ProductAddScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
-
-          // Main product image
-          Container(
-            width: double.infinity,
-            height: 160,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Image.network(
-              'https://product.hstatic.net/200000722513/product/pc_case_xigmatek_-_26_82498939d3bc46308cf3b15fd293d616_1024x1024.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Center(
-                child: Icon(Icons.image_not_supported,
-                    size: 40, color: Colors.grey),
-              ),
-            ),
-          ),
           const SizedBox(height: 12),
-
-          // Additional images row
+          
+          // Toggle button for image source
           Row(
             children: [
               Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 2'),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 3'),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 4'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageUploadBox(BuildContext context, String label) {
-    return DottedBorder(
-      color: Colors.blue.shade200,
-      strokeWidth: 1.5,
-      dashPattern: [6, 3], // 6px line, 3px gap
-      borderType: BorderType.RRect, // bo tròn
-      radius: const Radius.circular(4),
-      child: Container(
-        height: 80,
-        width: double.infinity,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.image_outlined,
-                size: 24,
-                color: Theme.of(context).primaryColor.withOpacity(0.5),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).primaryColor,
+                child: SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment<bool>(
+                      value: false,
+                      label: Text('Tải ảnh lên', style: TextStyle(fontSize: 12)),
+                      icon: Icon(Icons.upload_file, size: 16),
+                    ),
+                    ButtonSegment<bool>(
+                      value: true,
+                      label: Text('Từ URL', style: TextStyle(fontSize: 12)),
+                      icon: Icon(Icons.link, size: 16),
+                    ),
+                  ],
+                  selected: {_isUrlInput},
+                  onSelectionChanged: (Set<bool> newSelection) {
+                    setState(() {
+                      _isUrlInput = newSelection.first;
+                    });
+                  },
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 16),
+
+          // Main product image
+          _isUrlInput 
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'URL hình ảnh chính',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _mainImageUrlController,
+                      decoration: InputDecoration(
+                        hintText: 'Nhập URL hình ảnh chính',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        isDense: true,
+                      ),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: 12),                    if (_mainImageUrl.isNotEmpty)
+                      Container(
+                        width: double.infinity,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Image.network(
+                          _mainImageUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const Center(
+                            child: Icon(Icons.image_not_supported,
+                                size: 40, color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                  ],
+                )              : _isUploadingImages
+                ? Container(
+                    width: double.infinity,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 8),
+                          Text(
+                            'Đang tải lên...',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : InkWell(
+                    onTap: _pickMainImage,
+                    child: Container(
+                      width: double.infinity,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: _mainImage != null 
+                          ? Image.file(
+                              _mainImage!,
+                              fit: BoxFit.contain,
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                    size: 40,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Chọn ảnh chính',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ),
+          const SizedBox(height: 12),
+
+          // Additional images row
+          _isUrlInput              ? Column(
+                  children: List.generate(3, (index) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'URL hình ảnh ${index + 2}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _additionalImageUrlControllers[index],
+                          decoration: InputDecoration(
+                            hintText: 'Nhập URL hình ảnh ${index + 2}',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(4),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            isDense: true,
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                          onChanged: (value) {
+                            setState(() {
+                              _additionalImageUrls[index] = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 6),
+                        if (_additionalImageUrls[index].isNotEmpty)
+                          Container(
+                            width: double.infinity,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Image.network(
+                              _additionalImageUrls[index],
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Center(
+                                child: Icon(Icons.image_not_supported,
+                                    size: 30, color: Colors.grey),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                      ],
+                    );
+                  }),
+                )
+              : Row(
+                  children: List.generate(3, (index) {
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: index > 0 ? 12 : 0,
+                        ),
+                        child: _buildImageUploadBox(
+                          context, 
+                          'Ảnh ${index + 2}',
+                          onTap: () => _pickAdditionalImage(index),
+                          imageFile: _additionalImages.length > index ? _additionalImages[index] : null,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+        ],
+      ),
+    );
+  }
+  Widget _buildImageUploadBox(
+    BuildContext context, 
+    String label, 
+    {Function()? onTap, File? imageFile}
+  ) {
+    return InkWell(
+      onTap: onTap,
+      child: DottedBorder(
+        color: Colors.blue.shade200,
+        strokeWidth: 1.5,
+        dashPattern: [6, 3], // 6px line, 3px gap
+        borderType: BorderType.RRect, // bo tròn
+        radius: const Radius.circular(4),
+        child: Container(
+          height: 80,
+          width: double.infinity,
+          child: imageFile != null && imageFile.path.isNotEmpty
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: Image.file(
+                    imageFile,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 24,
+                        color: Theme.of(context).primaryColor.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );
