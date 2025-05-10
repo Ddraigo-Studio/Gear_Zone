@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 
-
 class CustomAppBar extends StatelessWidget {
   final bool showDrawerButton;
-  
+
   const CustomAppBar({
     super.key,
     this.showDrawerButton = false,
@@ -33,14 +32,15 @@ class CustomAppBar extends StatelessWidget {
                 Scaffold.of(context).openDrawer();
               },
             ),
-          
+
           if (showDrawerButton) ...[
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage(
-                'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png',
-              ),
+              backgroundImage: Image.network(
+                'https://imgur.com/RQN5fQs.png',
+                fit: BoxFit.cover,
+              ).image,
               onBackgroundImageError: (exception, stackTrace) {},
               child: const Icon(Icons.person, size: 16),
             ),
@@ -66,9 +66,9 @@ class CustomAppBar extends StatelessWidget {
               ],
             ),
           ],
-          
+
           const Spacer(),
-          
+
           if (Responsive.isDesktop(context)) ...[
             // Search bar
             Container(
@@ -84,7 +84,8 @@ class CustomAppBar extends StatelessWidget {
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                  hintStyle:
+                      TextStyle(color: Colors.grey.shade400, fontSize: 13),
                 ),
               ),
             ),
@@ -95,7 +96,7 @@ class CustomAppBar extends StatelessWidget {
               onPressed: () {},
             ),
           ],
-          
+
           // Notification icon
           Stack(
             children: [
@@ -127,7 +128,7 @@ class CustomAppBar extends StatelessWidget {
               ),
             ],
           ),
-          
+
           // Message icon
           Stack(
             children: [
@@ -159,7 +160,7 @@ class CustomAppBar extends StatelessWidget {
               ),
             ],
           ),
-          
+
           if (Responsive.isDesktop(context)) ...[
             const SizedBox(width: 16),
             // User profile
@@ -167,9 +168,10 @@ class CustomAppBar extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 16,
-                  backgroundImage: NetworkImage(
-                    'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png',
-                  ),
+                  backgroundImage: Image.network(
+                    'https://imgur.com/RQN5fQs.png',
+                    fit: BoxFit.cover,
+                  ).image,
                   onBackgroundImageError: (exception, stackTrace) {},
                   child: const Icon(Icons.person, size: 16),
                 ),

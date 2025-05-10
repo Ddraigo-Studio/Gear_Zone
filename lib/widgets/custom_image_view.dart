@@ -6,6 +6,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 extension ImageTypeExtension on String {
   ImageType get imageType {
+    // Check if the string is empty before processing
+    if (this.isEmpty) {
+      return ImageType.unknown;
+    }
     if (this.startsWith('http') || this.startsWith('https')) {
       return ImageType.network;
     } else if (this.endsWith('.svg')) {
@@ -102,10 +106,17 @@ class CustomImageView extends StatelessWidget {
       return _buildImageView();
     }
   }
-
   Widget _buildImageView() {
-  if (imagePath != null) {
-    switch (imagePath!.imageType) {
+  if (imagePath == null || imagePath!.isEmpty) {
+    return Image.asset(
+      placeHolder,
+      height: height,
+      width: width,
+      fit: fit ?? BoxFit.cover,
+    );
+  }
+  
+  switch (imagePath!.imageType) {
       case ImageType.svg:
         return Container(
           height: height,
@@ -129,8 +140,18 @@ class CustomImageView extends StatelessWidget {
           width: width,
           fit: fit ?? BoxFit.cover,
           color: color,
-        );
-      case ImageType.network:
+        );      case ImageType.network:
+        // Check if imagePath is empty or null before using CachedNetworkImage
+        if (imagePath == null || imagePath!.isEmpty) {
+          return Image.asset(
+            placeHolder,
+            height: height,
+            width: width,
+            fit: fit,
+            color: color,
+          );
+        }
+        
         return CachedNetworkImage(
           height: height,
           width: width,
@@ -151,9 +172,8 @@ class CustomImageView extends StatelessWidget {
             width: width,
             fit: fit ?? BoxFit.cover,
           ),
-        );
-
-        case ImageType.png:
+        );      case ImageType.png:
+      case ImageType.unknown:
         default:
           return Image.asset(
             imagePath!,
@@ -161,9 +181,13 @@ class CustomImageView extends StatelessWidget {
             width: width,
             fit: fit ?? BoxFit.cover,
             color: color,
-          );
-      }
-    }
-    return SizedBox();
+          );      }
+    // This code should not be reached unless there's an error
+    return Image.asset(
+      placeHolder,
+      height: height,
+      width: width,
+      fit: fit ?? BoxFit.cover,
+    );
   }
 }

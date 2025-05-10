@@ -1,46 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../model/product.dart';
 import '../../../core/app_provider.dart';  // Import AppProvider
+import '../../../core/utils/responsive.dart';  // Import Responsive
 import 'package:provider/provider.dart';   // Import Provider
+import '../../../controller/product_controller.dart';  // Import ProductController
 
-final List<ProductModel> sampleProducts = [
-  ProductModel(
-    id: "A1001",
-    name: "Laptop Asus Zenbook 14",
-    description: "Laptop mỏng nhẹ, hiệu năng cao",
-    price: 20990000,
-    originalPrice: 23990000,
-    imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png",
-    category: "Laptop",
-    status: "Có sẵn",
-    quantity: "25",
-    inStock: true,
-  ),
-  ProductModel(
-    id: "A1002",
-    name: "Laptop Dell XPS 13",
-    description: "Laptop cao cấp cho doanh nhân",
-    price: 32990000,
-    originalPrice: 35990000,
-    imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png",
-    category: "Laptop",
-    status: "Có sẵn",
-    quantity: "12",
-    inStock: true,
-  ),
-  ProductModel(
-    id: "A1003",
-    name: "MacBook Air M2",
-    description: "Laptop mỏng nhẹ, chip M2 mạnh mẽ",
-    price: 28990000,
-    originalPrice: 30990000,
-    imageUrl: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-W2WjXRd99YcTLHtj2JK4mRgqq9KzVJ.png",
-    category: "Laptop",
-    status: "Hết hàng",
-    quantity: "0",
-    inStock: false,
-  ),
-];
+
 
 /// Tạo TableRow dựa trên ProductModel được cung cấp
 /// 
@@ -91,9 +56,14 @@ TableRow buildProductTableRow(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(4),                  
                   image: DecorationImage(
-                    image: NetworkImage(product.imageUrl),
+                    image: product.imageUrl.isNotEmpty 
+                        ? NetworkImage(product.imageUrl) 
+                        : Image.asset(
+                            'assets/images/img_logo.png',
+                            fit: BoxFit.cover,
+                          ).image,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -206,6 +176,8 @@ TableRow buildProductTableRow(
                 icon: const Icon(Icons.visibility_outlined,
                     size: 20), // Tăng kích thước icon
                 onPressed: () {
+                  // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
+                  appProvider.setCurrentProductId(product.id);
                   // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
                   appProvider.setCurrentScreen(2, isViewOnly: true); // Index 2 là ProductDetail
                 },
@@ -217,10 +189,11 @@ TableRow buildProductTableRow(
                 tooltip: 'Xem sản phẩm',
               ),
               const SizedBox(width: 8), // Thêm khoảng cách giữa các icon
-              IconButton(
-                onPressed: () {
+              IconButton(                onPressed: () {
                   // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
                   appProvider.setCurrentScreen(2, isViewOnly: false); // Index 2 là ProductDetail
+                  // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
+                  appProvider.setCurrentProductId(product.id);
                 },
                 icon: const Icon(Icons.edit_outlined,
                     size: 20), // Tăng kích thước icon
@@ -235,7 +208,7 @@ TableRow buildProductTableRow(
               IconButton(
                 icon: const Icon(Icons.delete_outlined,
                     size: 20), // Tăng kích thước icon
-                onPressed: () {},
+                onPressed: () => deleteProduct(context, product.id),
                 color: Colors.grey,
                 padding: const EdgeInsets.all(4), // Thêm padding
                 constraints: const BoxConstraints(),
@@ -292,9 +265,10 @@ Widget buildMobileProductItem(
               height: 40,
               margin: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                image: DecorationImage(
-                  image: NetworkImage(product.imageUrl),
+                borderRadius: BorderRadius.circular(4),                image: DecorationImage(
+                  image: product.imageUrl.isNotEmpty 
+                      ? NetworkImage(product.imageUrl) 
+                      : const AssetImage('assets/images/image_not_found.png') as ImageProvider,
                   fit: BoxFit.cover,
                   onError: (exception, stackTrace) {},
                 ),
@@ -446,6 +420,8 @@ Widget buildMobileProductItem(
                       children: [                        IconButton(
                           icon: const Icon(Icons.visibility_outlined, size: 20),
                           onPressed: () {
+                            // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
+                            appProvider.setCurrentProductId(product.id);
                             // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
                             appProvider.setCurrentScreen(2, isViewOnly: true); // Index 2 là ProductDetail
                           },
@@ -454,11 +430,12 @@ Widget buildMobileProductItem(
                           constraints: const BoxConstraints(),
                           tooltip: 'Xem sản phẩm',
                         ),
-                        const SizedBox(width: 16),                        IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 20),
+                        const SizedBox(width: 16),                        IconButton(                          icon: const Icon(Icons.edit_outlined, size: 20),
                           onPressed: () {
                             // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
                             appProvider.setCurrentScreen(2, isViewOnly: false); // Index 2 là ProductDetail
+                            // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
+                            appProvider.setCurrentProductId(product.id);
                           },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
@@ -468,7 +445,7 @@ Widget buildMobileProductItem(
                         const SizedBox(width: 16),
                         IconButton(
                           icon: const Icon(Icons.delete_outlined, size: 20),
-                          onPressed: () {},
+                          onPressed: () => deleteProduct(context, product.id),
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -489,8 +466,228 @@ Widget buildMobileProductItem(
 /// 
 /// [context] Context hiện tại để lấy Theme
 /// [products] Danh sách các sản phẩm để hiển thị, nếu không cung cấp sẽ sử dụng dữ liệu mẫu
+/// Widget hiển thị danh sách sản phẩm từ Firestore
+class ProductListView extends StatefulWidget {
+  const ProductListView({super.key});
+
+  @override
+  State<ProductListView> createState() => _ProductListViewState();
+}
+
+class _ProductListViewState extends State<ProductListView> {
+  final ProductController _productController = ProductController();
+  bool _isLoading = true;
+  List<ProductModel> _products = [];
+  String _errorMessage = '';
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Lấy danh mục được chọn từ Provider
+    final appProvider = Provider.of<AppProvider>(context);
+    
+    // Load lại sản phẩm khi danh mục thay đổi
+    _loadProducts(appProvider.selectedCategory);
+  }
+
+  void _loadProducts([String category = '']) {
+    // Set loading state
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    
+    // Stream sẽ được sử dụng để lấy dữ liệu
+    Stream<List<ProductModel>> productsStream;
+    
+    // Nếu có danh mục được chọn thì lọc theo danh mục
+    if (category.isNotEmpty) {
+      productsStream = _productController.getProductsByCategory(category);
+    } else {
+      // Ngược lại, lấy tất cả sản phẩm
+      productsStream = _productController.getProducts();
+    }
+    
+    // Lắng nghe stream và cập nhật state
+    productsStream.listen(
+      (products) {
+        setState(() {
+          _products = products;
+          _isLoading = false;
+        });
+      },
+      onError: (error) {
+        setState(() {
+          _errorMessage = 'Lỗi khi tải dữ liệu: $error';
+          _isLoading = false;
+        });
+      },
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    // Lấy thông tin về danh mục từ Provider
+    final appProvider = Provider.of<AppProvider>(context);
+    final selectedCategory = appProvider.selectedCategory;
+    final isMobile = Responsive.isMobile(context);
+    
+    if (_isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Đang tải sản phẩm...'),
+          ],
+        )
+      );
+    }
+
+    if (_errorMessage.isNotEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_errorMessage),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _loadProducts(selectedCategory),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_products.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
+            const SizedBox(height: 16),            Text(
+              selectedCategory.isEmpty 
+                  ? 'Không có sản phẩm nào' 
+                  : 'Không có sản phẩm nào trong danh mục ${_getCategoryDisplayName(selectedCategory)}',
+              textAlign: TextAlign.center,
+            ),
+            if (selectedCategory.isNotEmpty)
+              const SizedBox(height: 16),
+            if (selectedCategory.isNotEmpty)
+              ElevatedButton(
+                onPressed: () {
+                  appProvider.resetSelectedCategory();
+                },
+                child: const Text('Hiển thị tất cả sản phẩm'),
+              ),
+          ],
+        )
+      );
+    }
+
+    // Hiển thị sản phẩm theo chế độ xem
+    return isMobile 
+        ? Column(
+            children: List.generate(
+              _products.length,
+              (index) => buildMobileProductItem(
+                context, 
+                index, 
+                _products[index],
+                isExpanded: false,
+                onExpandToggle: (index) {},
+              ),
+            ),
+          )
+        : buildProductTable(context, products: _products);
+  }
+}
+
+/// Phương thức xóa sản phẩm
+Future<void> deleteProduct(BuildContext context, String productId) async {
+  final ProductController productController = ProductController();
+  
+  // Hiển thị dialog xác nhận
+  bool confirmed = await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Xác nhận xóa'),
+      content: const Text('Bạn có chắc chắn muốn xóa sản phẩm này không?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Hủy'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+        ),
+      ],
+    ),
+  ) ?? false;
+
+  if (!confirmed) return;
+
+  // Hiển thị loading
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(child: CircularProgressIndicator()),
+  );
+
+  try {
+    bool success = await productController.deleteProduct(productId);
+    
+    // Đóng dialog loading
+    Navigator.pop(context);
+    
+    // Hiển thị thông báo kết quả
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success 
+          ? 'Xóa sản phẩm thành công' 
+          : 'Xóa sản phẩm thất bại'),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
+  } catch (e) {
+    // Đóng dialog loading
+    Navigator.pop(context);
+    
+    // Hiển thị thông báo lỗi
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Lỗi khi xóa sản phẩm: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
+// Phương thức helper để hiển thị tên danh mục thân thiện với người dùng
+String _getCategoryDisplayName(String category) {
+  switch(category.toLowerCase()) {
+    case 'Laptop':
+      return "Laptop";
+    case 'mouse':
+      return "Chuột";
+    case 'monitor':
+      return "Màn hình";
+    case 'pc':
+      return "PC";
+    default:
+      return category.toUpperCase();
+  }
+}
+
 Table buildProductTable(BuildContext context, {List<ProductModel>? products}) {
-  final productList = products ?? sampleProducts;
+  final productList = products ?? [];
   
   return Table(
     columnWidths: const {
