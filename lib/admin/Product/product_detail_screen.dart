@@ -1,18 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
-import 'package:dotted_border/dotted_border.dart';
 import 'package:gear_zone/controller/product_controller.dart';
 import 'package:gear_zone/model/product.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:gear_zone/core/app_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:gear_zone/admin/Product/_image_upload_widget.dart';
 
 class ProductDetail extends StatefulWidget {
   final bool isViewOnly;
-  
+
   const ProductDetail({
-    Key? key,
+    super.key,
     this.isViewOnly = false,
-  }) : super(key: key);
+  });
 
   @override
   ProductDetailState createState() => ProductDetailState();
@@ -38,6 +40,203 @@ class ProductDetailState extends State<ProductDetail> {
   File? _mainImage;
   List<File> _additionalImages = [];
   bool _isUploadingImages = false;
+
+  // URLs cho hình ảnh hiện có
+  String _mainImageUrl = '';
+  List<String> _additionalImageUrls = [];
+  // Helper method to create decoration for form fields with different styling for fields that have content
+  InputDecoration _getInputDecoration({
+    required String hintText,
+    bool isDense = true,
+    EdgeInsetsGeometry? contentPadding,
+    bool hasValue = false,
+    bool enabled = true,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: BorderSide(
+          color: hasValue ? Colors.grey.shade600 : Colors.grey.shade300,
+          width: 1.0,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: BorderSide(
+          color: hasValue ? Colors.grey.shade600 : Colors.grey.shade300,
+          width: 1.0,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: BorderSide(
+          color: Theme.of(context).primaryColor,
+          width: 1.5,
+        ),
+      ),
+      contentPadding: contentPadding ??
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      isDense: isDense,
+      enabled: enabled,
+    );
+  }
+
+  // Phương thức để chọn ảnh từ thư viện
+  Future<File?> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      return File(image.path);
+    }
+    return null;
+  }
+
+  // Phương thức để chọn ảnh chính
+  Future<void> _pickMainImage() async {
+    if (widget.isViewOnly) return;
+
+    final File? pickedImage = await _pickImage();
+    if (pickedImage != null) {
+      setState(() {
+        _mainImage = pickedImage;
+        _mainImageUrl = ''; // Xóa URL ảnh cũ nếu chọn ảnh mới
+      });
+    }
+  }
+
+  // Phương thức để chọn ảnh phụ
+  Future<void> _pickAdditionalImage(int index) async {
+    if (widget.isViewOnly) return;
+
+    final File? pickedImage = await _pickImage();
+    if (pickedImage != null) {
+      setState(() {
+        while (_additionalImages.length <= index) {
+          _additionalImages.add(File(''));
+        }
+        _additionalImages[index] = pickedImage;
+
+        // Xóa URL ảnh cũ tại vị trí này nếu có
+        if (_additionalImageUrls.length > index) {
+          _additionalImageUrls[index] = '';
+        }
+      });
+    }
+  }
+
+  // Phương thức để xóa ảnh chính
+  void _removeMainImage() {
+    if (widget.isViewOnly) return;
+
+    setState(() {
+      _mainImage = null;
+      _mainImageUrl = '';
+    });
+  }
+
+  // Phương thức để xóa ảnh phụ
+  void _removeAdditionalImage(int index) {
+    if (widget.isViewOnly) return;
+
+    setState(() {
+      if (_additionalImages.length > index) {
+        _additionalImages[index] = File('');
+      }
+
+      if (_additionalImageUrls.length > index) {
+        _additionalImageUrls[index] = '';
+      }
+    });
+  }
+
+  // Phương thức để upload tất cả ảnh và lấy URLs
+  Future<Map<String, dynamic>> _uploadAllImages(String productId) async {
+    String mainImageUrl = _mainImageUrl; // Giữ URL cũ nếu không có ảnh mới
+    List<String> additionalImageUrls = List.from(_additionalImageUrls);
+
+    setState(() {
+      _isUploadingImages = true;
+    });
+
+    try {
+      // Upload ảnh chính nếu có và đường dẫn không trống
+      if (_mainImage != null && _mainImage!.path.isNotEmpty) {
+        // Hiển thị thông báo khi đang upload ảnh chính
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đang tải lên ảnh chính...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+
+        mainImageUrl = await _productController.uploadProductImage(
+                _mainImage!, productId,
+                isMainImage: true) ??
+            '';
+      }
+      // Upload các ảnh phụ có đường dẫn không trống
+      List<Future<void>> uploadTasks = [];
+
+      for (int i = 0; i < _additionalImages.length; i++) {
+        if (_additionalImages[i].path.isNotEmpty) {
+          final int index = i; // Capture the index for use in the async task
+
+          // Tạo task upload ảnh phụ
+          uploadTasks.add(Future(() async {
+            // Hiển thị thông báo khi đang upload ảnh phụ
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Đang tải lên ảnh ${index + 2}...'),
+                duration: const Duration(seconds: 1),
+              ),
+            );
+
+            String? url = await _productController.uploadProductImage(
+                _additionalImages[index], productId,
+                isMainImage: false);
+
+            if (url != null && url.isNotEmpty) {
+              // Thay thế URL tại vị trí tương ứng hoặc thêm mới
+              if (additionalImageUrls.length > index) {
+                additionalImageUrls[index] = url;
+              } else {
+                additionalImageUrls.add(url);
+              }
+            }
+          }));
+        }
+      }
+
+      // Đợi tất cả các task upload hoàn thành
+      if (uploadTasks.isNotEmpty) {
+        await Future.wait(uploadTasks);
+      }
+    } catch (e) {
+      // Xử lý lỗi khi upload ảnh
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi tải lên hình ảnh: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isUploadingImages = false;
+      });
+    }
+
+    // Lọc bỏ các URL rỗng trong danh sách ảnh phụ
+    final filteredAdditionalImageUrls =
+        additionalImageUrls.where((url) => url.isNotEmpty).toList();
+
+    return {
+      'mainImageUrl': mainImageUrl,
+      'additionalImageUrls': filteredAdditionalImageUrls
+    };
+  }
 
   String? _validatePrice(String? value) {
     if (value == null || value.isEmpty) {
@@ -94,7 +293,7 @@ class ProductDetailState extends State<ProductDetail> {
       );
       return;
     }
-    
+
     final isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
@@ -128,27 +327,24 @@ class ProductDetailState extends State<ProductDetail> {
             ),
           );
         },
-      );
-
-      // Tạo đối tượng ProductModel từ dữ liệu form
+      ); // Tạo đối tượng ProductModel từ dữ liệu form
       ProductModel product = ProductModel(
         id: _idController.text,
         name: _nameController.text,
         description: _descriptionController.text,
         price: double.tryParse(_priceController.text) ?? 0,
         originalPrice: double.tryParse(_originalPriceController.text) ?? 0,
-        imageUrl: '', // TODO: Cần thêm xử lý upload hình ảnh
-        additionalImages: [], // TODO: Cần thêm xử lý upload nhiều hình ảnh
-        category: _selectedCategory ?? 'laptop',
+        imageUrl: _mainImageUrl, // Sử dụng URL hiện có nếu có
+        additionalImages:
+            _additionalImageUrls.where((url) => url.isNotEmpty).toList(),
+        category: _selectedCategory ?? 'Laptop',
         brand: _brandController.text,
         seriNumber: _codeController.text,
         quantity: _quantityController.text,
         status: _selectedStatus ?? 'out_of_stock',
         inStock: _selectedStatus == 'available',
         discount: int.tryParse(_discountController.text) ?? 0,
-      );
-
-      // Lưu sản phẩm vào Firestore
+      ); // Lưu sản phẩm vào Firestore
       String? productId;
       if (_idController.text.isEmpty) {
         productId = await _productController.addProduct(product);
@@ -156,6 +352,53 @@ class ProductDetailState extends State<ProductDetail> {
         bool success = await _productController.updateProduct(product);
         if (success) {
           productId = product.id;
+        }
+      }
+      // Upload ảnh mới nếu có
+      if (productId != null) {
+        bool hasNewImages = _mainImage != null ||
+            _additionalImages.any((file) => file.path.isNotEmpty);
+        bool hasRemovedImages =
+            _mainImageUrl.isEmpty && product.imageUrl.isNotEmpty ||
+                _additionalImageUrls.length < product.additionalImages.length;
+
+        if (hasNewImages || hasRemovedImages) {
+          // Hiển thị trạng thái đang xử lý ảnh
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đang xử lý hình ảnh sản phẩm...'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Upload ảnh mới và lấy URLs
+          if (hasNewImages) {
+            Map<String, dynamic> imageUrls = await _uploadAllImages(productId);
+
+            // Cập nhật product model với URLs mới
+            if (imageUrls['mainImageUrl'].isNotEmpty) {
+              product.imageUrl = imageUrls['mainImageUrl'];
+            }
+
+            // Kết hợp ảnh mới và ảnh cũ (giữ lại các URL không thay đổi)
+            List<String> updatedAdditionalImages =
+                imageUrls['additionalImageUrls'];
+            if (updatedAdditionalImages.isNotEmpty) {
+              product.additionalImages = updatedAdditionalImages;
+            } else if (_additionalImageUrls.isNotEmpty) {
+              // Nếu không có ảnh mới upload, sử dụng danh sách hiện tại
+              product.additionalImages =
+                  _additionalImageUrls.where((url) => url.isNotEmpty).toList();
+            }
+          } else {
+            // Không có ảnh mới, nhưng có thể đã xóa ảnh cũ
+            product.imageUrl = _mainImageUrl;
+            product.additionalImages =
+                _additionalImageUrls.where((url) => url.isNotEmpty).toList();
+          }
+
+          // Cập nhật lại product vào Firestore
+          await _productController.updateProduct(product);
         }
       }
 
@@ -199,6 +442,75 @@ class ProductDetailState extends State<ProductDetail> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    // Delay to ensure Provider is ready after widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProductData();
+    });
+  }
+
+  // Method to load product data from Firebase
+  Future<void> _loadProductData() async {
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final productId = appProvider.currentProductId;
+
+    if (productId.isEmpty) {
+      // No product ID provided, this is likely a new product
+      return;
+    }
+
+    try {
+      final product = await _productController.getProductById(productId);
+      if (product != null) {
+        // Set form field values
+        setState(() {
+          _idController.text = product.id;
+          _nameController.text = product.name;
+          _codeController.text = product.seriNumber;
+          _brandController.text = product.brand;
+          _descriptionController.text = product.description;
+          _priceController.text = product.price.toString();
+          _originalPriceController.text = product.originalPrice.toString();
+          _discountController.text = product.discount.toString();
+          _quantityController.text = product.quantity;
+
+          _selectedCategory = product.category;
+          _selectedStatus = product.inStock ? 'available' : 'out_of_stock';
+
+          // Set image URLs
+          _mainImageUrl = product.imageUrl;
+          _additionalImageUrls = List.from(product.additionalImages);
+
+          // Add a small delay to ensure state updates before updating styling
+          Future.delayed(const Duration(milliseconds: 100), () {
+            setState(() {
+              // This will trigger a rebuild with updated hasValue parameters
+            });
+          });
+        });
+      } else {
+        // Product not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không tìm thấy thông tin sản phẩm'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      // Error loading product
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi tải dữ liệu sản phẩm: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
 
@@ -222,7 +534,8 @@ class ProductDetailState extends State<ProductDetail> {
                 if (widget.isViewOnly)
                   Container(
                     margin: const EdgeInsets.only(left: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEEE5FF),
                       borderRadius: BorderRadius.circular(12),
@@ -315,7 +628,8 @@ class ProductDetailState extends State<ProductDetail> {
                         child: _buildProductImageSection(context),
                       ),
                     ],
-                  ),            const SizedBox(height: 24),
+                  ),
+            const SizedBox(height: 24),
 
             // Action buttons - hidden in view-only mode
             if (!widget.isViewOnly)
@@ -408,25 +722,23 @@ class ProductDetailState extends State<ProductDetail> {
           const SizedBox(height: 6),
           TextFormField(
             controller: _idController,
-            decoration: InputDecoration(
+            decoration: _getInputDecoration(
               hintText: 'ID sản phẩm được tạo tự động',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
+              hasValue: _idController.text.isNotEmpty,
               enabled: false,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _idController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
           ),
           const SizedBox(height: 12),
 
           // Mã sản phẩm (Seri)
           const Text(
-            'Mã sản phẩm (Seri)',
+            'Số Seri',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -435,18 +747,17 @@ class ProductDetailState extends State<ProductDetail> {
           const SizedBox(height: 6),
           TextFormField(
             controller: _codeController,
-            decoration: InputDecoration(
-              hintText: 'Nhập mã sản phẩm/seri (vd: LP001)',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
+            decoration: _getInputDecoration(
+              hintText: 'Nhập số seri (vd: LP001)',
+              hasValue: _codeController.text.isNotEmpty,
+              enabled: !widget.isViewOnly,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _codeController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập mã sản phẩm';
@@ -454,6 +765,10 @@ class ProductDetailState extends State<ProductDetail> {
               return null;
             },
             enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
 
@@ -465,21 +780,20 @@ class ProductDetailState extends State<ProductDetail> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 6),          
+          const SizedBox(height: 6),
           TextFormField(
             controller: _nameController,
-            decoration: InputDecoration(
+            decoration: _getInputDecoration(
               hintText: 'Nhập tên sản phẩm',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
+              hasValue: _nameController.text.isNotEmpty,
+              enabled: !widget.isViewOnly,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _nameController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
             readOnly: widget.isViewOnly,
             enabled: !widget.isViewOnly,
             validator: (value) {
@@ -487,6 +801,10 @@ class ProductDetailState extends State<ProductDetail> {
                 return 'Vui lòng nhập tên sản phẩm';
               }
               return null;
+            },
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
             },
           ),
           const SizedBox(height: 12),
@@ -502,18 +820,17 @@ class ProductDetailState extends State<ProductDetail> {
           const SizedBox(height: 6),
           TextFormField(
             controller: _brandController,
-            decoration: InputDecoration(
+            decoration: _getInputDecoration(
               hintText: 'Nhập thương hiệu (vd: Dell, Asus...)',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
+              hasValue: _brandController.text.isNotEmpty,
+              enabled: !widget.isViewOnly,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _brandController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập thương hiệu';
@@ -521,6 +838,10 @@ class ProductDetailState extends State<ProductDetail> {
               return null;
             },
             enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
 
@@ -536,16 +857,18 @@ class ProductDetailState extends State<ProductDetail> {
           TextFormField(
             controller: _descriptionController,
             maxLines: 3,
-            decoration: InputDecoration(
+            decoration: _getInputDecoration(
               hintText: 'Nhập mô tả chi tiết về sản phẩm',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
+              hasValue: _descriptionController.text.isNotEmpty,
               contentPadding: const EdgeInsets.all(12),
+              enabled: !widget.isViewOnly,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _descriptionController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập mô tả sản phẩm';
@@ -553,6 +876,10 @@ class ProductDetailState extends State<ProductDetail> {
               return null;
             },
             enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
 
@@ -572,46 +899,77 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),                    DropdownButtonFormField<String>(
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
                       hint: Text('Chọn mục sản phẩm',
                           style: TextStyle(
                               fontSize: 13, color: Colors.grey.shade400)),
                       isExpanded: true,
                       icon: const Icon(Icons.arrow_drop_down, size: 20),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
+                      decoration: _getInputDecoration(
+                        hintText: '',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
-                        isDense: true,
-                        filled: widget.isViewOnly,
+                        hasValue: _selectedCategory != null,
+                        enabled: !widget.isViewOnly,
                       ),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'laptop',
-                          child: Text('Laptop', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Laptop',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'laptop'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'desktop',
-                          child: Text('Máy tính bàn',
-                              style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Máy tính bàn',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'desktop'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'components',
-                          child:
-                              Text('Linh kiện', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Linh kiện',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'components'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'accessories',
-                          child:
-                              Text('Phụ kiện', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Phụ kiện',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'accessories'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                       ],
-                      onChanged: widget.isViewOnly ? null : (value) {
-                        _selectedCategory = value;
-                      },
+                      onChanged: widget.isViewOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _selectedCategory = value;
+                              });
+                            },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Vui lòng chọn danh mục sản phẩm';
@@ -642,34 +1000,58 @@ class ProductDetailState extends State<ProductDetail> {
                               fontSize: 13, color: Colors.grey.shade400)),
                       isExpanded: true,
                       icon: const Icon(Icons.arrow_drop_down, size: 20),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
+                      decoration: _getInputDecoration(
+                        hintText: '',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
-                        isDense: true,
+                        hasValue: _selectedStatus != null,
+                        enabled: !widget.isViewOnly,
                       ),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'available',
-                          child: Text('Có sẵn', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Có sẵn',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedStatus == 'available'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'out_of_stock',
-                          child:
-                              Text('Hết hàng', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Hết hàng',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedStatus == 'out_of_stock'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'discontinued',
-                          child: Text('Ngừng kinh doanh',
-                              style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Ngừng kinh doanh',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedStatus == 'discontinued'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                       ],
-                      onChanged: widget.isViewOnly ? null : (value) {
-                        _selectedStatus = value;
-                      },
+                      onChanged: widget.isViewOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _selectedStatus = value;
+                              });
+                            },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Vui lòng chọn trạng thái sản phẩm';
@@ -704,22 +1086,25 @@ class ProductDetailState extends State<ProductDetail> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _originalPriceController,
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Nhập giá gốc (VNĐ)',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
+                        hasValue: _originalPriceController.text.isNotEmpty,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
                       ),
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _originalPriceController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
                       validator: _validatePrice,
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -740,22 +1125,25 @@ class ProductDetailState extends State<ProductDetail> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _priceController,
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Nhập giá bán (VNĐ)',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
+                        hasValue: _priceController.text.isNotEmpty,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
                       ),
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _priceController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
                       validator: _validatePrice,
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -783,22 +1171,25 @@ class ProductDetailState extends State<ProductDetail> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _discountController,
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Nhập % giảm giá',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
+                        hasValue: _discountController.text.isNotEmpty,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
                       ),
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _discountController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
                       validator: _validateDiscount,
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -821,22 +1212,25 @@ class ProductDetailState extends State<ProductDetail> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _quantityController,
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Nhập số lượng',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
+                        hasValue: _quantityController.text.isNotEmpty,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
                       ),
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _quantityController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
                       validator: _validateQuantity,
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -881,20 +1275,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: Intel Core i5-12500H',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -914,20 +1309,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: 16GB DDR4 3200MHz',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -954,20 +1350,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: 512GB SSD NVMe',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -987,20 +1384,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: NVIDIA RTX 4050 6GB',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1027,20 +1425,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: 15.6" FHD IPS 144Hz',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1060,20 +1459,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: Windows 11 Home',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1100,20 +1500,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: RGB Backlit keyboard',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1133,20 +1534,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: Stereo speakers, DTS',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1173,20 +1575,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: Wi-Fi 6 (802.11ax)',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1206,20 +1609,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: Bluetooth 5.2',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1246,20 +1650,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: 4-cell, 54WHr',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1279,20 +1684,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: 1.8 kg',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1319,20 +1725,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: Đen, Bạc...',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1352,20 +1759,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: 360 x 252 x 19.9 mm',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1392,20 +1800,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: HD 720p',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1425,20 +1834,21 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      decoration: _getInputDecoration(
                         hintText: 'Vd: Vân tay, khuôn mặt',
-                        hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
-                        isDense: true,
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
                       enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -1457,19 +1867,21 @@ class ProductDetailState extends State<ProductDetail> {
           ),
           const SizedBox(height: 6),
           TextFormField(
-            decoration: InputDecoration(
+            decoration: _getInputDecoration(
               hintText: 'Vd: 2x USB-C, 2x USB-A, 1x HDMI, 1x Audio Jack',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              isDense: true,
+              enabled: !widget.isViewOnly,
+              hasValue: false,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.normal,
+            ),
             enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
 
@@ -1483,19 +1895,21 @@ class ProductDetailState extends State<ProductDetail> {
           ),
           const SizedBox(height: 6),
           TextFormField(
-            decoration: InputDecoration(
+            decoration: _getInputDecoration(
               hintText: 'Vd: 24 tháng',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              isDense: true,
+              enabled: !widget.isViewOnly,
+              hasValue: false,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.normal,
+            ),
             enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
 
@@ -1510,17 +1924,20 @@ class ProductDetailState extends State<ProductDetail> {
           const SizedBox(height: 6),
           TextFormField(
             maxLines: 2,
-            decoration: InputDecoration(
+            decoration: _getInputDecoration(
               hintText: 'Vd: Balo, chuột không dây, PMH 200.000đ',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
               contentPadding: const EdgeInsets.all(12),
+              enabled: !widget.isViewOnly,
+              hasValue: false,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.normal,
+            ),
             enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              setState(() {});
+            },
           ),
         ],
       ),
@@ -1529,13 +1946,14 @@ class ProductDetailState extends State<ProductDetail> {
 
   Widget _buildProductImageSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
+            spreadRadius: 0,
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1577,76 +1995,240 @@ class ProductDetailState extends State<ProductDetail> {
           ),
           const SizedBox(height: 20),
 
-          // Main product image
-          Container(
-            width: double.infinity,
-            height: 160,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Image.network(
-              'https://product.hstatic.net/200000722513/product/pc_case_xigmatek_-_26_82498939d3bc46308cf3b15fd293d616_1024x1024.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Center(
-                child: Icon(Icons.image_not_supported,
-                    size: 40, color: Colors.grey),
+          // Upload status indicator
+          if (_isUploadingImages)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).primaryColor),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Đang tải lên hình ảnh...',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 12),
 
-          // Additional images row
+          // Main product image
+          InkWell(
+            onTap: widget.isViewOnly ? null : _pickMainImage,
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: _mainImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(7),
+                          child: Image.file(
+                            _mainImage!,
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : (_mainImageUrl.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(7),
+                              child: Image.network(
+                                _mainImageUrl,
+                                fit: BoxFit.contain,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        CircularProgressIndicator(
+                                          value: loadingProgress
+                                                      .expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        const Text('Đang tải ảnh...',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey)),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.image_not_supported,
+                                          size: 40, color: Colors.grey),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Không thể tải ảnh',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.red.shade300,
+                                        ),
+                                      ),
+                                      if (!widget.isViewOnly)
+                                        TextButton(
+                                          onPressed: _pickMainImage,
+                                          child: const Text('Chọn ảnh khác'),
+                                        )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(7),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 40,
+                                    color: Theme.of(context)
+                                        .primaryColor
+                                        .withOpacity(0.5),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Ảnh sản phẩm chính',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                  if (!widget.isViewOnly)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 5),
+                                      child: Text(
+                                        'Nhấn để chọn ảnh',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            )),
+                ),
+                if (!widget.isViewOnly &&
+                    (_mainImage != null || _mainImageUrl.isNotEmpty))
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            onPressed: _pickMainImage,
+                            tooltip: 'Chỉnh sửa ảnh',
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(width: 2),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline,
+                                size: 18, color: Colors.red),
+                            onPressed: _removeMainImage,
+                            tooltip: 'Xóa ảnh',
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12), // Additional images row
           Row(
             children: [
               Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 2'),
+                child: ImageUploadBox(
+                  label: 'Ảnh 2',
+                  index: 0,
+                  imageFiles: _additionalImages,
+                  imageUrls: _additionalImageUrls,
+                  isViewOnly: widget.isViewOnly,
+                  onPickImage: _pickAdditionalImage,
+                  onRemoveImage: _removeAdditionalImage,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 3'),
+                child: ImageUploadBox(
+                  label: 'Ảnh 3',
+                  index: 1,
+                  imageFiles: _additionalImages,
+                  imageUrls: _additionalImageUrls,
+                  isViewOnly: widget.isViewOnly,
+                  onPickImage: _pickAdditionalImage,
+                  onRemoveImage: _removeAdditionalImage,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 4'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageUploadBox(BuildContext context, String label) {
-    return DottedBorder(
-      color: Colors.blue.shade200,
-      strokeWidth: 1.5,
-      dashPattern: [6, 3], // 6px line, 3px gap
-      borderType: BorderType.RRect, // bo tròn
-      radius: const Radius.circular(4),
-      child: Container(
-        height: 80,
-        width: double.infinity,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.image_outlined,
-                size: 24,
-                color: Theme.of(context).primaryColor.withOpacity(0.5),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).primaryColor,
+                child: ImageUploadBox(
+                  label: 'Ảnh 4',
+                  index: 2,
+                  imageFiles: _additionalImages,
+                  imageUrls: _additionalImageUrls,
+                  isViewOnly: widget.isViewOnly,
+                  onPickImage: _pickAdditionalImage,
+                  onRemoveImage: _removeAdditionalImage,
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

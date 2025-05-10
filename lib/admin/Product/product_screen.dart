@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/core/utils/responsive.dart';
+import 'package:gear_zone/admin/Product/product_add_screen.dart';
 import 'package:provider/provider.dart';
-import '../../../model/product.dart';
 import 'Items/product_row_item.dart';
-import '../../../core/app_provider.dart';  // Im
+import '../../../core/app_provider.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -12,32 +11,11 @@ class ProductScreen extends StatefulWidget {
   State<ProductScreen> createState() => _ProductScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
-  
-
-  late List<bool> _expandedItems;
-  
-  @override
-  void initState() {
-    super.initState();
-    // Khởi tạo giá trị mặc định cho tất cả sản phẩm (thu gọn)
-    _expandedItems = List.generate(sampleProducts.length, (index) => false);
-    // Mở rộng item đầu tiên để demo
-    if (_expandedItems.isNotEmpty) {
-      _expandedItems[0] = true;
-    }
-  }
-  
-  void _toggleExpanded(int index) {
-    setState(() {
-      _expandedItems[index] = !_expandedItems[index];
-    });
-  }
-
-  @override
+class _ProductScreenState extends State<ProductScreen> {  @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
-
+    // Lắng nghe thay đổi từ Provider là bắt buộc để cập nhật giao diện khi danh mục thay đổi
+    Provider.of<AppProvider>(context);
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12.0),
       child: Column(
@@ -175,11 +153,11 @@ class _ProductScreenState extends State<ProductScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
                         color: const Color(0xFF7C3AED),
-                      ),
-                      child: TextButton.icon(
+                      ),                        child: TextButton.icon(
                         onPressed: () {
-                          // Chuyển đến màn hình chi tiết sản phẩm
-                          Provider.of<AppProvider>(context, listen: false).setCurrentScreen(4); 
+                          // Thay đổi màn hình hiện tại sang ProductAddScreen (index 4)
+                          final appProvider = Provider.of<AppProvider>(context, listen: false);
+                          appProvider.setCurrentScreen(4);
                         },
                         icon: const Icon(Icons.add,
                             color: Colors.white, size: 18),
@@ -321,36 +299,46 @@ class _ProductScreenState extends State<ProductScreen> {
                             ),
                           ],
                         ),
-                      ),
-
-                      // Dữ liệu bảng - sử dụng chung một danh sách sản phẩm cho cả desktop và mobile
-                      if (!isMobile)
-                        // Sử dụng hàm buildProductTable để tạo bảng với sampleProducts
-                        buildProductTable(context, products: sampleProducts)
-                      else
-                        // Hiển thị danh sách mobile với cùng một danh sách sản phẩm
-                        ...List.generate(
-                          sampleProducts.length,
-                          (index) => buildMobileProductItem(
-                            context, 
-                            index, 
-                            sampleProducts[index],
-                            isExpanded: _expandedItems[index],
-                            onExpandToggle: _toggleExpanded,
-                          ),
-                        ),
-
-                      // Pagination
+                      ),                      // Sử dụng ProductListView để hiển thị sản phẩm từ Firestore
+                      const ProductListView(),                      // Pagination
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
                           children: [
-                            Text(
-                              '1 - ${sampleProducts.length} của ${sampleProducts.length} mục',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
+                            Consumer<AppProvider>(
+                              builder: (context, appProvider, _) {                                String category = appProvider.selectedCategory;
+                                String displayName = "";
+                                
+                                // Ánh xạ tên hiển thị thân thiện với người dùng
+                                switch(category.toLowerCase()) {
+                                  case 'laptop':
+                                    displayName = "Laptop";
+                                    break;
+                                  case 'mouse':
+                                    displayName = "Chuột";
+                                    break;
+                                  case 'monitor':
+                                    displayName = "Màn hình";
+                                    break;
+                                  case 'pc':
+                                    displayName = "PC";
+                                    break;
+                                  default:
+                                    displayName = category;
+                                }
+                                
+                                String categoryInfo = category.isEmpty
+                                    ? "Tất cả sản phẩm"
+                                    : "Danh mục: $displayName";
+                                
+                                return Text(
+                                  categoryInfo,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                );
+                              }
                             ),
                             const Spacer(),
                             Text(

@@ -32,17 +32,18 @@ class ProductAddState extends State<ProductAddScreen> {
   File? _mainImage;
   List<File> _additionalImages = [];
   bool _isUploadingImages = false;
-  
+
   // Variables for image URLs
   String _mainImageUrl = '';
   List<String> _additionalImageUrls = List.filled(3, '');
-  
+
   // Toggle between file upload and URL
   bool _isUrlInput = false;
-  
+
   final TextEditingController _mainImageUrlController = TextEditingController();
-  List<TextEditingController> _additionalImageUrlControllers = List.generate(3, (_) => TextEditingController());
-  
+  final List<TextEditingController> _additionalImageUrlControllers =
+      List.generate(3, (_) => TextEditingController());
+
   String? _validatePrice(String? value) {
     if (value == null || value.isEmpty) {
       return 'Vui lòng nhập giá';
@@ -69,6 +70,7 @@ class ProductAddState extends State<ProductAddScreen> {
     }
     return null;
   }
+
   String? _validateQuantity(String? value) {
     if (value == null || value.isEmpty) {
       return 'Vui lòng nhập số lượng';
@@ -84,18 +86,18 @@ class ProductAddState extends State<ProductAddScreen> {
 
   // Khởi tạo controller
   final ProductController _productController = ProductController();
-  
+
   // Phương thức để chọn ảnh từ thư viện
   Future<File?> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       return File(image.path);
     }
     return null;
   }
-  
+
   // Phương thức để chọn ảnh chính
   Future<void> _pickMainImage() async {
     final File? pickedImage = await _pickImage();
@@ -105,7 +107,7 @@ class ProductAddState extends State<ProductAddScreen> {
       });
     }
   }
-  
+
   // Phương thức để chọn ảnh phụ
   Future<void> _pickAdditionalImage(int index) async {
     final File? pickedImage = await _pickImage();
@@ -118,36 +120,33 @@ class ProductAddState extends State<ProductAddScreen> {
       });
     }
   }
-  
+
   // Phương thức để upload tất cả ảnh và lấy URLs
   Future<Map<String, dynamic>> _uploadAllImages(String productId) async {
     String mainImageUrl = '';
     List<String> additionalImageUrls = [];
-    
+
     setState(() {
       _isUploadingImages = true;
     });
-    
+
     try {
       // Nếu người dùng chọn ảnh từ thiết bị
       if (!_isUrlInput) {
         // Upload ảnh chính
         if (_mainImage != null) {
           mainImageUrl = await _productController.uploadProductImage(
-            _mainImage!, 
-            productId, 
-            isMainImage: true
-          ) ?? '';
+                  _mainImage!, productId,
+                  isMainImage: true) ??
+              '';
         }
-        
+
         // Upload ảnh phụ
         for (int i = 0; i < _additionalImages.length; i++) {
           if (_additionalImages[i].path.isNotEmpty) {
             String? url = await _productController.uploadProductImage(
-              _additionalImages[i], 
-              productId, 
-              isMainImage: false
-            );
+                _additionalImages[i], productId,
+                isMainImage: false);
             if (url != null && url.isNotEmpty) {
               additionalImageUrls.add(url);
             }
@@ -156,7 +155,7 @@ class ProductAddState extends State<ProductAddScreen> {
       } else {
         // Nếu người dùng nhập URL
         mainImageUrl = _mainImageUrlController.text;
-        
+
         for (var controller in _additionalImageUrlControllers) {
           if (controller.text.isNotEmpty) {
             additionalImageUrls.add(controller.text);
@@ -168,7 +167,7 @@ class ProductAddState extends State<ProductAddScreen> {
         _isUploadingImages = false;
       });
     }
-    
+
     return {
       'mainImageUrl': mainImageUrl,
       'additionalImageUrls': additionalImageUrls
@@ -228,14 +227,14 @@ class ProductAddState extends State<ProductAddScreen> {
         status: _selectedStatus ?? 'out_of_stock',
         inStock: _selectedStatus == 'available',
         discount: int.tryParse(_discountController.text) ?? 0,
-      );      // Lưu sản phẩm vào Firestore (chưa có ảnh)
+      ); // Lưu sản phẩm vào Firestore (chưa có ảnh)
       String? productId;
       if (_idController.text.isEmpty) {
         productId = await _productController.addProduct(product);
       } else {
         productId = product.id;
       }
-      
+
       // Upload hình ảnh và cập nhật URLs
       if (productId != null) {
         // Hiển thị trạng thái đang upload ảnh
@@ -245,14 +244,14 @@ class ProductAddState extends State<ProductAddScreen> {
             duration: Duration(seconds: 1),
           ),
         );
-        
+
         // Upload ảnh và lấy URL
         Map<String, dynamic> imageUrls = await _uploadAllImages(productId);
-        
+
         // Cập nhật product model với URLs
         product.imageUrl = imageUrls['mainImageUrl'];
         product.additionalImages = imageUrls['additionalImageUrls'];
-        
+
         // Cập nhật lại product vào Firestore
         await _productController.updateProduct(product);
       }
@@ -295,6 +294,7 @@ class ProductAddState extends State<ProductAddScreen> {
       );
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -323,142 +323,145 @@ class ProductAddState extends State<ProductAddScreen> {
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
 
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Page title
-            const Text(
-              'Thêm ản phẩm mới',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+    return Material(
+      color: Color(0xffF6F6F6), // Matching the background color
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Page title
+              const Text(
+                'Thêm ản phẩm mới',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
 
-            // Breadcrumb
-            Row(
-              children: [
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    'Bảng điều khiển',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+              // Breadcrumb
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    'Sản phẩm',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    'Laptop',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Product info and image sections
-            isMobile
-                ? Column(
-                    children: [
-                      _buildProductInfoSection(context),
-                      const SizedBox(height: 16),
-                      _buildProductImageSection(context),
-                    ],
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: _buildProductInfoSection(context),
+                    child: const Text(
+                      'Bảng điều khiển',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 2,
-                        child: _buildProductImageSection(context),
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                  TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Sản phẩm',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
                       ),
-                    ],
-                  ),
-
-            const SizedBox(height: 24),
-
-            // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    foregroundColor: Colors.grey[700],
-                    side: BorderSide(color: Colors.grey[300]!),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Bỏ thay đổi',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () => _saveForm(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7E3FF2),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                  TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'Laptop',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).primaryColor,
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'Lưu thay đổi',
-                    style: TextStyle(fontSize: 13),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Product info and image sections
+              isMobile
+                  ? Column(
+                      children: [
+                        _buildProductInfoSection(context),
+                        const SizedBox(height: 16),
+                        _buildProductImageSection(context),
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: _buildProductInfoSection(context),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 2,
+                          child: _buildProductImageSection(context),
+                        ),
+                      ],
+                    ),
+
+              const SizedBox(height: 24),
+
+              // Action buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      foregroundColor: Colors.grey[700],
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Bỏ thay đổi',
+                      style: TextStyle(fontSize: 13),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () => _saveForm(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7E3FF2),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Lưu thay đổi',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1599,6 +1602,7 @@ class ProductAddState extends State<ProductAddScreen> {
       ),
     );
   }
+
   Widget _buildProductImageSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1648,7 +1652,7 @@ class ProductAddState extends State<ProductAddScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Toggle button for image source
           Row(
             children: [
@@ -1657,7 +1661,8 @@ class ProductAddState extends State<ProductAddScreen> {
                   segments: const [
                     ButtonSegment<bool>(
                       value: false,
-                      label: Text('Tải ảnh lên', style: TextStyle(fontSize: 12)),
+                      label:
+                          Text('Tải ảnh lên', style: TextStyle(fontSize: 12)),
                       icon: Icon(Icons.upload_file, size: 16),
                     ),
                     ButtonSegment<bool>(
@@ -1679,7 +1684,7 @@ class ProductAddState extends State<ProductAddScreen> {
           const SizedBox(height: 16),
 
           // Main product image
-          _isUrlInput 
+          _isUrlInput
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1695,18 +1700,20 @@ class ProductAddState extends State<ProductAddScreen> {
                       controller: _mainImageUrlController,
                       decoration: InputDecoration(
                         hintText: 'Nhập URL hình ảnh chính',
-                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        hintStyle: TextStyle(
+                            fontSize: 13, color: Colors.grey.shade400),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
                           borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
                     ),
-                    const SizedBox(height: 12),                    if (_mainImageUrl.isNotEmpty)
+                    const SizedBox(height: 12),
+                    if (_mainImageUrl.isNotEmpty)
                       Container(
                         width: double.infinity,
                         height: 120,
@@ -1717,78 +1724,81 @@ class ProductAddState extends State<ProductAddScreen> {
                         child: Image.network(
                           _mainImageUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Center(
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Center(
                             child: Icon(Icons.image_not_supported,
                                 size: 40, color: Colors.grey),
                           ),
                         ),
                       ),
                   ],
-                )              : _isUploadingImages
-                ? Container(
-                    width: double.infinity,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 8),
-                          Text(
-                            'Đang tải lên...',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : InkWell(
-                    onTap: _pickMainImage,
-                    child: Container(
+                )
+              : _isUploadingImages
+                  ? Container(
                       width: double.infinity,
                       height: 160,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
-                      child: _mainImage != null 
-                          ? Image.file(
-                              _mainImage!,
-                              fit: BoxFit.contain,
-                            )
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_photo_alternate_outlined,
-                                    size: 40,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Chọn ảnh chính',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 8),
+                            Text(
+                              'Đang tải lên...',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey,
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : InkWell(
+                      onTap: _pickMainImage,
+                      child: Container(
+                        width: double.infinity,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: _mainImage != null
+                            ? Image.file(
+                                _mainImage!,
+                                fit: BoxFit.contain,
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add_photo_alternate_outlined,
+                                      size: 40,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Chọn ảnh chính',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                      ),
                     ),
-                  ),
           const SizedBox(height: 12),
 
           // Additional images row
-          _isUrlInput              ? Column(
+          _isUrlInput
+              ? Column(
                   children: List.generate(3, (index) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1805,13 +1815,15 @@ class ProductAddState extends State<ProductAddScreen> {
                           controller: _additionalImageUrlControllers[index],
                           decoration: InputDecoration(
                             hintText: 'Nhập URL hình ảnh ${index + 2}',
-                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            hintStyle: TextStyle(
+                                fontSize: 13, color: Colors.grey.shade400),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(4),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide:
+                                  BorderSide(color: Colors.grey.shade300),
                             ),
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
                             isDense: true,
                           ),
                           style: const TextStyle(fontSize: 13),
@@ -1833,7 +1845,8 @@ class ProductAddState extends State<ProductAddScreen> {
                             child: Image.network(
                               _additionalImageUrls[index],
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const Center(
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Center(
                                 child: Icon(Icons.image_not_supported,
                                     size: 30, color: Colors.grey),
                               ),
@@ -1852,10 +1865,12 @@ class ProductAddState extends State<ProductAddScreen> {
                           left: index > 0 ? 12 : 0,
                         ),
                         child: _buildImageUploadBox(
-                          context, 
+                          context,
                           'Ảnh ${index + 2}',
                           onTap: () => _pickAdditionalImage(index),
-                          imageFile: _additionalImages.length > index ? _additionalImages[index] : null,
+                          imageFile: _additionalImages.length > index
+                              ? _additionalImages[index]
+                              : null,
                         ),
                       ),
                     );
@@ -1865,11 +1880,9 @@ class ProductAddState extends State<ProductAddScreen> {
       ),
     );
   }
-  Widget _buildImageUploadBox(
-    BuildContext context, 
-    String label, 
-    {Function()? onTap, File? imageFile}
-  ) {
+
+  Widget _buildImageUploadBox(BuildContext context, String label,
+      {Function()? onTap, File? imageFile}) {
     return InkWell(
       onTap: onTap,
       child: DottedBorder(
