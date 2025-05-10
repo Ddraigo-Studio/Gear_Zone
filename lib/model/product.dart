@@ -8,7 +8,7 @@ class ProductModel {
   List<String> additionalImages; // Thêm danh sách ảnh phụ  
   String category;
   String brand; // Thêm thương hiệu (Acer, Dell, etc.)
-  String model; // Mã model (SFA16 41 R3L6)
+  String seriNumber; // Mã model (SFA16 41 R3L6)
   DateTime? createdAt; // Thời gian tạo sản phẩm
   
   // Thông số kỹ thuật cơ bản
@@ -52,7 +52,7 @@ class ProductModel {
     this.additionalImages = const [],
     required this.category,
     this.brand = "",
-    this.model = "",
+    this.seriNumber = "",
     this.processor = "",
     this.ram = "",
     this.storage = "",
@@ -95,7 +95,7 @@ class ProductModel {
           : [],
       category: data["category"] ?? "Chưa phân loại",
       brand: data["brand"] ?? "",
-      model: data["model"] ?? "",
+      seriNumber: data["seriNumber"] ?? "",
       processor: data["processor"] ?? "",
       ram: data["ram"] ?? "",
       storage: data["storage"] ?? "",
@@ -138,7 +138,7 @@ class ProductModel {
       "additionalImages": additionalImages,
       "category": category,
       "brand": brand,
-      "model": model,
+      "seriNumber": seriNumber,
       "processor": processor,
       "ram": ram,
       "storage": storage,

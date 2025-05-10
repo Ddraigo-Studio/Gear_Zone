@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:gear_zone/admin/Product/product_detail_screen.dart';
 import '../core/utils/responsive.dart';
 import '../widgets/admin_widgets/sidebar.dart';
 import '../core/app_provider.dart';
 import 'package:provider/provider.dart';
 import 'Dashboard/dashboard_screen.dart';
 import 'Product/product_screen.dart';
-import 'Product/product_detail_screen.dart';
+import 'Product/product_add_screen.dart';
 import 'Customer/customer_screen.dart';
 
 class AdminScreen extends StatelessWidget {
@@ -157,20 +158,27 @@ class AdminScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _buildCurrentScreen(int screenIndex) {
-    switch (screenIndex) {
-      case 0:
-        return const DashboardScreen();
-      case 1:
-        return const ProductScreen();
-      case 2:
-        return const ProductDetail();
-      case 3:
-        return const CustomerScreen();
-      default:
-        return const DashboardScreen();
-    }
+  }  Widget _buildCurrentScreen(int screenIndex) {
+    return Builder(
+      builder: (context) {
+        // Lấy trạng thái xem/sửa từ AppProvider
+        final appProvider = Provider.of<AppProvider>(context, listen: false);
+        
+        switch (screenIndex) {
+          case 0:
+            return const DashboardScreen();
+          case 1:
+            return const ProductScreen();
+          case 2:
+            return ProductDetail(isViewOnly: appProvider.isViewOnlyMode);
+          case 3:
+            return const CustomerScreen();
+          case 4:
+            return const ProductAddScreen();
+          default:
+            return const DashboardScreen();
+        }
+      }
+    );
   }
 }

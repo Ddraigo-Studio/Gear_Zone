@@ -6,19 +6,14 @@ import 'package:gear_zone/controller/product_controller.dart';
 import 'package:gear_zone/model/product.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ProductDetail extends StatefulWidget {
-  final bool isViewOnly;
-  
-  const ProductDetail({
-    Key? key,
-    this.isViewOnly = false,
-  }) : super(key: key);
+class ProductAddScreen extends StatefulWidget {
+  const ProductAddScreen({super.key});
 
   @override
-  ProductDetailState createState() => ProductDetailState();
+  ProductAddState createState() => ProductAddState();
 }
 
-class ProductDetailState extends State<ProductDetail> {
+class ProductAddState extends State<ProductAddScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
@@ -56,10 +51,10 @@ class ProductDetailState extends State<ProductDetail> {
     if (value == null || value.isEmpty) {
       return null; // Discount có thể trống
     }
-    if (double.tryParse(value) == null) {
-      return 'Chiết khấu phải là số';
+    if (int.tryParse(value) == null) {
+      return 'Chiết khấu phải là số nguyên';
     }
-    double discount = double.parse(value);
+    int discount = int.parse(value);
     if (discount < 0 || discount > 100) {
       return 'Chiết khấu phải từ 0 đến 100%';
     }
@@ -84,17 +79,6 @@ class ProductDetailState extends State<ProductDetail> {
 
   // Phương thức xử lý khi nhấn nút lưu
   void _saveForm(BuildContext context) async {
-    // If in view-only mode, don't allow saving
-    if (widget.isViewOnly) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bạn đang ở chế độ xem. Không thể lưu thay đổi.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    
     final isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
@@ -209,34 +193,13 @@ class ProductDetailState extends State<ProductDetail> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Page title with view mode indicator
-            Row(
-              children: [
-                const Text(
-                  'Sản phẩm',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (widget.isViewOnly)
-                  Container(
-                    margin: const EdgeInsets.only(left: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEE5FF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'Chế độ xem',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF7E3FF2),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-              ],
+            // Page title
+            const Text(
+              'Thêm ản phẩm mới',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
 
             // Breadcrumb
@@ -315,48 +278,49 @@ class ProductDetailState extends State<ProductDetail> {
                         child: _buildProductImageSection(context),
                       ),
                     ],
-                  ),            const SizedBox(height: 24),
+                  ),
 
-            // Action buttons - hidden in view-only mode
-            if (!widget.isViewOnly)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      foregroundColor: Colors.grey[700],
-                      side: BorderSide(color: Colors.grey[300]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Discard Changes',
-                      style: TextStyle(fontSize: 13),
+            const SizedBox(height: 24),
+
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    foregroundColor: Colors.grey[700],
+                    side: BorderSide(color: Colors.grey[300]!),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () => _saveForm(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7E3FF2),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Lưu thay đổi',
-                      style: TextStyle(fontSize: 13),
+                  child: const Text(
+                    'Discard Changes',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () => _saveForm(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7E3FF2),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                ],
-              ),
+                  child: const Text(
+                    'Lưu thay đổi',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -453,7 +417,6 @@ class ProductDetailState extends State<ProductDetail> {
               }
               return null;
             },
-            enabled: !widget.isViewOnly,
           ),
           const SizedBox(height: 12),
 
@@ -465,7 +428,7 @@ class ProductDetailState extends State<ProductDetail> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 6),          
+          const SizedBox(height: 6),
           TextFormField(
             controller: _nameController,
             decoration: InputDecoration(
@@ -478,12 +441,8 @@ class ProductDetailState extends State<ProductDetail> {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               isDense: true,
-              filled: widget.isViewOnly,
-              fillColor: widget.isViewOnly ? Colors.grey.shade100 : null,
             ),
             style: const TextStyle(fontSize: 13),
-            readOnly: widget.isViewOnly,
-            enabled: !widget.isViewOnly,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập tên sản phẩm';
@@ -522,7 +481,6 @@ class ProductDetailState extends State<ProductDetail> {
               }
               return null;
             },
-            enabled: !widget.isViewOnly,
           ),
           const SizedBox(height: 12),
 
@@ -554,7 +512,6 @@ class ProductDetailState extends State<ProductDetail> {
               }
               return null;
             },
-            enabled: !widget.isViewOnly,
           ),
           const SizedBox(height: 12),
 
@@ -574,7 +531,8 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),                    DropdownButtonFormField<String>(
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
                       hint: Text('Chọn mục sản phẩm',
                           style: TextStyle(
                               fontSize: 13, color: Colors.grey.shade400)),
@@ -588,8 +546,6 @@ class ProductDetailState extends State<ProductDetail> {
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 3),
                         isDense: true,
-                        filled: widget.isViewOnly,
-                        fillColor: widget.isViewOnly ? Colors.grey.shade100 : null,
                       ),
                       items: const [
                         DropdownMenuItem(
@@ -612,7 +568,7 @@ class ProductDetailState extends State<ProductDetail> {
                               Text('Phụ kiện', style: TextStyle(fontSize: 12)),
                         ),
                       ],
-                      onChanged: widget.isViewOnly ? null : (value) {
+                      onChanged: (value) {
                         _selectedCategory = value;
                       },
                       validator: (value) {
@@ -670,7 +626,7 @@ class ProductDetailState extends State<ProductDetail> {
                               style: TextStyle(fontSize: 12)),
                         ),
                       ],
-                      onChanged: widget.isViewOnly ? null : (value) {
+                      onChanged: (value) {
                         _selectedStatus = value;
                       },
                       validator: (value) {
@@ -722,7 +678,6 @@ class ProductDetailState extends State<ProductDetail> {
                       keyboardType: TextInputType.number,
                       style: const TextStyle(fontSize: 13),
                       validator: _validatePrice,
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -758,7 +713,6 @@ class ProductDetailState extends State<ProductDetail> {
                       keyboardType: TextInputType.number,
                       style: const TextStyle(fontSize: 13),
                       validator: _validatePrice,
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -801,7 +755,6 @@ class ProductDetailState extends State<ProductDetail> {
                       keyboardType: TextInputType.number,
                       style: const TextStyle(fontSize: 13),
                       validator: _validateDiscount,
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -839,7 +792,6 @@ class ProductDetailState extends State<ProductDetail> {
                       keyboardType: TextInputType.number,
                       style: const TextStyle(fontSize: 13),
                       validator: _validateQuantity,
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -897,7 +849,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -930,7 +881,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -970,7 +920,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1003,7 +952,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1043,7 +991,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1076,7 +1023,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1116,7 +1062,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1149,7 +1094,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1189,7 +1133,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1222,7 +1165,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1262,7 +1204,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1295,7 +1236,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1335,7 +1275,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1368,7 +1307,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1408,7 +1346,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1441,7 +1378,6 @@ class ProductDetailState extends State<ProductDetail> {
                         isDense: true,
                       ),
                       style: const TextStyle(fontSize: 13),
-                      enabled: !widget.isViewOnly,
                     ),
                   ],
                 ),
@@ -1472,7 +1408,6 @@ class ProductDetailState extends State<ProductDetail> {
               isDense: true,
             ),
             style: const TextStyle(fontSize: 13),
-            enabled: !widget.isViewOnly,
           ),
           const SizedBox(height: 12),
 
@@ -1498,7 +1433,6 @@ class ProductDetailState extends State<ProductDetail> {
               isDense: true,
             ),
             style: const TextStyle(fontSize: 13),
-            enabled: !widget.isViewOnly,
           ),
           const SizedBox(height: 12),
 
@@ -1523,7 +1457,6 @@ class ProductDetailState extends State<ProductDetail> {
               contentPadding: const EdgeInsets.all(12),
             ),
             style: const TextStyle(fontSize: 13),
-            enabled: !widget.isViewOnly,
           ),
         ],
       ),
