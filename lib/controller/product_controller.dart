@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:gear_zone/model/product.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
@@ -316,9 +315,27 @@ class ProductController {  final FirebaseFirestore _firestore = FirebaseFirestor
     } catch (e) {
       print('Lỗi khi lấy sản phẩm tai nghe: $e');
       return [];
+    }  }
+
+  // Lấy sản phẩm theo danh mục cụ thể truyền vào (Future version)
+  Future<List<ProductModel>> getProductsByCategoryFuture(String categoryName) async {
+    try {
+      QuerySnapshot snapshot = await _productsCollection
+          .where('category', isEqualTo: categoryName)
+          .limit(20)
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print('Lỗi khi lấy sản phẩm theo danh mục $categoryName: $e');
+      return [];
     }
   }
-  
+
   // Biến static để cache dữ liệu mẫu cho trường hợp không có kết nối đến Firebase
   static List<ProductModel> sampleProducts = [];
 }

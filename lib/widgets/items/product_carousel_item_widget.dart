@@ -38,11 +38,7 @@ class ProductCarouselItem extends StatelessWidget {
     // Desktop should be proportionally sized for larger screens
     // Tablet gets medium sizing
     // Mobile gets smallest size
-    final double itemWidth = isDesktop
-        ? 170.h // Larger width for desktop to maintain proportions
-        : isTablet
-            ? 170.h // Medium width for tablet
-            : 165.h; // Smallest width for mobile
+    final double itemWidth = 165.h; // Smallest width for mobile
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -53,7 +49,7 @@ class ProductCarouselItem extends StatelessWidget {
       child: Container(
         width: itemWidth,
         // Add a fixed height based on device type to prevent overflow
-        height: isDesktop ? 281.h : 270.h,
+        height: isDesktop ? 275.h : 250.h,
         decoration: AppDecoration.fillGray.copyWith(
           borderRadius: BorderRadiusStyle.roundedBorder16,
           boxShadow: [
