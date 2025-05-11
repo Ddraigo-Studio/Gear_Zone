@@ -37,8 +37,8 @@ class _MyBannerSliderState extends State<MyBannerSlider> {
               autoPlayCurve: Curves.fastOutSlowIn,
               autoPlayAnimationDuration: const Duration(milliseconds: 800),
               autoPlayInterval: const Duration(seconds: 2),
-              enlargeCenterPage: false,
-              viewportFraction: 1.0,
+              enlargeCenterPage: true,
+              viewportFraction: 2.0,
               onPageChanged: (index, reason) {
                 setState(() {
                   myCurrentIndex = index;
@@ -53,7 +53,7 @@ class _MyBannerSliderState extends State<MyBannerSlider> {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(item),
-                        fit: BoxFit.cover,
+                        fit:  Responsive.isDesktop(context)? BoxFit.contain : BoxFit.cover,
                       ),
                     ),
                     
@@ -65,6 +65,7 @@ class _MyBannerSliderState extends State<MyBannerSlider> {
         ),
         SizedBox(height: 8), // Add some space between the slider and the indicator
         AnimatedSmoothIndicator(
+          curve: Curves.slowMiddle,
           activeIndex: myCurrentIndex,
           count: myitems.length,
           effect: WormEffect(

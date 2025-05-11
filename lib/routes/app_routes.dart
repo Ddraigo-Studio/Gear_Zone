@@ -31,6 +31,7 @@ import '../pages/Plash_Screen/plash_screen.dart';
 // Products
 import '../pages/Products/category_screen.dart';
 import '../pages/Products/product_detail.dart';
+import '../pages/Products/category_products_page.dart';
 
 // Profile
 import '../pages/Profile/edit_profile_screen.dart';
@@ -62,10 +63,10 @@ class AppRoutes {
   static const String plashScreen = '/plash_screen';
   static const String notificationEmptyScreen = '/notification_empty_screen';
   static const String notificationsScreen = '/notifications_screen';
-  static const String ordersHistoryScreen = '/orders_history_screen';
-  static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
+  static const String ordersHistoryScreen = '/orders_history_screen';  static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
   static const String ordersDetailScreen = '/order_detail_screen';
   static const String categoriesScreen = '/category_screen';
+  static const String categoryProductsPage = '/category_products';
   static const String categoriestwoScreen = '/categoriestwo_screen';
   static const String searchResultEmptyScreen = '/search_result_empty_screen';
   static const String searchResultScreen = '/search_result_screen';
@@ -97,10 +98,15 @@ class AppRoutes {
     addressNewScreen: (context) => AddressNewScreen(),
     login: (context) => LoginScreen(),
     signup: (context) => SignUpScreen(),
-    homeScreen: (context) => HomeScreen(),
-    homeInitialPage: (context) => HomeInitialPage(), 
+    homeScreen: (context) => HomeScreen(),    homeInitialPage: (context) => HomeInitialPage(), 
     plashScreen: (context) => PlashScreenScreen(),
     categoriesScreen: (context) => CategoriesScreen(),
+    categoryProductsPage: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return CategoryProductsPage(
+        categoryId: args?['categoryId'] ?? '',
+      );
+    },
     productDetail: (context) => ProductDetailScreen(),
     myCartScreen: (context) => CartScreen(),
     checkoutScreen: (context) => CheckoutScreen(), 
