@@ -112,7 +112,7 @@ class AppRoutes {
     editProfileScreen: (context) => EditProfileScreen(), 
     listAddressScreen: (context) => ListAddressScreen(), 
     addAddressScreen: (context) => AddAddressScreen(),
-    initialRoute: (context) => AdminScreen(),
+    initialRoute: (context) => HomeScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),

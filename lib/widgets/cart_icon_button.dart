@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/cart_controller.dart';
 import '../core/app_export.dart';
+import '../core/utils/responsive.dart';
 import 'app_bar/appbar_image.dart';
 
 class CartIconButton extends StatelessWidget {
@@ -18,19 +19,19 @@ class CartIconButton extends StatelessWidget {
     this.iconColor = Colors.white,
   }) : buttonColor = buttonColor ?? const Color(0xFF7E57C2);
 
-  @override
-  Widget build(BuildContext context) {
-    // Determine if we're on a desktop or mobile device
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 600;
+  @override  Widget build(BuildContext context) {    // Use Responsive class for consistent device detection
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
     
-    // Calculate responsive icon size
+    // Calculate responsive icon size based on device type
     final responsiveIconSize = iconSize ?? 
-        (isDesktop ? 56.0 : 45.0 * MediaQuery.of(context).textScaleFactor);
+        (isDesktop ? 80.0.h : // Larger for desktop (increased from 50.0.h)
+         isTablet ? 48.0.h :   // Medium for tablet
+         45.0.h ); // Normal for mobile
     
-    // Calculate responsive padding
+    // Calculate responsive padding based on device type
     final responsivePadding = padding ?? 
-        EdgeInsets.all(isDesktop ? 12.0 : 8.0);
+        EdgeInsets.all(isDesktop ? 9.0 : isTablet ? 10.0 : 8.0);
     
     return Consumer<CartController>(
       builder: (context, cartController, _) {
@@ -39,7 +40,7 @@ class CartIconButton extends StatelessWidget {
         return Stack(
           children: [
             IconButton(
-              iconSize: responsiveIconSize + 10, // Increase touch target size
+              iconSize: responsiveIconSize + 7, // Increase touch target size
               icon: Container(
                 width: responsiveIconSize,
                 height: responsiveIconSize,
@@ -57,8 +58,8 @@ class CartIconButton extends StatelessWidget {
                 padding: responsivePadding,
                 child: AppbarImage(
                   imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
-                  height: responsiveIconSize * 0.4,
-                  width: responsiveIconSize * 0.4,
+                  height: responsiveIconSize * 0.3,
+                  width: responsiveIconSize * 0.3,
                   color: iconColor,
                 ),
               ),
@@ -66,8 +67,8 @@ class CartIconButton extends StatelessWidget {
             ),
             if (itemCount > 0)
               Positioned(
-                right: 5,
-                top: 0,
+                right: 2,
+                top: isDesktop ? -2 : 0 ,
                 child: Container(
                   padding: EdgeInsets.all(isDesktop ? 6.0 : 4.0),
                   decoration: const BoxDecoration(
@@ -75,8 +76,8 @@ class CartIconButton extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   constraints: BoxConstraints(
-                    minWidth: isDesktop ? 24.0 : 18.0,
-                    minHeight: isDesktop ? 24.0 : 18.0,
+                    minWidth: 18.0,
+                    minHeight: 18.0,
                   ),
                   child: Center(
                     child: Text(

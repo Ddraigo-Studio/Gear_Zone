@@ -9,6 +9,7 @@ class UserModel {
   final DateTime lastActive;  // Ngày hoạt động gần nhất
   final List<String> addressIds; // Danh sách ID địa chỉ của người dùng
   final String? defaultAddressId; // ID của địa chỉ mặc định
+  final String? role; // Token FCM cho thông báo đẩy
 
   UserModel({
     required this.uid,
@@ -21,6 +22,7 @@ class UserModel {
     required this.lastActive,
     this.addressIds = const [],
     this.defaultAddressId,
+    this.role,
   });
 
   // Chuyển đổi từ Map (JSON) sang UserModel

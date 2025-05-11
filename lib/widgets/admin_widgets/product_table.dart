@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/utils/image_utils.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
-
 
 class ProductTable extends StatelessWidget {
   const ProductTable({super.key});
@@ -9,7 +7,7 @@ class ProductTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
-    
+
     if (isMobile) {
       return Column(
         children: List.generate(
@@ -18,7 +16,7 @@ class ProductTable extends StatelessWidget {
         ),
       );
     }
-    
+
     return Column(
       children: [
         // Table header
@@ -78,7 +76,7 @@ class ProductTable extends StatelessWidget {
             ],
           ),
         ),
-        
+
         // Table rows
         ...List.generate(
           4,
@@ -119,9 +117,9 @@ class ProductTable extends StatelessWidget {
         'status': 'Success',
       },
     ];
-    
+
     final product = products[index];
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
@@ -140,10 +138,9 @@ class ProductTable extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    image: ImageUtils.getSafeDecorationImage(
-                      imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png',
+                    image: DecorationImage(
+                      image: AssetImage('images/img_logo.png'),
                       fit: BoxFit.cover,
-                      onError: (exception, stackTrace) {},
                     ),
                   ),
                 ),
@@ -239,10 +236,10 @@ class ProductTable extends StatelessWidget {
         'status': 'Success',
       },
     ];
-    
+
     final product = products[index];
     final isExpanded = index == 0;
-    
+
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -259,10 +256,9 @@ class ProductTable extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  image: ImageUtils.getSafeDecorationImage(
-                    imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png',
+                  image: DecorationImage(
+                    image: AssetImage('images/img_logo.png'),
                     fit: BoxFit.cover,
-                    onError: (exception, stackTrace) {},
                   ),
                 ),
               ),
@@ -289,7 +285,9 @@ class ProductTable extends StatelessWidget {
               ),
               IconButton(
                 icon: Icon(
-                  isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                   size: 20,
                 ),
                 onPressed: () {},
@@ -352,7 +350,8 @@ class ProductTable extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE7E7E7),
                           borderRadius: BorderRadius.circular(12),

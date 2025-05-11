@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/responsive.dart';
 
 class CategoriesListItem extends StatelessWidget {
   final String imagePath;
@@ -28,10 +29,9 @@ class CategoriesListItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min, // Đảm bảo không gian tối thiểu
         crossAxisAlignment: CrossAxisAlignment.center, // Căn giữa các phần tử
         mainAxisAlignment: MainAxisAlignment.center, // Thay đổi từ spaceEvenly sang center
-        children: [
-          Container(
-            width: 42.h,
-            height: 42.h,
+        children: [          Container(
+            width: Responsive.isDesktop(context) ? 65.h : 42.h, // Tăng kích thước cho desktop
+            height: Responsive.isDesktop(context) ? 65.h : 42.h, // Tăng kích thước cho desktop
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Colors.white,
@@ -49,8 +49,8 @@ class CategoriesListItem extends StatelessWidget {
                   ? Image.network(
                       imagePath, 
                       fit: BoxFit.cover,
-                      width: 42.h,
-                      height: 42.h,
+                      width: Responsive.isDesktop(context) ? 65.h : 42.h,
+                      height: Responsive.isDesktop(context) ? 65.h : 42.h,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Center(
@@ -80,7 +80,7 @@ class CategoriesListItem extends StatelessWidget {
                     ),
             ),
           ),
-          SizedBox(height: 2.h), // Add a small fixed space
+          SizedBox(height: 4.h), // Add a small fixed space
           Flexible(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 2.h),
@@ -91,7 +91,7 @@ class CategoriesListItem extends StatelessWidget {
                 maxLines: 1, // Reduced to 1 line to save space
                 style: CustomTextStyles.bodySmallBalooBhaiGray700.copyWith(
                   fontWeight: FontWeight.w500,
-                  fontSize: 8.fSize, // Smaller font size
+                  fontSize: Responsive.isDesktop(context) ? 12.fSize :8.fSize, // Smaller font size
                 ),
               ),
             ),
