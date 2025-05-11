@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Account
+import '../admin/Product/product_detail_screen.dart';
 import '../pages/Account/login.dart';
 import '../pages/Account/signup.dart';
 
@@ -47,7 +48,7 @@ import '../pages/Voucher/voucher_detail_screen.dart';
 // Admin
 import '../admin/Dashboard/dashboard_screen.dart';
 import '../admin/Product/product_screen.dart';
-import '../admin/Product/product_detail_screen.dart';
+import '../admin/Product/product_add_screen.dart';
 import '../admin/Customer/customer_screen.dart';
 import '../admin/admin_screen.dart';
 
@@ -88,6 +89,7 @@ class AppRoutes {
   static const String adminDashboard = '/admin/Dashboard/dashboard';
   static const String adminProducts = '/admin/Product/products';
   static const String adminProductDetail = '/admin/Product/product_detail_screen';
+  static const String adminProductAdd = '/admin/Product/product_add_screen';
   static const String adminCustomers = '/admin/Customer/customers';
 
   static Map<String, WidgetBuilder> routes = {
@@ -110,13 +112,14 @@ class AppRoutes {
     editProfileScreen: (context) => EditProfileScreen(), 
     listAddressScreen: (context) => ListAddressScreen(), 
     addAddressScreen: (context) => AddAddressScreen(),
-    initialRoute: (context) => HomeScreen(),
+    initialRoute: (context) => AdminScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),
     adminDashboard: (context) => const DashboardScreen(),
     adminProducts: (context) => const ProductScreen(), 
     adminProductDetail: (context) => const ProductDetail(),
+    adminProductAdd: (context) => const ProductAddScreen(),
     adminCustomers: (context) => const CustomerScreen(),
   };
 }

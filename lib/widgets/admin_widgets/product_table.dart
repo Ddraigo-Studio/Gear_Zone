@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gear_zone/utils/image_utils.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 
 
@@ -139,8 +140,8 @@ class ProductTable extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
-                    image: DecorationImage(
-                      image: NetworkImage('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png'),
+                    image: ImageUtils.getSafeDecorationImage(
+                      imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png',
                       fit: BoxFit.cover,
                       onError: (exception, stackTrace) {},
                     ),
@@ -258,8 +259,8 @@ class ProductTable extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  image: DecorationImage(
-                    image: NetworkImage('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png'),
+                  image: ImageUtils.getSafeDecorationImage(
+                    imageUrl: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GearZone-wprQSB8jA875qnME65FsBjG3b2FuGl.png',
                     fit: BoxFit.cover,
                     onError: (exception, stackTrace) {},
                   ),

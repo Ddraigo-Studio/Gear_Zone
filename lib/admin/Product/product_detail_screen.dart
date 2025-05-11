@@ -1,146 +1,678 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
-import 'package:dotted_border/dotted_border.dart';
+import 'package:gear_zone/controller/product_controller.dart';
+import 'package:gear_zone/model/product.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:gear_zone/core/app_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:gear_zone/admin/Product/_image_upload_widget.dart';
 
-class ProductDetail extends StatelessWidget {
-  const ProductDetail({super.key});
+class ProductDetail extends StatefulWidget {
+  final bool isViewOnly;
+
+  const ProductDetail({
+    super.key,
+    this.isViewOnly = false,
+  });
+
+  @override
+  ProductDetailState createState() => ProductDetailState();
+}
+
+class ProductDetailState extends State<ProductDetail> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _brandController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _originalPriceController =
+      TextEditingController();
+  final TextEditingController _discountController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+
+  String? _selectedCategory;
+  String? _selectedStatus;
+
+  // Variables for image handling
+  File? _mainImage;
+  List<File> _additionalImages = [];
+  bool _isUploadingImages = false;
+
+  // URLs cho hình ảnh hiện có
+  String _mainImageUrl = '';
+  List<String> _additionalImageUrls = [];
+  // Helper method to create decoration for form fields with different styling for fields that have content
+  InputDecoration _getInputDecoration({
+    required String hintText,
+    bool isDense = true,
+    EdgeInsetsGeometry? contentPadding,
+    bool hasValue = false,
+    bool enabled = true,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: BorderSide(
+          color: hasValue ? Colors.grey.shade600 : Colors.grey.shade300,
+          width: 1.0,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: BorderSide(
+          color: hasValue ? Colors.grey.shade600 : Colors.grey.shade300,
+          width: 1.0,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: BorderSide(
+          color: Theme.of(context).primaryColor,
+          width: 1.5,
+        ),
+      ),
+      contentPadding: contentPadding ??
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      isDense: isDense,
+      enabled: enabled,
+    );
+  }
+
+  // Phương thức để chọn ảnh từ thư viện
+  Future<File?> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      return File(image.path);
+    }
+    return null;
+  }
+
+  // Phương thức để chọn ảnh chính
+  Future<void> _pickMainImage() async {
+    if (widget.isViewOnly) return;
+
+    final File? pickedImage = await _pickImage();
+    if (pickedImage != null) {
+      setState(() {
+        _mainImage = pickedImage;
+        _mainImageUrl = ''; // Xóa URL ảnh cũ nếu chọn ảnh mới
+      });
+    }
+  }
+
+  // Phương thức để chọn ảnh phụ
+  Future<void> _pickAdditionalImage(int index) async {
+    if (widget.isViewOnly) return;
+
+    final File? pickedImage = await _pickImage();
+    if (pickedImage != null) {
+      setState(() {
+        while (_additionalImages.length <= index) {
+          _additionalImages.add(File(''));
+        }
+        _additionalImages[index] = pickedImage;
+
+        // Xóa URL ảnh cũ tại vị trí này nếu có
+        if (_additionalImageUrls.length > index) {
+          _additionalImageUrls[index] = '';
+        }
+      });
+    }
+  }
+
+  // Phương thức để xóa ảnh chính
+  void _removeMainImage() {
+    if (widget.isViewOnly) return;
+
+    setState(() {
+      _mainImage = null;
+      _mainImageUrl = '';
+    });
+  }
+
+  // Phương thức để xóa ảnh phụ
+  void _removeAdditionalImage(int index) {
+    if (widget.isViewOnly) return;
+
+    setState(() {
+      if (_additionalImages.length > index) {
+        _additionalImages[index] = File('');
+      }
+
+      if (_additionalImageUrls.length > index) {
+        _additionalImageUrls[index] = '';
+      }
+    });
+  }
+
+  // Phương thức để upload tất cả ảnh và lấy URLs
+  Future<Map<String, dynamic>> _uploadAllImages(String productId) async {
+    String mainImageUrl = _mainImageUrl; // Giữ URL cũ nếu không có ảnh mới
+    List<String> additionalImageUrls = List.from(_additionalImageUrls);
+
+    setState(() {
+      _isUploadingImages = true;
+    });
+
+    try {
+      // Upload ảnh chính nếu có và đường dẫn không trống
+      if (_mainImage != null && _mainImage!.path.isNotEmpty) {
+        // Hiển thị thông báo khi đang upload ảnh chính
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đang tải lên ảnh chính...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+
+        mainImageUrl = await _productController.uploadProductImage(
+                _mainImage!, productId,
+                isMainImage: true) ??
+            '';
+      }
+      // Upload các ảnh phụ có đường dẫn không trống
+      List<Future<void>> uploadTasks = [];
+
+      for (int i = 0; i < _additionalImages.length; i++) {
+        if (_additionalImages[i].path.isNotEmpty) {
+          final int index = i; // Capture the index for use in the async task
+
+          // Tạo task upload ảnh phụ
+          uploadTasks.add(Future(() async {
+            // Hiển thị thông báo khi đang upload ảnh phụ
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Đang tải lên ảnh ${index + 2}...'),
+                duration: const Duration(seconds: 1),
+              ),
+            );
+
+            String? url = await _productController.uploadProductImage(
+                _additionalImages[index], productId,
+                isMainImage: false);
+
+            if (url != null && url.isNotEmpty) {
+              // Thay thế URL tại vị trí tương ứng hoặc thêm mới
+              if (additionalImageUrls.length > index) {
+                additionalImageUrls[index] = url;
+              } else {
+                additionalImageUrls.add(url);
+              }
+            }
+          }));
+        }
+      }
+
+      // Đợi tất cả các task upload hoàn thành
+      if (uploadTasks.isNotEmpty) {
+        await Future.wait(uploadTasks);
+      }
+    } catch (e) {
+      // Xử lý lỗi khi upload ảnh
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi tải lên hình ảnh: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isUploadingImages = false;
+      });
+    }
+
+    // Lọc bỏ các URL rỗng trong danh sách ảnh phụ
+    final filteredAdditionalImageUrls =
+        additionalImageUrls.where((url) => url.isNotEmpty).toList();
+
+    return {
+      'mainImageUrl': mainImageUrl,
+      'additionalImageUrls': filteredAdditionalImageUrls
+    };
+  }
+
+  String? _validatePrice(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Vui lòng nhập giá';
+    }
+    if (double.tryParse(value) == null) {
+      return 'Giá phải là số';
+    }
+    if (double.parse(value) < 0) {
+      return 'Giá không thể là số âm';
+    }
+    return null;
+  }
+
+  String? _validateDiscount(String? value) {
+    if (value == null || value.isEmpty) {
+      return null; // Discount có thể trống
+    }
+    if (double.tryParse(value) == null) {
+      return 'Chiết khấu phải là số';
+    }
+    double discount = double.parse(value);
+    if (discount < 0 || discount > 100) {
+      return 'Chiết khấu phải từ 0 đến 100%';
+    }
+    return null;
+  }
+
+  String? _validateQuantity(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Vui lòng nhập số lượng';
+    }
+    if (int.tryParse(value) == null) {
+      return 'Số lượng phải là số nguyên';
+    }
+    if (int.parse(value) < 0) {
+      return 'Số lượng không thể là số âm';
+    }
+    return null;
+  }
+
+  // Khởi tạo controller
+  final ProductController _productController = ProductController();
+
+  // Phương thức xử lý khi nhấn nút lưu
+  void _saveForm(BuildContext context) async {
+    // If in view-only mode, don't allow saving
+    if (widget.isViewOnly) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bạn đang ở chế độ xem. Không thể lưu thay đổi.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng điền đầy đủ thông tin bắt buộc'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Hiển thị loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Dialog(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 20),
+                  Text("Đang lưu dữ liệu..."),
+                ],
+              ),
+            ),
+          );
+        },
+      ); // Tạo đối tượng ProductModel từ dữ liệu form
+      ProductModel product = ProductModel(
+        id: _idController.text,
+        name: _nameController.text,
+        description: _descriptionController.text,
+        price: double.tryParse(_priceController.text) ?? 0,
+        originalPrice: double.tryParse(_originalPriceController.text) ?? 0,
+        imageUrl: _mainImageUrl, // Sử dụng URL hiện có nếu có
+        additionalImages:
+            _additionalImageUrls.where((url) => url.isNotEmpty).toList(),
+        category: _selectedCategory ?? 'Laptop',
+        brand: _brandController.text,
+        seriNumber: _codeController.text,
+        quantity: _quantityController.text,
+        status: _selectedStatus ?? 'out_of_stock',
+        inStock: _selectedStatus == 'available',
+        discount: int.tryParse(_discountController.text) ?? 0,
+      ); // Lưu sản phẩm vào Firestore
+      String? productId;
+      if (_idController.text.isEmpty) {
+        productId = await _productController.addProduct(product);
+      } else {
+        bool success = await _productController.updateProduct(product);
+        if (success) {
+          productId = product.id;
+        }
+      }
+      // Upload ảnh mới nếu có
+      if (productId != null) {
+        bool hasNewImages = _mainImage != null ||
+            _additionalImages.any((file) => file.path.isNotEmpty);
+        bool hasRemovedImages =
+            _mainImageUrl.isEmpty && product.imageUrl.isNotEmpty ||
+                _additionalImageUrls.length < product.additionalImages.length;
+
+        if (hasNewImages || hasRemovedImages) {
+          // Hiển thị trạng thái đang xử lý ảnh
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đang xử lý hình ảnh sản phẩm...'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Upload ảnh mới và lấy URLs
+          if (hasNewImages) {
+            Map<String, dynamic> imageUrls = await _uploadAllImages(productId);
+
+            // Cập nhật product model với URLs mới
+            if (imageUrls['mainImageUrl'].isNotEmpty) {
+              product.imageUrl = imageUrls['mainImageUrl'];
+            }
+
+            // Kết hợp ảnh mới và ảnh cũ (giữ lại các URL không thay đổi)
+            List<String> updatedAdditionalImages =
+                imageUrls['additionalImageUrls'];
+            if (updatedAdditionalImages.isNotEmpty) {
+              product.additionalImages = updatedAdditionalImages;
+            } else if (_additionalImageUrls.isNotEmpty) {
+              // Nếu không có ảnh mới upload, sử dụng danh sách hiện tại
+              product.additionalImages =
+                  _additionalImageUrls.where((url) => url.isNotEmpty).toList();
+            }
+          } else {
+            // Không có ảnh mới, nhưng có thể đã xóa ảnh cũ
+            product.imageUrl = _mainImageUrl;
+            product.additionalImages =
+                _additionalImageUrls.where((url) => url.isNotEmpty).toList();
+          }
+
+          // Cập nhật lại product vào Firestore
+          await _productController.updateProduct(product);
+        }
+      }
+
+      // Đóng dialog loading
+      Navigator.pop(context);
+
+      if (productId != null) {
+        // Nếu thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lưu sản phẩm thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Cập nhật ID vào controller nếu đó là sản phẩm mới
+        if (_idController.text.isEmpty) {
+          _idController.text = productId;
+        }
+      } else {
+        // Nếu thất bại
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lưu sản phẩm thất bại, vui lòng thử lại!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Đóng dialog loading nếu có lỗi
+      Navigator.pop(context);
+
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã xảy ra lỗi: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Delay to ensure Provider is ready after widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProductData();
+    });
+  }
+
+  // Method to load product data from Firebase
+  Future<void> _loadProductData() async {
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final productId = appProvider.currentProductId;
+
+    if (productId.isEmpty) {
+      // No product ID provided, this is likely a new product
+      return;
+    }
+
+    try {
+      final product = await _productController.getProductById(productId);
+      if (product != null) {
+        // Set form field values
+        setState(() {
+          _idController.text = product.id;
+          _nameController.text = product.name;
+          _codeController.text = product.seriNumber;
+          _brandController.text = product.brand;
+          _descriptionController.text = product.description;
+          _priceController.text = product.price.toString();
+          _originalPriceController.text = product.originalPrice.toString();
+          _discountController.text = product.discount.toString();
+          _quantityController.text = product.quantity;
+
+          _selectedCategory = product.category;
+          _selectedStatus = product.inStock ? 'available' : 'out_of_stock';
+
+          // Set image URLs
+          _mainImageUrl = product.imageUrl;
+          _additionalImageUrls = List.from(product.additionalImages);
+
+          // Add a small delay to ensure state updates before updating styling
+          Future.delayed(const Duration(milliseconds: 100), () {
+            setState(() {
+              // This will trigger a rebuild with updated hasValue parameters
+            });
+          });
+        });
+      } else {
+        // Product not found
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không tìm thấy thông tin sản phẩm'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      // Error loading product
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi tải dữ liệu sản phẩm: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
-    
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Page title
-          const Text(
-            'Sản phẩm',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          // Breadcrumb
-          Row(
-            children: [
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Bảng điều khiển',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
+
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Page title with view mode indicator
+            Row(
+              children: [
+                const Text(
                   'Sản phẩm',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Laptop',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          
-          // Product info and image sections
-          isMobile
-              ? Column(
-                  children: [
-                    _buildProductInfoSection(context),
-                    const SizedBox(height: 16),
-                    _buildProductImageSection(context),
-                  ],
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: _buildProductInfoSection(context),
+                if (widget.isViewOnly)
+                  Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEE5FF),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 2,
-                      child: _buildProductImageSection(context),
+                    child: const Text(
+                      'Chế độ xem',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF7E3FF2),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ],
-                ),
-          
-          const SizedBox(height: 24),
-          
-          // Action buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  foregroundColor: Colors.grey[700],
-                  side: BorderSide(color: Colors.grey[300]!),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  ),
+              ],
+            ),
+
+            // Breadcrumb
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Bảng điều khiển',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'Discard Changes',
-                  style: TextStyle(fontSize: 13),
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7E3FF2),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Sản phẩm',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'Save Changes',
-                  style: TextStyle(fontSize: 13),
+                const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Laptop',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Product info and image sections
+            isMobile
+                ? Column(
+                    children: [
+                      _buildProductInfoSection(context),
+                      const SizedBox(height: 16),
+                      _buildProductImageSection(context),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _buildProductInfoSection(context),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: _buildProductImageSection(context),
+                      ),
+                    ],
+                  ),
+            const SizedBox(height: 24),
+
+            // Action buttons - hidden in view-only mode
+            if (!widget.isViewOnly)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      foregroundColor: Colors.grey[700],
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Discard Changes',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () => _saveForm(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7E3FF2),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Lưu thay đổi',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -171,17 +703,17 @@ class ProductDetail extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Lorem ipsum dolor sit amet consectetur. Non ac nulla aliquam aenean in velit mattis.',
+            'Thêm thông tin cơ bản về sản phẩm',
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey,
             ),
           ),
           const SizedBox(height: 20),
-          
-          // Product code
+
+          // ID sản phẩm
           const Text(
-            'Mã sản phẩm',
+            'ID sản phẩm',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -189,21 +721,58 @@ class ProductDetail extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           TextFormField(
-            decoration: InputDecoration(
-              hintText: 'Nhập mã sản phẩm',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
+            controller: _idController,
+            decoration: _getInputDecoration(
+              hintText: 'ID sản phẩm được tạo tự động',
+              hasValue: _idController.text.isNotEmpty,
+              enabled: false,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _idController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
           ),
           const SizedBox(height: 12),
-          
-          // Product name
+
+          // Mã sản phẩm (Seri)
+          const Text(
+            'Số Seri',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _codeController,
+            decoration: _getInputDecoration(
+              hintText: 'Nhập số seri (vd: LP001)',
+              hasValue: _codeController.text.isNotEmpty,
+              enabled: !widget.isViewOnly,
+            ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _codeController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập mã sản phẩm';
+              }
+              return null;
+            },
+            enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Tên sản phẩm
           const Text(
             'Tên sản phẩm',
             style: TextStyle(
@@ -213,23 +782,36 @@ class ProductDetail extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           TextFormField(
-            decoration: InputDecoration(
+            controller: _nameController,
+            decoration: _getInputDecoration(
               hintText: 'Nhập tên sản phẩm',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
+              hasValue: _nameController.text.isNotEmpty,
+              enabled: !widget.isViewOnly,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _nameController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
+            readOnly: widget.isViewOnly,
+            enabled: !widget.isViewOnly,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập tên sản phẩm';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
-          
-          // Product description
+
+          // Thương hiệu
           const Text(
-            'Thông tin về sản phẩm',
+            'Thương hiệu',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -237,20 +819,70 @@ class ProductDetail extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           TextFormField(
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'Nhập thông tin sản phẩm',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              contentPadding: const EdgeInsets.all(12),
+            controller: _brandController,
+            decoration: _getInputDecoration(
+              hintText: 'Nhập thương hiệu (vd: Dell, Asus...)',
+              hasValue: _brandController.text.isNotEmpty,
+              enabled: !widget.isViewOnly,
             ),
-            style: const TextStyle(fontSize: 13),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _brandController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập thương hiệu';
+              }
+              return null;
+            },
+            enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
-          
+
+          // Mô tả sản phẩm
+          const Text(
+            'Mô tả sản phẩm',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _descriptionController,
+            maxLines: 3,
+            decoration: _getInputDecoration(
+              hintText: 'Nhập mô tả chi tiết về sản phẩm',
+              hasValue: _descriptionController.text.isNotEmpty,
+              contentPadding: const EdgeInsets.all(12),
+              enabled: !widget.isViewOnly,
+            ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: _descriptionController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập mô tả sản phẩm';
+              }
+              return null;
+            },
+            enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              // Force a rebuild to update the style when text changes
+              setState(() {});
+            },
+          ),
+          const SizedBox(height: 12),
+
           // Category and Price in row
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,49 +901,183 @@ class ProductDetail extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
-                      hint: Text('Chọn mục sản phẩm', 
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
+                      hint: Text('Chọn mục sản phẩm',
+                          style: TextStyle(
+                              fontSize: 13, color: Colors.grey.shade400)),
                       isExpanded: true,
                       icon: const Icon(Icons.arrow_drop_down, size: 20),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                        isDense: true,
+                      decoration: _getInputDecoration(
+                        hintText: '',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        hasValue: _selectedCategory != null,
+                        enabled: !widget.isViewOnly,
                       ),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'laptop',
-                          child: Text('Laptop', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Laptop',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'laptop'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'desktop',
-                          child: Text('Máy tính bàn', style: TextStyle(fontSize: 12)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'mouse',
-                          child: Text('Chuột', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Máy tính bàn',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'desktop'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'components',
-                          child: Text('Linh kiện', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'Linh kiện',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'components'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'accessories',
+                          child: Text(
+                            'Phụ kiện',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedCategory == 'accessories'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
                         ),
                       ],
-                      onChanged: (value) {},
+                      onChanged: widget.isViewOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _selectedCategory = value;
+                              });
+                            },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng chọn danh mục sản phẩm';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              // Price
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Giá',
+                      'Trạng thái sản phẩm',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      hint: Text('Chọn trạng thái',
+                          style: TextStyle(
+                              fontSize: 13, color: Colors.grey.shade400)),
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down, size: 20),
+                      decoration: _getInputDecoration(
+                        hintText: '',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        hasValue: _selectedStatus != null,
+                        enabled: !widget.isViewOnly,
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'available',
+                          child: Text(
+                            'Có sẵn',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedStatus == 'available'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'out_of_stock',
+                          child: Text(
+                            'Hết hàng',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedStatus == 'out_of_stock'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'discontinued',
+                          child: Text(
+                            'Ngừng kinh doanh',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _selectedStatus == 'discontinued'
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: widget.isViewOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _selectedStatus = value;
+                              });
+                            },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng chọn trạng thái sản phẩm';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // Price
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Original Price and Discount in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Original Price
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Giá gốc',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -319,17 +1085,65 @@ class ProductDetail extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
-                        hintText: 'Nhập giá sản phẩm',
-                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        isDense: true,
+                      controller: _originalPriceController,
+                      decoration: _getInputDecoration(
+                        hintText: 'Nhập giá gốc (VNĐ)',
+                        hasValue: _originalPriceController.text.isNotEmpty,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _originalPriceController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
+                      validator: _validatePrice,
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Giá bán',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _priceController,
+                      decoration: _getInputDecoration(
+                        hintText: 'Nhập giá bán (VNĐ)',
+                        hasValue: _priceController.text.isNotEmpty,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                      ),
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _priceController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
+                      validator: _validatePrice,
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -337,11 +1151,52 @@ class ProductDetail extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Quantity and Status in row
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Discount percentage
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Chiết khấu (%)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _discountController,
+                      decoration: _getInputDecoration(
+                        hintText: 'Nhập % giảm giá',
+                        hasValue: _discountController.text.isNotEmpty,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                      ),
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _discountController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
+                      validator: _validateDiscount,
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
               // Quantity
               Expanded(
                 child: Column(
@@ -356,68 +1211,733 @@ class ProductDetail extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
-                      decoration: InputDecoration(
+                      controller: _quantityController,
+                      decoration: _getInputDecoration(
                         hintText: 'Nhập số lượng',
-                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        isDense: true,
+                        hasValue: _quantityController.text.isNotEmpty,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: _quantityController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
+                      validator: _validateQuantity,
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              // Status
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Thông số kỹ thuật cơ bản section header
+          const Text(
+            'Thông số kỹ thuật',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Nhập thông số kỹ thuật chi tiết của sản phẩm',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // CPU and RAM in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // CPU
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Trạng thái sản phẩm',
+                      'Bộ vi xử lý (CPU)',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
-                      hint: Text('Chọn trạng thái', 
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
-                      isExpanded: true,
-                      icon: const Icon(Icons.arrow_drop_down, size: 20),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                        isDense: true,
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: Intel Core i5-12500H',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
                       ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'available',
-                          child: Text('Có sẵn', style: TextStyle(fontSize: 12)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'out_of_stock',
-                          child: Text('Hết hàng', style: TextStyle(fontSize: 12)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'discontinued',
-                          child: Text('Ngừng kinh doanh', style: TextStyle(fontSize: 12)),
-                        ),
-                      ],
-                      onChanged: (value) {},
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // RAM
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bộ nhớ RAM',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: 16GB DDR4 3200MHz',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+
+          // Storage and GPU in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Storage
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Lưu trữ',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: 512GB SSD NVMe',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // GPU
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Card đồ họa',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: NVIDIA RTX 4050 6GB',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Display and OS in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Display
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Màn hình',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: 15.6" FHD IPS 144Hz',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // OS
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Hệ điều hành',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: Windows 11 Home',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Keyboard and Audio in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Keyboard
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bàn phím',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: RGB Backlit keyboard',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Audio
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Âm thanh',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: Stereo speakers, DTS',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // WiFi and Bluetooth in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // WiFi
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'WiFi',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: Wi-Fi 6 (802.11ax)',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Bluetooth
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bluetooth',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: Bluetooth 5.2',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Battery and Weight in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Battery
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Pin',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: 4-cell, 54WHr',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Weight
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Trọng lượng',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: 1.8 kg',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Color and Dimensions in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Color
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Màu sắc',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: Đen, Bạc...',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Dimensions
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Kích thước',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: 360 x 252 x 19.9 mm',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Webcam and Security in row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Webcam
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Webcam',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: HD 720p',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Security
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bảo mật',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: _getInputDecoration(
+                        hintText: 'Vd: Vân tay, khuôn mặt',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        enabled: !widget.isViewOnly,
+                        hasValue: false,
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      enabled: !widget.isViewOnly,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Ports
+          const Text(
+            'Cổng kết nối',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            decoration: _getInputDecoration(
+              hintText: 'Vd: 2x USB-C, 2x USB-A, 1x HDMI, 1x Audio Jack',
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              enabled: !widget.isViewOnly,
+              hasValue: false,
+            ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.normal,
+            ),
+            enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              setState(() {});
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Warranty
+          const Text(
+            'Bảo hành',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            decoration: _getInputDecoration(
+              hintText: 'Vd: 24 tháng',
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              enabled: !widget.isViewOnly,
+              hasValue: false,
+            ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.normal,
+            ),
+            enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              setState(() {});
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Promotions
+          const Text(
+            'Khuyến mãi',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            maxLines: 2,
+            decoration: _getInputDecoration(
+              hintText: 'Vd: Balo, chuột không dây, PMH 200.000đ',
+              contentPadding: const EdgeInsets.all(12),
+              enabled: !widget.isViewOnly,
+              hasValue: false,
+            ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.normal,
+            ),
+            enabled: !widget.isViewOnly,
+            onChanged: (value) {
+              setState(() {});
+            },
           ),
         ],
       ),
@@ -426,13 +1946,14 @@ class ProductDetail extends StatelessWidget {
 
   Widget _buildProductImageSection(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
+            spreadRadius: 0,
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -473,76 +1994,241 @@ class ProductDetail extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          
-          // Main product image
-          Container(
-            width: double.infinity,
-            height: 160,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Image.network(
-              'https://product.hstatic.net/200000722513/product/pc_case_xigmatek_-_26_82498939d3bc46308cf3b15fd293d616_1024x1024.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Center(
-                child: Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
+
+          // Upload status indicator
+          if (_isUploadingImages)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).primaryColor),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Đang tải lên hình ảnh...',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
               ),
             ),
+
+          // Main product image
+          InkWell(
+            onTap: widget.isViewOnly ? null : _pickMainImage,
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: _mainImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(7),
+                          child: Image.file(
+                            _mainImage!,
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : (_mainImageUrl.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(7),
+                              child: Image.network(
+                                _mainImageUrl,
+                                fit: BoxFit.contain,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        CircularProgressIndicator(
+                                          value: loadingProgress
+                                                      .expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        const Text('Đang tải ảnh...',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey)),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.image_not_supported,
+                                          size: 40, color: Colors.grey),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Không thể tải ảnh',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.red.shade300,
+                                        ),
+                                      ),
+                                      if (!widget.isViewOnly)
+                                        TextButton(
+                                          onPressed: _pickMainImage,
+                                          child: const Text('Chọn ảnh khác'),
+                                        )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(7),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 40,
+                                    color: Theme.of(context)
+                                        .primaryColor
+                                        .withOpacity(0.5),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Ảnh sản phẩm chính',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                  if (!widget.isViewOnly)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 5),
+                                      child: Text(
+                                        'Nhấn để chọn ảnh',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            )),
+                ),
+                if (!widget.isViewOnly &&
+                    (_mainImage != null || _mainImageUrl.isNotEmpty))
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            onPressed: _pickMainImage,
+                            tooltip: 'Chỉnh sửa ảnh',
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(width: 2),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline,
+                                size: 18, color: Colors.red),
+                            onPressed: _removeMainImage,
+                            tooltip: 'Xóa ảnh',
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          
-          // Additional images row
+          const SizedBox(height: 12), // Additional images row
           Row(
             children: [
               Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 2'),
+                child: ImageUploadBox(
+                  label: 'Ảnh 2',
+                  index: 0,
+                  imageFiles: _additionalImages,
+                  imageUrls: _additionalImageUrls,
+                  isViewOnly: widget.isViewOnly,
+                  onPickImage: _pickAdditionalImage,
+                  onRemoveImage: _removeAdditionalImage,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 3'),
+                child: ImageUploadBox(
+                  label: 'Ảnh 3',
+                  index: 1,
+                  imageFiles: _additionalImages,
+                  imageUrls: _additionalImageUrls,
+                  isViewOnly: widget.isViewOnly,
+                  onPickImage: _pickAdditionalImage,
+                  onRemoveImage: _removeAdditionalImage,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildImageUploadBox(context, 'Ảnh 4'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageUploadBox(BuildContext context, String label) {
-    return DottedBorder(
-      color: Colors.blue.shade200,
-      strokeWidth: 1.5,
-      dashPattern: [6, 3],           // 6px line, 3px gap
-      borderType: BorderType.RRect,  // bo tròn
-      radius: const Radius.circular(4),
-      child: Container(
-        height: 80,
-        width: double.infinity,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.image_outlined,
-                size: 24,
-                color: Theme.of(context).primaryColor.withOpacity(0.5),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).primaryColor,
+                child: ImageUploadBox(
+                  label: 'Ảnh 4',
+                  index: 2,
+                  imageFiles: _additionalImages,
+                  imageUrls: _additionalImageUrls,
+                  isViewOnly: widget.isViewOnly,
+                  onPickImage: _pickAdditionalImage,
+                  onRemoveImage: _removeAdditionalImage,
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

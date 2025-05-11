@@ -237,8 +237,8 @@ class Sidebar extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  height: 18,
-                  width: 18,
+                  height: 13,
+                  width: 13,
                   decoration: BoxDecoration(
                     color: Colors.green,
                     shape: BoxShape.circle,
@@ -353,6 +353,8 @@ class Sidebar extends StatelessWidget {
       child: ExpansionTile(
         onExpansionChanged: (isExpanded) {
           appProvider.setCurrentScreen(index);
+          // Khi chọn menu chính "Sản phẩm", hiển thị tất cả sản phẩm
+          appProvider.resetSelectedCategory();
           if (Responsive.isMobile(context)) {
             Navigator.pop(context);
           }
@@ -404,14 +406,40 @@ class Sidebar extends StatelessWidget {
           // Giữ lại Container với border bên trái màu tím
           Padding(
             padding: const EdgeInsets.only(left: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildNestedSubMenuItem(context, 'Laptop', isActive: false),
-                _buildNestedSubMenuItem(context, 'Chuột', isActive: false),
-                _buildNestedSubMenuItem(context, 'Màn hình', isActive: true),
-                _buildNestedSubMenuItem(context, 'PC', isActive: false),
-              ],
+            child: Consumer<AppProvider>(
+              builder: (context, appProvider, _) {
+                // Lấy danh mục đã chọn từ AppProvider để hiển thị trạng thái active
+                String selectedCategory = appProvider.selectedCategory.toLowerCase();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildNestedSubMenuItem(
+                      context, 
+                      'laptop', 
+                      displayName: 'Laptop',
+                      isActive: selectedCategory == 'laptop'
+                    ),
+                    _buildNestedSubMenuItem(
+                      context, 
+                      'mouse', 
+                      displayName: 'Chuột',
+                      isActive: selectedCategory == 'mouse'
+                    ),
+                    _buildNestedSubMenuItem(
+                      context, 
+                      'monitor', 
+                      displayName: 'Màn hình',
+                      isActive: selectedCategory == 'monitor'
+                    ),
+                    _buildNestedSubMenuItem(
+                      context, 
+                      'pc', 
+                      displayName: 'PC',
+                      isActive: selectedCategory == 'pc'
+                    ),
+                  ],
+                );
+              },
             ),
           )
         ],
@@ -419,12 +447,22 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildNestedSubMenuItem(BuildContext context, String title, {bool isActive = false}) {
+  Widget _buildNestedSubMenuItem(BuildContext context, String title, {String? displayName, bool isActive = false}) {
     // Màu tím chủ đạo của ứng dụng khi active
     final themeColor = Theme.of(context).primaryColor;
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
     
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        // Đặt danh mục được chọn vào Provider
+        appProvider.setSelectedCategory(title);
+        // Giữ nguyên màn hình sản phẩm (index 1)
+        appProvider.setCurrentScreen(1);
+        // Nếu đang ở mobile thì đóng drawer
+        if (Responsive.isMobile(context)) {
+          Navigator.pop(context);
+        }
+      },
       child: Row(
         children: [
           // Sử dụng SvgPicture.asset thay thế Container
@@ -435,12 +473,11 @@ class Sidebar extends StatelessWidget {
             colorFilter: ColorFilter.mode(
               isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
               BlendMode.srcIn,
-              
             ),
           ),
           const SizedBox(width: 8),
           Text(
-            title,
+            displayName ?? title,
             style: TextStyle(
               fontSize: 14,
               color: isActive ? themeColor : Colors.grey[600],

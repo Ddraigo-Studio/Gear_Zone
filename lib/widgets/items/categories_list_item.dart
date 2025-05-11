@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/app_export.dart';
 
 class CategoriesListItem extends StatelessWidget {
@@ -46,14 +45,29 @@ class CategoriesListItem extends StatelessWidget {
               ],
             ),
             child: ClipOval(
-              child: imagePath.isNotEmpty && !imagePath.contains("imgEllipse356x56")
-                  ? CachedNetworkImage(
-                      imageUrl: imagePath, // URL từ Imgur, ví dụ: https://i.imgur.com/OdAO6rc.jpg
+              child: imagePath.isNotEmpty && imagePath.startsWith('http')
+                  ? Image.network(
+                      imagePath, 
                       fit: BoxFit.cover,
-                      width: 45.h,
-                      height: 45.h,
-                      placeholder: (context, url) => CircularProgressIndicator(),
-                      errorWidget: (context, url, error) => Icon(
+                      width: 42.h,
+                      height: 42.h,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: SizedBox(
+                            width: 20.h,
+                            height: 20.h,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.h,
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                  : null,
+                              valueColor: AlwaysStoppedAnimation<Color>(appTheme.deepPurple400),
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Icon(
                         icon,
                         size: 24.h,
                         color: appTheme.deepPurple400,
