@@ -10,13 +10,21 @@ extension ImageTypeExtension on String {
     if (this.isEmpty) {
       return ImageType.unknown;
     }
+    
+    // Check for network images first (URLs)
     if (this.startsWith('http') || this.startsWith('https')) {
       return ImageType.network;
-    } else if (this.endsWith('.svg')) {
+    } 
+    // Check for SVG files
+    else if (this.endsWith('.svg')) {
       return ImageType.svg;
-    } else if (this.startsWith('file://')) {
+    } 
+    // Check for file:// protocol
+    else if (this.startsWith('file://')) {
       return ImageType.file;
-    } else {
+    } 
+    // Default to PNG/local asset
+    else {
       return ImageType.png;
     }
   }
@@ -105,18 +113,17 @@ class CustomImageView extends StatelessWidget {
     } else {
       return _buildImageView();
     }
-  }
-  Widget _buildImageView() {
-  if (imagePath == null || imagePath!.isEmpty) {
-    return Image.asset(
-      placeHolder,
-      height: height,
-      width: width,
-      fit: fit ?? BoxFit.cover,
-    );
-  }
+  }  Widget _buildImageView() {
+    if (imagePath == null || imagePath!.isEmpty) {
+      return Image.asset(
+        placeHolder,
+        height: height,
+        width: width,
+        fit: fit ?? BoxFit.cover,
+      );
+    }
   
-  switch (imagePath!.imageType) {
+    switch (imagePath!.imageType) {
       case ImageType.svg:
         return Container(
           height: height,
@@ -140,8 +147,10 @@ class CustomImageView extends StatelessWidget {
           width: width,
           fit: fit ?? BoxFit.cover,
           color: color,
-        );      case ImageType.network:
-        // Check if imagePath is empty or null before using CachedNetworkImage
+        );
+        
+      case ImageType.network:
+        // For web platform, use Image.network directly
         if (imagePath == null || imagePath!.isEmpty) {
           return Image.asset(
             placeHolder,
@@ -152,36 +161,48 @@ class CustomImageView extends StatelessWidget {
           );
         }
         
-        return CachedNetworkImage(
+        // Use regular Image.network instead of CachedNetworkImage for web
+        return Image.network(
+          imagePath!,
           height: height,
           width: width,
-          fit: fit,
-          imageUrl: imagePath!,
+          fit: fit ?? BoxFit.cover,
           color: color,
-          placeholder: (context, url) => Container(
-            height: 30,
-            width: 30,
-            child: LinearProgressIndicator(
-              color: Colors.grey.shade200,
-              backgroundColor: Colors.grey.shade100,
-            ),
-          ),
-          errorWidget: (context, url, error) => Image.asset(
-            placeHolder,
-            height: height,
-            width: width,
-            fit: fit ?? BoxFit.cover,
-          ),
-        );      case ImageType.png:
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              height: height,
+              width: width,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / 
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              placeHolder,
+              height: height,
+              width: width,
+              fit: fit ?? BoxFit.cover,
+            );
+          },
+        );
+          case ImageType.png:
       case ImageType.unknown:
-        default:
-          return Image.asset(
-            imagePath!,
-            height: height,
-            width: width,
-            fit: fit ?? BoxFit.cover,
-            color: color,
-          );      }
+        return Image.asset(
+          imagePath!,
+          height: height,
+          width: width,
+          fit: fit ?? BoxFit.cover,
+          color: color,
+        );
+    }
+    
     // This code should not be reached unless there's an error
     return Image.asset(
       placeHolder,
