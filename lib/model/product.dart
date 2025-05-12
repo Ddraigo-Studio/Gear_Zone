@@ -165,4 +165,31 @@ class ProductModel {
       "createdAt": createdAt?.toIso8601String(), // Chuyển DateTime sang chuỗi ISO để lưu trữ
     };
   }
+
+  // Phương thức tính phần trăm giảm giá
+  String getDiscountPercent() {
+    if (originalPrice > 0 && price < originalPrice) {
+      double discountValue = ((originalPrice - price) / originalPrice) * 100;
+      return "${discountValue.round()}%";
+    } else {
+      return "${discount}%";
+    }
+  }
+  // Phương thức định dạng giá tiền
+  String getFormattedPrice() {
+    // Định dạng số với dấu phân cách hàng nghìn là dấu chấm
+    String formatted = price.toStringAsFixed(0);
+    final RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    formatted = formatted.replaceAllMapped(reg, (Match match) => '${match[1]}.');
+    return "$formatted" + "đ";
+  }
+
+  // Phương thức định dạng giá gốc
+  String getFormattedOriginalPrice() {
+    // Định dạng số với dấu phân cách hàng nghìn là dấu chấm
+    String formatted = originalPrice.toStringAsFixed(0);
+    final RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    formatted = formatted.replaceAllMapped(reg, (Match match) => '${match[1]}.');
+    return "$formatted" + "đ";
+  }
 }

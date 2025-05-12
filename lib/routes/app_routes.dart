@@ -63,7 +63,8 @@ class AppRoutes {
   static const String plashScreen = '/plash_screen';
   static const String notificationEmptyScreen = '/notification_empty_screen';
   static const String notificationsScreen = '/notifications_screen';
-  static const String ordersHistoryScreen = '/orders_history_screen';  static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
+  static const String ordersHistoryScreen = '/orders_history_screen';  
+  static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
   static const String ordersDetailScreen = '/order_detail_screen';
   static const String categoriesScreen = '/category_screen';
   static const String categoryProductsPage = '/category_products';
@@ -71,6 +72,7 @@ class AppRoutes {
   static const String searchResultEmptyScreen = '/search_result_empty_screen';
   static const String searchResultScreen = '/search_result_screen';
   static const String productDetail = '/product_detail';
+  static const String productDetailScreen = '/product_detail_screen';
   static const String emptyCartScreen = '/empty_cart_screen';
   static const String myCartScreen = '/cart_screen';
   static const String checkoutScreen = '/checkout_screen';
@@ -89,7 +91,7 @@ class AppRoutes {
   static const String admin = '/admin';
   static const String adminDashboard = '/admin/Dashboard/dashboard';
   static const String adminProducts = '/admin/Product/products';
-  static const String adminProductDetail = '/admin/Product/product_detail_screen';
+  static const String adminProductDetail = '/admin/Product/product_detail';
   static const String adminProductAdd = '/admin/Product/product_add_screen';
   static const String adminCustomers = '/admin/Customer/customers';
 
@@ -98,7 +100,8 @@ class AppRoutes {
     addressNewScreen: (context) => AddressNewScreen(),
     login: (context) => LoginScreen(),
     signup: (context) => SignUpScreen(),
-    homeScreen: (context) => HomeScreen(),    homeInitialPage: (context) => HomeInitialPage(), 
+    homeScreen: (context) => HomeScreen(),    
+    homeInitialPage: (context) => HomeInitialPage(), 
     plashScreen: (context) => PlashScreenScreen(),
     categoriesScreen: (context) => CategoriesScreen(),
     categoryProductsPage: (context) {
@@ -107,7 +110,12 @@ class AppRoutes {
         categoryId: args?['categoryId'] ?? '',
       );
     },
-    productDetail: (context) => ProductDetailScreen(),
+    productDetail: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return ProductDetailScreen(
+        product: args?['product'],
+      );
+    },
     myCartScreen: (context) => CartScreen(),
     checkoutScreen: (context) => CheckoutScreen(), 
     methodCheckoutScreen: (context) => PaymentMethodScreen(),

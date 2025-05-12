@@ -135,7 +135,6 @@ class ImageConstant {
   static String imgTablerEdit = '$iconPath/img_tabler_edit.svg';
   static String imgGgAdd = '$iconPath/img_gg_add.svg';
   static String imgHeartIconlyProFill = '$iconPath/img_heart_iconly_pro_fill.svg';
-  static String imageNotFound = 'assets/images/image_not_found.png';
 
   static String imgNapas = '$iconPath/icon_napas.svg';
   static String imgDiscount = '$iconPath/icon_discount-fill.svg';

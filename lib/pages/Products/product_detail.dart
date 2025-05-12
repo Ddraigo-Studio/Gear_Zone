@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gear_zone/model/product.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/app_bar/appbar_image.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/auto_image_slider.dart';
 import '../../widgets/bottom_sheet/product_variant_bottomsheet.dart';
@@ -12,7 +12,9 @@ import '../../widgets/tab_page/product_tab_page.dart';
 import '../../widgets/cart_icon_button.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  const ProductDetailScreen({super.key});
+  final ProductModel product;
+
+  const ProductDetailScreen({super.key, required this.product});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -39,15 +41,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       left: 24.h,
                       top: 36.h,
                       right: 24.h,
-                    ),
+                    ),                    
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        MyImageSlider(),
+                        MyImageSlider(product: widget.product),
                         SizedBox(height: 6.h),
                         _buildProductInfoRow(context),
                         SizedBox(height: 36.h),
-                        ProductTabTabPage(),
+                        ProductTabTabPage(product: widget.product),
                         SizedBox(height: 44.h),
                         _buildRatingRow(context),
                         SizedBox(height: 16.h),
@@ -164,7 +166,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              "EX DISPLAY : MSI Pro 16 Flex-036AU 15.6 MULTITOUCH All-In-On...",
+              widget.product.name,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: CustomTextStyles.titleMediumGabaritoBlack900,
@@ -177,41 +179,42 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 style: CustomTextStyles.bodyMediumBalooBhaijaanGray900_1,
               ),
               Text(
-                "2",
+                widget.product.quantity,
                 style: CustomTextStyles.bodyMediumBalooBhaijaanRed500,
               ),
             ],
           ),
-          Row(
-            children: [
-              Text(
-                "Màu sắc:",
-                style: CustomTextStyles.bodyMediumBalooBhaijaanDeeppurple500,
-              ),
-              Container(
-                height: 24.h,
-                width: 24.h,
-                margin: EdgeInsets.only(left: 10.h),
-                decoration: BoxDecoration(
-                  color: appTheme.blueGray100,
-                  borderRadius: BorderRadius.circular(12.h),
-                  border: Border.all(
-                    color: appTheme.gray900,
-                    width: 1.5.h,
+          if (widget.product.color.isNotEmpty)
+            Row(
+              children: [
+                Text(
+                  "Màu sắc: ${widget.product.color}",
+                  style: CustomTextStyles.bodyMediumBalooBhaijaanDeeppurple500,
+                ),
+                Container(
+                  height: 24.h,
+                  width: 24.h,
+                  margin: EdgeInsets.only(left: 10.h),
+                  decoration: BoxDecoration(
+                    color: appTheme.blueGray100,
+                    borderRadius: BorderRadius.circular(12.h),
+                    border: Border.all(
+                      color: appTheme.gray900,
+                      width: 1.5.h,
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                height: 24.h,
-                width: 24.h,
-                margin: EdgeInsets.only(left: 10.h),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12.h),
+                Container(
+                  height: 24.h,
+                  width: 24.h,
+                  margin: EdgeInsets.only(left: 10.h),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12.h),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -219,19 +222,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               Row(
                 children: [
                   Text(
-                    "3.890.000đ",
+                    widget.product.getFormattedPrice(),
                     style: CustomTextStyles.titleMediumGabaritoPrimaryBold,
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10.h),
-                    child: Text(
-                      "4.190.000đ",
-                      style:
-                          CustomTextStyles.titleSmallGabaritoGray900.copyWith(
-                        decoration: TextDecoration.lineThrough,
+                  if (widget.product.originalPrice > 0)
+                    Padding(
+                      padding: EdgeInsets.only(left: 10.h),
+                      child: Text(
+                        widget.product.getFormattedOriginalPrice(),
+                        style:
+                            CustomTextStyles.titleSmallGabaritoGray900.copyWith(
+                          decoration: TextDecoration.lineThrough,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               Container(
