@@ -265,7 +265,7 @@ class ProductController {  final FirebaseFirestore _firestore = FirebaseFirestor
   Future<List<ProductModel>> getKeyboardProducts() async {
     try {
       QuerySnapshot snapshot = await _productsCollection
-          .where('category', isEqualTo: 'Bàn phím')
+          .where('category', isEqualTo: 'PC')
           .limit(10)
           .get();
       
@@ -315,7 +315,26 @@ class ProductController {  final FirebaseFirestore _firestore = FirebaseFirestor
     } catch (e) {
       print('Lỗi khi lấy sản phẩm tai nghe: $e');
       return [];
-    }  }
+    }  
+  }
+
+  Future<List<ProductModel>> getlaptopGamingProducts() async {
+    try {
+      QuerySnapshot snapshot = await _productsCollection
+          .where('category', isEqualTo: 'Laptop Gaming')
+          .limit(10)
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print('Lỗi khi lấy sản phẩm PC: $e');
+      return [];
+    }  
+  }
 
   // Lấy sản phẩm theo danh mục cụ thể truyền vào (Future version)
   Future<List<ProductModel>> getProductsByCategoryFuture(String categoryName) async {

@@ -32,7 +32,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   List<ProductModel> bestSellingProducts = [];
   List<ProductModel> laptopProducts = [];
   List<ProductModel> monitorProducts = [];
-  List<ProductModel> keyboardProducts = [];
+  List<ProductModel> laptopGamingProducts = [];
   List<ProductModel> mouseProducts = [];
   List<ProductModel> headphoneProducts = [];
 
@@ -78,7 +78,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
         bestSellingProducts = [];
         laptopProducts = [];
         monitorProducts = [];
-        keyboardProducts = [];
+        laptopGamingProducts = [];
         mouseProducts = [];
         headphoneProducts = [];
       });
@@ -137,36 +137,14 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       }
 
       try {
-        final keyboards = await _productController.getKeyboardProducts();
+        final laptopGamings = await _productController.getlaptopGamingProducts();
         if (mounted) {
           setState(() {
-            keyboardProducts = keyboards;
+            laptopGamingProducts = laptopGamings;
           });
         }
       } catch (e) {
         print('Lỗi khi tải sản phẩm bàn phím: $e');
-      }
-
-      try {
-        final mice = await _productController.getMouseProducts();
-        if (mounted) {
-          setState(() {
-            mouseProducts = mice;
-          });
-        }
-      } catch (e) {
-        print('Lỗi khi tải sản phẩm chuột: $e');
-      }
-
-      try {
-        final headphones = await _productController.getHeadphoneProducts();
-        if (mounted) {
-          setState(() {
-            headphoneProducts = headphones;
-          });
-        }
-      } catch (e) {
-        print('Lỗi khi tải sản phẩm tai nghe: $e');
       }
     } catch (e) {
       print('Lỗi khi tải dữ liệu sản phẩm: $e');
@@ -244,7 +222,23 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                         ],
                       ),
                     ),
-                    _buildCategoriesList(context), SizedBox(height: 20.h),
+                    _buildCategoriesList(context), 
+                    SizedBox(height: 40.h),
+
+                    Container(
+                      width: double.maxFinite,
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
+                      child: _buildTitleRow(
+                        context,
+                        titleName: "Sản phẩm có khuyến mãi",
+                        seeAll: "Xem tất cả",
+                        color: appTheme.red500,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),   
+                    _buildPromotionListSection(context),
+
+                    SizedBox(height: 25.h),
                     Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
@@ -252,12 +246,13 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                         context,
                         titleName: "Mới nhất",
                         seeAll: "Xem tất cả",
-                        color: appTheme.deepPurple500,
+                        color: appTheme.deepPurple400,
                       ),
                     ),
-                    SizedBox(height: 14.h),
+                    SizedBox(height: 16.h),
                     _buildNeweProductSection(context),
-                    SizedBox(height: 40.h),
+
+                    SizedBox(height: 25.h),
                     Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
@@ -265,41 +260,71 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                         context,
                         titleName: "Top bán chạy",
                         seeAll: "Xem tất cả",
-                        color: appTheme.deepPurple500,
+                        color: appTheme.deepPurple400,
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildProductCarousel(context), SizedBox(height: 20.h),
+                    _buildProductCarousel(context), 
+                    SizedBox(height: 25.h),
 
                     Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
                         context,
-                        titleName: "PC bán chạy nhất",
+                        titleName: "Laptop bán chạy nhất",
                         seeAll: "Xem tất cả",
-                        color: appTheme.deepPurple500,
+                        color: appTheme.deepPurple400,
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildLaptopTopSell(context), SizedBox(height: 20.h),
+                    _buildLaptopTopSell(context), 
+                    SizedBox(height: 25.h),
 
                     Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
                         context,
-                        titleName: "Mục yêu thích",
+                        titleName: "Màn hình",
                         seeAll: "Xem tất cả",
-                        color: appTheme.red500,
+                        color: appTheme.deepPurple400,
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildWishListSection(context),
-                    SizedBox(height: 24.h),
+                    _buildMonitorTopSell(context), 
+                    SizedBox(height: 25.h),
+
+                    Container(
+                      width: double.maxFinite,
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
+                      child: _buildTitleRow(
+                        context,
+                        titleName: "Laptop Gaming",
+                        seeAll: "Xem tất cả",
+                        color: appTheme.deepPurple400,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildlaptopGamingTopSell(context), 
+                    SizedBox(height: 25.h),
+
+                    // Container(
+                    //   width: double.maxFinite,
+                    //   margin: EdgeInsets.symmetric(horizontal: 16.h),
+                    //   child: _buildTitleRow(
+                    //     context,
+                    //     titleName: "Mục yêu thích",
+                    //     seeAll: "Xem tất cả",
+                    //     color: appTheme.red500,
+                    //   ),
+                    // ),
+                    // SizedBox(height: 16.h),
+                    // _buildWishListSection(context),
+                    // SizedBox(height: 25.h),
                     // Service section
                     ServiceSection(),
-                    SizedBox(height: 24.h),
+                    SizedBox(height: 25.h),
                   ],
                 ),
               ),
@@ -476,9 +501,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                   )
                 : Container()),
         CartIconButton(
-          iconSize: isDesktop
-              ? 40.h
-              : null, // Tăng kích thước icon giỏ hàng (từ 28.h lên 40.h)
           buttonColor: Colors.white,
           iconColor: appTheme.deepPurple400,
         ),
@@ -754,6 +776,41 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     }
   }
 
+
+  Widget _buildPromotionListSection(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
+    // Show loading indicator if products are still loading
+    if (promotionProducts.isEmpty) {
+      return Container(
+        height: isDesktop ? 290.h : 260.h,
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(appTheme.deepPurple400),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: isDesktop ? 290.h : 230.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: promotionProducts.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h, bottom: 2.h),
+            child: WishListItem(
+              index: index,
+              product: promotionProducts[index],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildWishListSection(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
 
@@ -787,4 +844,119 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       ),
     );
   }
+
+  Widget _buildMonitorTopSell(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
+    // Show loading indicator if products are still loading
+    if (monitorProducts.isEmpty) {
+      return Container(
+        height: isDesktop ? 200.h : 260.h,
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(appTheme.deepPurple400),
+          ),
+        ),
+      );
+    }
+
+    if (isDesktop) {
+      // Desktop view - use grid layout
+      return Container(
+        margin: EdgeInsets.symmetric(horizontal: 16.h),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: SizeUtils.getGridItemCount(),
+            childAspectRatio: 0.9,
+            crossAxisSpacing: 18.h,
+            mainAxisSpacing: 18.h,
+          ),
+          itemCount: monitorProducts.length,
+          itemBuilder: (context, index) {
+            return ProductCarouselItem(
+              product: monitorProducts[index],
+            );
+          },
+        ),
+      );
+    }
+
+    // Mobile view - use horizontal list
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: 230.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: monitorProducts.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h, bottom: 2.h),
+            child: ProductCarouselItem(
+              product: monitorProducts[index],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+Widget _buildlaptopGamingTopSell(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
+    // Show loading indicator if products are still loading
+    if (laptopGamingProducts.isEmpty) {
+      return Container(
+        height: isDesktop ? 200.h : 260.h,
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(appTheme.deepPurple400),
+          ),
+        ),
+      );
+    }
+
+    if (isDesktop) {
+      // Desktop view - use grid layout
+      return Container(
+        margin: EdgeInsets.symmetric(horizontal: 16.h),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: SizeUtils.getGridItemCount(),
+            childAspectRatio: 0.9,
+            crossAxisSpacing: 18.h,
+            mainAxisSpacing: 18.h,
+          ),
+          itemCount: laptopGamingProducts.length,
+          itemBuilder: (context, index) {
+            return ProductCarouselItem(
+              product: laptopGamingProducts[index],
+            );
+          },
+        ),
+      );
+    }
+
+    // Mobile view - use horizontal list
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: 230.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: laptopGamingProducts.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h, bottom: 2.h),
+            child: ProductCarouselItem(
+              product: laptopGamingProducts[index],
+            ),
+          );
+        },
+      ),
+    );
+  }
+  
 }

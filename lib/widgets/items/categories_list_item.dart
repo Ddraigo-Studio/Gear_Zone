@@ -49,49 +49,25 @@ class CategoriesListItem extends StatelessWidget {
                 ),
               ],
             ),
-            child: ClipOval(
-              child: imagePath.isNotEmpty && imagePath.startsWith('http')
-                  ? Image.network(
-                      imagePath,
+            child: imagePath.isEmpty
+                ? ClipOval(
+                    child: Container(
+                      color: Colors.white,
+                      child: Icon(
+                        Icons.category_outlined,
+                        size: Responsive.isDesktop(context) ? 36.h : 24.h,
+                        color: appTheme.deepPurple400,
+                      ),
+                    ),
+                  )
+                : ClipOval(
+                    child: CustomImageView(
+                      imagePath: imagePath,
                       fit: BoxFit.cover,
                       width: Responsive.isDesktop(context) ? 75.h : 50.h,
                       height: Responsive.isDesktop(context) ? 75.h : 50.h,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: SizedBox(
-                            width: 24.h,
-                            height: 24.h,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.h,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  appTheme.deepPurple400),
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons
-                            .category, // Use a default icon instead of the non-existent icon property
-                        size: Responsive.isDesktop(context)
-                            ? 36.h
-                            : 30.h, // Increased icon size
-                        color: appTheme.deepPurple400,
-                      ),
-                    )
-                  : Icon(
-                      Icons
-                          .category, // Use a default icon instead of the non-existent icon property
-                      size: Responsive.isDesktop(context)
-                          ? 36.h
-                          : 30.h, // Increased icon size
-                      color: appTheme.deepPurple400,
                     ),
-            ),
+                  ),
           ),
           SizedBox(height: 4.h), // Add a small fixed space
           Flexible(

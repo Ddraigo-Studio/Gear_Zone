@@ -189,7 +189,7 @@ class _ProductPrice extends StatelessWidget {
             children: [
               Flexible(
                 child: Text(
-                  discountPrice,
+                  originalPrice,
                   style: theme.textTheme.labelMedium!.copyWith(
                     decoration: TextDecoration.lineThrough,
                     fontSize: isDesktop ? 11.fSize : 10.fSize,
@@ -216,7 +216,7 @@ class _ProductPrice extends StatelessWidget {
             ],
           ),
           Text(
-            originalPrice,
+            discountPrice,
             style: theme.textTheme.labelLarge!.copyWith(
               fontSize: isDesktop ? 12.fSize : 11.fSize,
             ),

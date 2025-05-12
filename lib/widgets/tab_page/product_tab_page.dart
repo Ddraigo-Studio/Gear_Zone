@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/responsive.dart';
 import '../../theme/custom_text_style.dart';
 import '../../model/product.dart';
 
@@ -30,7 +31,7 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100.h,
+            width: 130.h,
             child: Text(
               "$label:",
               style: CustomTextStyles.bodyMediumBlack900.copyWith(
@@ -101,9 +102,11 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
       ),
     );
   }
-
   // Tab 1: Thông tin chung
   Widget _buildTabInfoSummary(BuildContext context) {
+    // Kiểm tra xem tab có nhiều thông tin không để quyết định có hiển thị nút thu gọn/mở rộng hay không
+    bool hasLongContent = widget.product.promotions.length > 3;
+    
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 16.h),
       child: Card(
@@ -111,72 +114,166 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.h),
         ),
-        child: Padding(
-          padding: EdgeInsets.all(16.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Thông tin chung
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Thông tin chung",
-                    style: CustomTextStyles.titleMediumGabaritoGray900Bold.copyWith(
-                      height: 1.60,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  _buildInfoRow("Nhà sản xuất", widget.product.brand),
-                  if (widget.product.seriNumber.isNotEmpty)
-                    _buildInfoRow("Series", widget.product.seriNumber),
-                  _buildInfoRow("Bảo hành", widget.product.warranty),
-                  _buildInfoRow(
-                    "Tình trạng", 
-                    widget.product.inStock ? "Còn hàng" : "Hết hàng",
-                    valueColor: widget.product.inStock ? Colors.green : Colors.red,
-                  ),
-                  if (widget.product.color.isNotEmpty)
-                    _buildInfoRow("Màu sắc", widget.product.color),
-                ],
-              ),
-              
-              SizedBox(height: 16.h),
-              
-              // Khuyến mãi
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Khuyến mãi",
-                    style: CustomTextStyles.titleMediumGabaritoGray900Bold,
-                  ),
-                  SizedBox(height: 8.h),
-                  if (widget.product.promotions.isNotEmpty)
-                    Text(
-                      maxLines: isExpandedSummary ? null : 3,
-                      widget.product.promotions.map((promo) => "• $promo").join("\n"),
-                      style: CustomTextStyles.bodySmallBalooBhaiGray900_1.copyWith(
-                        height: 1.60,
+        child: Column(
+          children: [
+            // Phần nội dung có thể ẩn hiện
+            Container(
+              padding: EdgeInsets.all(16.h),
+              constraints: isExpandedSummary 
+                ? null 
+                : BoxConstraints(maxHeight: 350.h), // Giới hạn chiều cao khi thu gọn
+              child: ClipRect(
+                child: SingleChildScrollView(
+                  // Khi không mở rộng, tắt cuộn vì chúng ta sẽ cắt bớt nội dung
+                  physics: isExpandedSummary ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(), 
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Thông tin chung
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Thông tin chung",
+                            style: CustomTextStyles.titleMediumGabaritoGray900Bold.copyWith(
+                              height: 1.60,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          _buildInfoRow("Nhà sản xuất", widget.product.brand, 
+                              valueColor: Colors.blue),
+                          if (widget.product.seriNumber.isNotEmpty)
+                          _buildInfoRow("Bảo hành", widget.product.warranty),
+                          // if (widget.product.color.isNotEmpty)
+                          //   _buildInfoRow("Màu sắc", widget.product.color),
+                        ],
                       ),
-                    )
-                  else
-                    Text(
-                      "Hiện tại sản phẩm chưa có chương trình khuyến mãi",
-                      style: CustomTextStyles.bodySmallBalooBhaiGray900_1.copyWith(
-                        height: 1.60,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey,
+                      SizedBox(height: 16.h),
+                    
+                      // Khuyến mãi
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header with pink background and gift icon
+                          Container(
+                            width: Responsive.isDesktop(context) ? 600.h : double.infinity,
+                            padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.h),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFFE4E8), // Light pink background
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(8.h),
+                                topRight: Radius.circular(8.h),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.card_giftcard,
+                                  color: Colors.red,
+                                  size: 20.h,
+                                ),
+                                SizedBox(width: 8.h),
+                                Text(
+                                  "Quà tặng khuyến mãi",
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.fSize,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          // Promotions container
+                          Container(
+                            width: Responsive.isDesktop(context) ? 600.h : double.infinity,
+                            padding: EdgeInsets.all(12.h),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey[200]!),
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(8.h),
+                                bottomRight: Radius.circular(8.h),
+                              ),
+                            ),
+                            child: widget.product.promotions.isNotEmpty
+                              ? ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: widget.product.promotions.length,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: EdgeInsets.all(8.h),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Numbered circle
+                                          Container(
+                                            padding: EdgeInsets.only(bottom: 4.h),
+                                            width: 20.h,
+                                            height: 20.h,
+                                            decoration: BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                "${index + 1}",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12.fSize,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 8.h),
+                                          // Promotion text
+                                          Expanded(
+                                            child: Text(
+                                              widget.product.promotions[index],
+                                              style: TextStyle(
+                                                height: 1.5,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                                  child: Text(
+                                    "Hiện tại sản phẩm chưa có chương trình khuyến mãi",
+                                    style: TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                          ),
+                        ],
                       ),
-                    ),
-                ],
+                    ],
+                  ),
+                ),
               ),
-              
-              // Nút mở rộng/thu gọn cho phần khuyến mãi nếu có nhiều khuyến mãi
-              if (widget.product.promotions.isNotEmpty && widget.product.promotions.length > 1)
-                Align(
-                  alignment: Alignment.center,
+            ),
+            
+            // Nút mở rộng/thu gọn
+            if (hasLongContent)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: Colors.grey[200]!),
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 8.h),
+                child: Center(
                   child: TextButton(
                     onPressed: () {
                       setState(() {
@@ -187,7 +284,7 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          isExpandedSummary ? "Thu gọn" : "Xem thêm khuyến mãi",
+                          isExpandedSummary ? "Thu gọn" : "Xem tất cả nội dung",
                           style: TextStyle(color: Theme.of(context).primaryColor),
                         ),
                         SizedBox(width: 4.h),
@@ -203,13 +300,12 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                     ),
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
-  }
-  // Tab 2: Cấu hình
+  }  // Tab 2: Cấu hình
   Widget _buildTabInfoConfig(BuildContext context) {
     // Danh sách đầy đủ các cặp thông số kỹ thuật từ product model
     // Nhóm các thông số theo danh mục để hiển thị có cấu trúc
@@ -275,6 +371,9 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
       nonEmptySpecs.add(MapEntry('Cổng giao tiếp', widget.product.ports.join(', ')));
     }
     
+    // Xác định xem có cần nút mở rộng/thu gọn không
+    bool hasLongContent = nonEmptySpecs.length > 8;
+    
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 16.h),
       child: Card(
@@ -282,110 +381,135 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.h),
         ),
-        child: Padding(
-          padding: EdgeInsets.all(16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Thông số kỹ thuật",
-                style: CustomTextStyles.titleMediumGabaritoGray900Bold,
-              ),
-              SizedBox(height: 12.h),
-              
-              if (nonEmptySpecs.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 30.h),
-                    child: Column(
-                      children: [
-                        Icon(Icons.info_outline, color: Colors.grey, size: 36.h),
-                        SizedBox(height: 8.h),
-                        Text(
-                          "Thông số kỹ thuật đang được cập nhật",
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )              else
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    border: Border.all(color: Colors.grey[200]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Table(
-                    border: TableBorder(
-                      horizontalInside: BorderSide(color: Colors.grey[200]!),
-                      verticalInside: BorderSide(color: Colors.grey[200]!),
-                    ),
-                    columnWidths: const {
-                      0: FlexColumnWidth(1),
-                      1: FlexColumnWidth(3),
-                    },
-                    children: nonEmptySpecs.map((spec) {                      // Xử lý đặc biệt nếu là cổng kết nối (ports)
-                      Widget valueWidget;
+        child: Column(
+          children: [
+            // Phần nội dung có thể ẩn hiện
+            Container(
+              padding: EdgeInsets.all(16.h),
+              constraints: isExpandedConfig 
+                ? null 
+                : BoxConstraints(maxHeight: 350.h), // Giới hạn chiều cao khi thu gọn
+              child: ClipRect(
+                child: SingleChildScrollView(
+                  // Khi không mở rộng, tắt cuộn vì chúng ta sẽ cắt bớt nội dung
+                  physics: isExpandedConfig ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(), 
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Thông số kỹ thuật",
+                        style: CustomTextStyles.titleMediumGabaritoGray900Bold,
+                      ),
+                      SizedBox(height: 12.h),
                       
-                      if (spec.key == 'Cổng giao tiếp') {
-                        // Hiển thị danh sách cổng kết nối với bullets
-                        List<String> portsList = spec.value.split(', ');
-                        valueWidget = Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: portsList.map((port) => Padding(
-                            padding: EdgeInsets.only(bottom: 4.h),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      if (nonEmptySpecs.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 30.h),
+                            child: Column(
                               children: [
-                                Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                Expanded(child: Text(port)),
+                                Icon(Icons.info_outline, color: Colors.grey, size: 36.h),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  "Thông số kỹ thuật đang được cập nhật",
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ],
                             ),
-                          )).toList(),
-                        );
-                      } else {
-                        valueWidget = Text(
-                          spec.value,
-                          style: TextStyle(height: 1.5),
-                        );
-                      }
-                      
-                      return TableRow(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey[200]!),
+                          ),
+                        )
+                      else
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            border: Border.all(color: Colors.grey[200]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Table(
+                            border: TableBorder(
+                              horizontalInside: BorderSide(color: Colors.grey[200]!),
+                              verticalInside: BorderSide(color: Colors.grey[200]!),
+                            ),
+                            columnWidths: const {
+                              0: FlexColumnWidth(1),
+                              1: FlexColumnWidth(3),
+                            },
+                            children: nonEmptySpecs.map((spec) {
+                              // Xử lý đặc biệt nếu là cổng kết nối (ports)
+                              Widget valueWidget;
+                              
+                              if (spec.key == 'Cổng giao tiếp') {
+                                // Hiển thị danh sách cổng kết nối với bullets
+                                List<String> portsList = spec.value.split(', ');
+                                valueWidget = Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: portsList.map((port) => Padding(
+                                    padding: EdgeInsets.only(bottom: 4.h),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        Expanded(child: Text(port)),
+                                      ],
+                                    ),
+                                  )).toList(),
+                                );
+                              } else {
+                                valueWidget = Text(
+                                  spec.value,
+                                  style: TextStyle(height: 1.5),
+                                );
+                              }
+                              
+                              return TableRow(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border(
+                                    bottom: BorderSide(color: Colors.grey[200]!),
+                                  ),
+                                ),
+                                children: [
+                                  Container(
+                                    color: Colors.grey[50],
+                                    padding: EdgeInsets.all(12.h),
+                                    child: Text(
+                                      spec.key,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue[700],
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(12.h),
+                                    child: valueWidget,
+                                  ),
+                                ],
+                              );
+                            }).toList(),
                           ),
                         ),
-                        children: [
-                          Container(
-                            color: Colors.grey[50],
-                            padding: EdgeInsets.all(12.h),
-                            child: Text(
-                              spec.key,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(12.h),
-                            child: valueWidget,
-                          ),
-                        ],
-                      );
-                    }).toList(),
+                    ],
                   ),
                 ),
-                
-              // Nút mở rộng/thu gọn cho cấu hình nếu có nhiều thông số
-              if (nonEmptySpecs.length > 8) // Chỉ hiển thị nếu có nhiều thông số
-                Align(
-                  alignment: Alignment.center,
+              ),
+            ),
+            
+            // Nút mở rộng/thu gọn
+            if (hasLongContent)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: Colors.grey[200]!),
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 8.h),
+                child: Center(
                   child: TextButton(
                     onPressed: () {
                       setState(() {
@@ -396,7 +520,7 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          isExpandedConfig ? "Thu gọn" : "Xem thêm thông số",
+                          isExpandedConfig ? "Thu gọn" : "Xem tất cả nội dung",
                           style: TextStyle(color: Theme.of(context).primaryColor),
                         ),
                         SizedBox(width: 4.h),
@@ -412,8 +536,8 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                     ),
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -460,12 +584,14 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
               else
                 Text(
                   widget.product.description,
-                  maxLines: isExpandedDescription ? null : 5,
-                  style: CustomTextStyles.bodyMediumBalooBhaijaanGray900,
+                  maxLines: isExpandedDescription ? null : 10,
+                  style: CustomTextStyles.bodyMediumBalooBhaijaanGray900.copyWith(
+                    color: Colors.grey.shade700,
+                  ),
                 ),
                   
               // Nút mở rộng/thu gọn nếu mô tả dài
-              if (widget.product.description.length > 100)
+              if (widget.product.description.length > 300)
                 Align(
                   alignment: Alignment.center, 
                   child: TextButton(

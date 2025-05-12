@@ -173,7 +173,7 @@ class _ProductPrice extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  discountPrice,
+                  originalPrice,
                   style: theme.textTheme.labelMedium!.copyWith(
                     decoration: TextDecoration.lineThrough,
                     fontSize:
@@ -207,7 +207,7 @@ class _ProductPrice extends StatelessWidget {
             ],
           ),
           Text(
-            originalPrice,
+            discountPrice,
             style: theme.textTheme.labelLarge?.copyWith(
               fontSize: isDesktop ? 12.fSize : 11.fSize, // Reduced font size
               fontWeight: FontWeight.bold,
