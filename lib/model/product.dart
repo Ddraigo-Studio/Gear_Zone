@@ -162,13 +162,13 @@ class ProductModel {
       "discount": discount,
       "promotions": promotions,
       "warranty": warranty,
-      "createdAt": createdAt?.toIso8601String(), // Chuyển DateTime sang chuỗi ISO để lưu trữ
+      "createdAt": createdAt?.toIso8601String(), 
     };
   }
 
   // Phương thức tính phần trăm giảm giá
   String getDiscountPercent() {
-    if (originalPrice > 0 && price < originalPrice) {
+    if (originalPrice > 0 && price < originalPrice ) {
       double discountValue = ((originalPrice - price) / originalPrice) * 100;
       return "${discountValue.round()}%";
     } else {

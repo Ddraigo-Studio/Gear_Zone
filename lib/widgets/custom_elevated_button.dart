@@ -40,15 +40,16 @@ Widget get buildElevatedButtonWidget => Container(
       decoration: decoration,
       child: ElevatedButton(
         style: buttonStyle,
-        onPressed: isDisabled ?? false ? null : onPressed ?? () {},
+        onPressed: isDisabled ?? false ? null : onPressed ?? () {},        
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.h),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center, // Changed to center for better text alignment
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.center, // Center text within row
                 children: [
                   leftIcon ?? const SizedBox.shrink(),
                   if (leftIcon != null) SizedBox(width: 8.h),
@@ -56,6 +57,7 @@ Widget get buildElevatedButtonWidget => Container(
                     text,
                     style:
                         buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
+                    textAlign: TextAlign.center, // Ensure text is centered
                   ),
                 ],
               ),

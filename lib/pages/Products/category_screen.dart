@@ -115,7 +115,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       ),
       centerTitle: true, // Nếu muốn tiêu đề căn giữa
       actions: [
-        CartIconButton(),
+        CartIconButton(
+          
+        ),
       ],
     );
   }

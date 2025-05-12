@@ -25,9 +25,9 @@ class CartIconButton extends StatelessWidget {
     
     // Calculate responsive icon size based on device type
     final responsiveIconSize = iconSize ?? 
-        (isDesktop ? 80.0.h : // Larger for desktop (increased from 50.0.h)
-         isTablet ? 48.0.h :   // Medium for tablet
-         45.0.h ); // Normal for mobile
+        (isDesktop ? 45.0.h : // Larger for desktop (increased from 50.0.h)
+         isTablet ? 45.0.h :   // Medium for tablet
+         43.0.h ); // Normal for mobile
     
     // Calculate responsive padding based on device type
     final responsivePadding = padding ?? 
@@ -68,7 +68,7 @@ class CartIconButton extends StatelessWidget {
             if (itemCount > 0)
               Positioned(
                 right: 2,
-                top: isDesktop ? -2 : 0 ,
+                top: isDesktop ? -2 : 0,
                 child: Container(
                   padding: EdgeInsets.all(isDesktop ? 6.0 : 4.0),
                   decoration: const BoxDecoration(
