@@ -597,7 +597,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: SizeUtils.getGridItemCount(),
-            childAspectRatio: 0.85,
+            childAspectRatio: 0.9,
             crossAxisSpacing: 18.h,
             mainAxisSpacing: 18.h,
           ),
@@ -613,7 +613,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       // For mobile view, keep the horizontal ListView
       return Container(
         margin: EdgeInsets.symmetric(horizontal: 16.h),
-        height: 260.h,
+        height: 230.h,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: bestSellingProducts.length,
@@ -654,7 +654,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: SizeUtils.getGridItemCount(),
-            childAspectRatio: 0.85,
+            childAspectRatio: 0.9,
             crossAxisSpacing: 18.h,
             mainAxisSpacing: 18.h,
           ),
@@ -671,7 +671,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     // Mobile view - use horizontal list
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
-      height: 260.h,
+      height: 230.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: laptopProducts.length,
@@ -714,7 +714,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: SizeUtils.getGridItemCount(),
-            childAspectRatio: 0.85,
+            childAspectRatio: 0.9,
             crossAxisSpacing: 18.h,
             mainAxisSpacing: 18.h,
           ),
@@ -730,7 +730,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       // For mobile view, keep the horizontal ListView
       return Container(
         margin: EdgeInsets.symmetric(horizontal: 16.h),
-        height: 260.h,
+        height: 230.h,
         child: newestProducts.isEmpty
             ? Center(
                 child: CircularProgressIndicator(
@@ -771,7 +771,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
-      height: isDesktop ? 290.h : 260.h,
+      height: isDesktop ? 290.h : 230.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: promotionProducts.length,

@@ -159,7 +159,7 @@ class _CategoryProductsGridState extends State<CategoryProductsGrid> {
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: isDesktop ? 5 : 2,
-        childAspectRatio: isDesktop ? 0.7 : 0.7,
+        childAspectRatio: isDesktop ? 0.9 : 0.75,
         crossAxisSpacing: 18.h,
         mainAxisSpacing: 18.h,
       ),

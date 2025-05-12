@@ -14,42 +14,27 @@ class ProductCarouselItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final bool isDesktop = Responsive.isDesktop(context);
+  Widget build(BuildContext context) {    final bool isDesktop = Responsive.isDesktop(context);
     final bool isTablet = Responsive.isTablet(context);
+    
+    // Lấy dữ liệu đã được xử lý từ model
+    String discountPercent = product.getDiscountPercent();
+    String formattedPrice = product.getFormattedPrice();
+    String formattedOriginalPrice = product.getFormattedOriginalPrice();
 
-    // Tính phần trăm giảm giá
-    String discountPercent = '';
-    if (product.originalPrice > 0 && product.price < product.originalPrice) {
-      double discount =
-          ((product.originalPrice - product.price) / product.originalPrice) *
-              100;
-      discountPercent = "${discount.round()}%";
-    } else {
-      discountPercent = "${product.discount}%";
-    }
 
-    // Format giá tiền
-    String formattedPrice = "${product.price.toStringAsFixed(0)}đ";
-    String formattedOriginalPrice =
-        "${product.originalPrice.toStringAsFixed(0)}đ";
-
-    // Adjust item width based on device type
-    // Desktop should be proportionally sized for larger screens
-    // Tablet gets medium sizing
-    // Mobile gets smallest size
-    final double itemWidth = 165.h; // Smallest width for mobile
+    final double itemWidth = 160.h; // Smallest width for mobile
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProductDetailScreen()),
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(product: product),
+          ),
         );
       },
       child: Container(
         width: itemWidth,
-        // Add a fixed height based on device type to prevent overflow
-        height: isDesktop ? 275.h : 250.h,
         decoration: AppDecoration.fillGray.copyWith(
           borderRadius: BorderRadiusStyle.roundedBorder16,
           boxShadow: [
@@ -62,11 +47,12 @@ class ProductCarouselItem extends StatelessWidget {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
               width: double.maxFinite,
-              padding: EdgeInsets.all(6.h),
+              padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 8.h),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -84,12 +70,10 @@ class ProductCarouselItem extends StatelessWidget {
                       // Add your custom logic here
                     },
                   ),
-                  SizedBox(
-                      height:
-                          isDesktop ? 10.h : 8.h), // Further reduced spacing
+                  SizedBox(height: 10.h), // Further reduced spacing                 
                   CustomImageView(
                     imagePath: product.imageUrl.isEmpty
-                        ? ImageConstant.imgImage1
+                        ? ImageConstant.imgLogo
                         : product.imageUrl,
                     height: Responsive.isDesktop(context)
                         ? 95.h // Reduced height
@@ -102,6 +86,7 @@ class ProductCarouselItem extends StatelessWidget {
                             ? 70.h // Reduced width
                             : 70.h, // Reduced width
                     fit: BoxFit.contain,
+                    placeHolder: ImageConstant.imgLogo, // Sử dụng icon mặc định thay vì image_not_found
                   ),
                   SizedBox(height: isDesktop ? 12.h : 10.h), // Reduced spacing
                   _ProductTitle(
@@ -176,7 +161,7 @@ class _ProductPrice extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 6.h),
+      margin: EdgeInsets.symmetric(horizontal: 8.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min, // Add this to minimize vertical space
@@ -192,7 +177,7 @@ class _ProductPrice extends StatelessWidget {
                   style: theme.textTheme.labelMedium!.copyWith(
                     decoration: TextDecoration.lineThrough,
                     fontSize:
-                        isDesktop ? 10.fSize : 9.fSize, // Reduced font size
+                        isDesktop ? 12.fSize : 9.fSize, // Reduced font size
                   ),
                 ),
               ),

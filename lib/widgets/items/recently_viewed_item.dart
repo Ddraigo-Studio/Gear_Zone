@@ -20,20 +20,10 @@ class WishListItem extends StatelessWidget {
     final bool isTablet = Responsive.isTablet(context);
 
     // Tính phần trăm giảm giá
-    String discountPercent = '';
-    if (product.originalPrice > 0 && product.price < product.originalPrice) {
-      double discount =
-          ((product.originalPrice - product.price) / product.originalPrice) *
-              100;
-      discountPercent = "${discount.round()}%";
-    } else {
-      discountPercent = "${product.discount}%";
-    }
-
-    // Format giá tiền
-    String formattedPrice = "${product.price.toStringAsFixed(0)}đ";
-    String formattedOriginalPrice =
-        "${product.originalPrice.toStringAsFixed(0)}đ";
+    // Lấy dữ liệu đã được xử lý từ model
+    String discountPercent = product.getDiscountPercent();
+    String formattedPrice = product.getFormattedPrice();
+    String formattedOriginalPrice = product.getFormattedOriginalPrice();
 
     // Adjust item width based on device type
     final double itemWidth = isDesktop
