@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/utils/color_utils.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_outlined_button.dart';
+import '../../controller/cart_controller.dart';
+import '../../model/cart_item.dart';
 
-class ProductVariantBottomsheet extends StatefulWidget {
-  final Function(String, int)? onAddToCart;
+class ProductVariantBottomsheet extends StatefulWidget {  final Function(String, int)? onAddToCart;
   final String? initialSelectedColor;
   final List<Map<String, dynamic>>? availableColors;
   final String? productName;
@@ -13,7 +15,7 @@ class ProductVariantBottomsheet extends StatefulWidget {
   final String? productPrice;
   final String? productOriginalPrice;
   final String? productStock;
-
+  final String productId;
   const ProductVariantBottomsheet({
     super.key,
     this.onAddToCart,
@@ -24,6 +26,7 @@ class ProductVariantBottomsheet extends StatefulWidget {
     this.productPrice,
     this.productOriginalPrice,
     this.productStock,
+    required this.productId,
   });
 
   @override
@@ -34,13 +37,10 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
   int quantity = 1;
   late String selectedColor;
   late List<Map<String, dynamic>> colorOptions;
-  
-  // Helper function to determine if we should use white checkmark on dark colors
+    // Helper function để xác định nên sử dụng dấu check màu trắng trên màu tối
   bool _shouldUseWhiteCheckmark(Color color) {
-    // Calculate brightness using the formula: (0.299*R + 0.587*G + 0.114*B)
-    // If below 128, it's a dark color and should use white checkmark
-    final double brightness = (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue);
-    return brightness < 128;
+    // Sử dụng phương thức tiện ích từ ColorUtils
+    return ColorUtils.shouldUseWhiteText(color);
   }
   
   @override
@@ -85,7 +85,7 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
                   _buildCartItem(context),
                   SizedBox(height: 16.h), // Added spacing          
                   // Chỉ hiển thị phần màu sắc nếu có màu sắc thực sự để chọn (không phải màu mặc định)
-                  if (colorOptions.isNotEmpty && colorOptions.length > 0 && colorOptions[0]["name"] != "Default") ...[
+                  if (colorOptions.isNotEmpty && colorOptions[0]["name"] != "Default") ...[
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -351,18 +351,53 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [          
-          Expanded(
-            child: CustomOutlinedButton(
+          Expanded(            child: CustomOutlinedButton(
               alignment: Alignment.center,
               height: isDesktop ? 50.h : 52.h,
               text: "Thêm vào giỏ",
               buttonStyle: CustomButtonStyles.outlinePrimaryTL26,
               buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanDeeppurple40018,
               onPressed: () {
-                // Call the onAddToCart callback with selected values
+                // Lấy instance của CartController
+                final cartController = CartController();
+                
+                // Tạo CartItem mới từ thông tin sản phẩm
+                final cartItem = CartItem(
+                  productId: widget.productId,
+                  imagePath: widget.productImage ?? '',
+                  productName: widget.productName ?? 'Sản phẩm không tên',
+                  color: selectedColor,
+                  quantity: quantity,
+                  originalPrice: double.tryParse(widget.productOriginalPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                  discountedPrice: double.tryParse(widget.productPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                );
+                
+                // Thêm vào giỏ hàng
+                cartController.addItem(cartItem);
+                  // Thông báo cho người dùng
+                String message = 'Đã thêm $quantity sản phẩm vào giỏ hàng';
+                  
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(message),
+                    duration: Duration(seconds: 2),
+                    action: SnackBarAction(
+                      label: 'XEM GIỎ HÀNG',                     
+                      onPressed: () {
+                        Navigator.pop(context); // Đóng bottom sheet
+                        Navigator.pushNamed(context, AppRoutes.myCartScreen);
+                      },
+                    ),
+                  ),
+                );
+                
+                // Vẫn gọi callback nếu có
                 if (widget.onAddToCart != null) {
                   widget.onAddToCart!(selectedColor, quantity);
                 }
+                
+                // Đóng bottom sheet sau khi thêm vào giỏ
+                Navigator.pop(context);
               },
             ),
           ),
@@ -372,22 +407,39 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
               height: isDesktop ? 50.h : 52.h,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: appTheme.deepPurpleA200,                  shape: RoundedRectangleBorder(
+                  backgroundColor: appTheme.deepPurpleA200,                  
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(26.h),
                   ),
                   padding: EdgeInsets.zero,
-                ),
-                onPressed: () {
-                  // Call the onAddToCart callback with selected values and then navigate to checkout
+                ),                onPressed: () {
+                  // Lấy instance của CartController
+                  final cartController = CartController();
+                  
+                  // Tạo CartItem mới từ thông tin sản phẩm
+                  final cartItem = CartItem(
+                    productId: widget.productId,
+                    imagePath: widget.productImage ?? '',
+                    productName: widget.productName ?? 'Sản phẩm không tên',
+                    color: selectedColor,
+                    quantity: quantity,
+                    originalPrice: double.tryParse(widget.productOriginalPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                    discountedPrice: double.tryParse(widget.productPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                  );
+                  
+                  // Thêm vào giỏ hàng
+                  cartController.addItem(cartItem);
+                  
+                  // Gọi callback nếu có
                   if (widget.onAddToCart != null) {
                     widget.onAddToCart!(selectedColor, quantity);
-                    
-                    // Close the bottom sheet
-                    Navigator.pop(context);
-                    
-                    // Navigate to checkout screen
-                    Navigator.pushNamed(context, AppRoutes.checkoutScreen);
                   }
+                  
+                  // Đóng bottom sheet
+                  Navigator.pop(context);
+                  
+                  // Chuyển đến màn hình thanh toán
+                  Navigator.pushNamed(context, AppRoutes.checkoutScreen);
                 },
                 child: Center(
                   child: Text(

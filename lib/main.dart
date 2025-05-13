@@ -25,15 +25,23 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
+      providers: [        ChangeNotifierProvider(
           create: (context) {
-            // Initialize CartController and populate with sample items for demo
+            // Initialize CartController
             final cartController = CartController();
             
-            // Add sample items to cart for demonstration
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              cartController.addSampleItems();
+            // Load real cart data instead of sample items
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              // Tải giỏ hàng local cho trường hợp khách vãng lai
+              // Nếu sau này user đăng nhập, sẽ tự động merge với dữ liệu Firestore
+              await cartController.loadCartFromLocalStorage();
+              
+              // Nếu cần kiểm tra user đã đăng nhập thì có thể thêm logic ở đây
+              // Ví dụ:
+              // final auth = FirebaseAuth.instance;
+              // if (auth.currentUser != null) {
+              //   await cartController.loadCartFromFirestore(auth.currentUser!.uid);
+              // }
             });
             
             return cartController;

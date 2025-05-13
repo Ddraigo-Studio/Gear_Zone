@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gear_zone/model/product.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/utils/color_utils.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/auto_image_slider.dart';
@@ -49,11 +50,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } else if (widget.product.color.isNotEmpty) {
       // If only one color is available, add it to the list
       colorsList.add(widget.product.color.trim());
-    }
-
-    // Convert string color names to color options with Color objects
+    }    // Convert string color names to color options with Color objects
     colorOptions = colorsList.map((colorName) {
-      return {"name": colorName, "color": _getColorFromName(colorName)};
+      return {"name": colorName, "color": ColorUtils.getColorFromName(colorName)};
     }).toList(); // Make sure the selected color is in the available colors
     if (colorsList.isNotEmpty) {
       if (!colorsList.contains(selectedColor)) {
@@ -66,167 +65,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  // Helper method to convert color names to Color objects
-  Color _getColorFromName(String colorName) {
-    // Standardize the color name by removing diacritical marks and converting to lowercase
-    String normalizedName = _normalizeColorName(colorName.toLowerCase());
-
-    switch (normalizedName) {
-      case "do":
-      case "red":
-        return Colors.red;
-      case "xanh duong":
-      case "xanh":
-      case "blue":
-        return Colors.blue;
-      case "xanh la":
-      case "green":
-        return Colors.green;
-      case "den":
-      case "black":
-        return Colors.black;
-      case "trang":
-      case "white":
-        return Colors.white;
-      case "vang":
-      case "yellow":
-        return Colors.yellow;
-      case "gold":
-      case "vang kim":
-        return const Color(0xFFFFD700); // Gold color
-      case "tim":
-      case "purple":
-        return Colors.purple;
-      case "hong":
-      case "pink":
-        return Colors.pink;
-      case "cam":
-      case "orange":
-        return Colors.orange;
-      case "xam":
-      case "gray":
-      case "grey":
-        return Colors.grey;
-      case "nau":
-      case "brown":
-        return Colors.brown;
-      case "xanh den":
-      case "navy":
-      case "navy blue":
-        return const Color.fromARGB(255, 29, 46, 107);
-      case "bac":
-      case "silver":
-        return const Color(0xFFC0C0C0); // Silver color
-      case "aqua":
-      case "cyan":
-        return Colors.cyan;
-      case "mint":
-      case "mint green":
-        return const Color(0xFF98FB98); // Mint green
-      case "rose gold":
-      case "hong vang":
-        return const Color(0xFFB76E79); // Rose gold color
-      case "space gray":
-      case "space grey":
-      case "xam vu tru":
-        return const Color(0xFF343d46); // Space gray
-      default:
-        // For unknown colors, try to use a neutral color
-        return Colors.blueGrey;
-    }
-  }
-
-  // Helper method to normalize Vietnamese color names
-  String _normalizeColorName(String colorName) {
-    // Remove diacritical marks from Vietnamese characters
-    final Map<String, String> diacriticsMap = {
-      'á': 'a',
-      'à': 'a',
-      'ả': 'a',
-      'ã': 'a',
-      'ạ': 'a',
-      'ă': 'a',
-      'ắ': 'a',
-      'ằ': 'a',
-      'ẳ': 'a',
-      'ẵ': 'a',
-      'ặ': 'a',
-      'â': 'a',
-      'ấ': 'a',
-      'ầ': 'a',
-      'ẩ': 'a',
-      'ẫ': 'a',
-      'ậ': 'a',
-      'đ': 'd',
-      'é': 'e',
-      'è': 'e',
-      'ẻ': 'e',
-      'ẽ': 'e',
-      'ẹ': 'e',
-      'ê': 'e',
-      'ế': 'e',
-      'ề': 'e',
-      'ể': 'e',
-      'ễ': 'e',
-      'ệ': 'e',
-      'í': 'i',
-      'ì': 'i',
-      'ỉ': 'i',
-      'ĩ': 'i',
-      'ị': 'i',
-      'ó': 'o',
-      'ò': 'o',
-      'ỏ': 'o',
-      'õ': 'o',
-      'ọ': 'o',
-      'ô': 'o',
-      'ố': 'o',
-      'ồ': 'o',
-      'ổ': 'o',
-      'ỗ': 'o',
-      'ộ': 'o',
-      'ơ': 'o',
-      'ớ': 'o',
-      'ờ': 'o',
-      'ở': 'o',
-      'ỡ': 'o',
-      'ợ': 'o',
-      'ú': 'u',
-      'ù': 'u',
-      'ủ': 'u',
-      'ũ': 'u',
-      'ụ': 'u',
-      'ư': 'u',
-      'ứ': 'u',
-      'ừ': 'u',
-      'ử': 'u',
-      'ữ': 'u',
-      'ự': 'u',
-      'ý': 'y',
-      'ỳ': 'y',
-      'ỷ': 'y',
-      'ỹ': 'y',
-      'ỵ': 'y',
-    };
-
-    String normalized = colorName;
-    diacriticsMap.forEach((from, to) {
-      normalized = normalized.replaceAll(from, to);
-    });
-
-    return normalized;
-  }
-
-  // Helper method to determine if a color is dark enough to use white checkmark
-  bool _shouldUseWhiteCheckmark(Color color) {
-    // Calculate the brightness/luminance of the color (simplified)
-    // The formula is based on human perception of brightness
-    double luminance =
-        (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) / 255;
-
-    // Return true if the color is dark (luminance < 0.5)
-    return luminance < 0.5;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -438,10 +276,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ],
                             ),
                             child: isSelected
-                                ? Center(
-                                    child: Icon(
+                                ? Center(                                    child: Icon(
                                       Icons.check,
-                                      color: _shouldUseWhiteCheckmark(
+                                      color: ColorUtils.shouldUseWhiteText(
                                               colorOption["color"])
                                           ? Colors.white
                                           : Colors.black,
@@ -572,7 +409,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         onPressed: () {
           showModalBottomSheet(
             context: context,
-            builder: (context) {
+            builder: (context) {              
               return ProductVariantBottomsheet(
                 initialSelectedColor: selectedColor,
                 availableColors: colorOptions,
@@ -583,6 +420,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ? widget.product.getFormattedOriginalPrice()
                     : "",
                 productStock: widget.product.quantity,
+                productId: widget.product.id,
                 onAddToCart: (color, quantity) {
                   // Handle add to cart action
                   ScaffoldMessenger.of(context).showSnackBar(
