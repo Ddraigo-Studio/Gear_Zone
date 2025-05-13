@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../pages/Products/product_detail.dart';
+import '../bottom_sheet/product_variant_bottomsheet.dart';
 import '../custom_icon_button.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/utils/color_utils.dart';
 import '../../model/product.dart';
 
 class ProductCarouselItem extends StatelessWidget {
@@ -14,14 +16,14 @@ class ProductCarouselItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {    final bool isDesktop = Responsive.isDesktop(context);
+  Widget build(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
     final bool isTablet = Responsive.isTablet(context);
-    
+
     // Lấy dữ liệu đã được xử lý từ model
     String discountPercent = product.getDiscountPercent();
     String formattedPrice = product.getFormattedPrice();
     String formattedOriginalPrice = product.getFormattedOriginalPrice();
-
 
     final double itemWidth = 160.h; // Smallest width for mobile
     return InkWell(
@@ -70,7 +72,7 @@ class ProductCarouselItem extends StatelessWidget {
                       // Add your custom logic here
                     },
                   ),
-                  SizedBox(height: 10.h), // Further reduced spacing                 
+                  SizedBox(height: 10.h), // Further reduced spacing
                   CustomImageView(
                     imagePath: product.imageUrl.isEmpty
                         ? ImageConstant.imgLogo
@@ -86,7 +88,8 @@ class ProductCarouselItem extends StatelessWidget {
                             ? 70.h // Reduced width
                             : 70.h, // Reduced width
                     fit: BoxFit.contain,
-                    placeHolder: ImageConstant.imgLogo, // Sử dụng icon mặc định thay vì image_not_found
+                    placeHolder: ImageConstant
+                        .imgLogo, // Sử dụng icon mặc định thay vì image_not_found
                   ),
                   SizedBox(height: isDesktop ? 12.h : 10.h), // Reduced spacing
                   _ProductTitle(
@@ -106,7 +109,10 @@ class ProductCarouselItem extends StatelessWidget {
                       _ProductRating(
                           rating: "4.5",
                           isDesktop: isDesktop), // Hardcoded rating for now
-                      _AddToCartButton(isDesktop: isDesktop),
+                      _AddToCartButton(
+                        isDesktop: isDesktop,
+                        product: product,
+                      ),
                     ],
                   ) //  nút thêm vào giỏ hàng
                 ],
@@ -253,8 +259,9 @@ class _ProductRating extends StatelessWidget {
 // Widget cho nút "Thêm vào giỏ hàng"
 class _AddToCartButton extends StatelessWidget {
   final bool isDesktop;
+  final ProductModel product;
 
-  const _AddToCartButton({this.isDesktop = false});
+  const _AddToCartButton({this.isDesktop = false, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -267,7 +274,49 @@ class _AddToCartButton extends StatelessWidget {
         imagePath: ImageConstant.imgIconsaxBrokenBag2Gray100,
       ),
       onTap: () {
-        // Add your custom logic here
+        // Tạo danh sách các màu từ thông tin sản phẩm
+        List<Map<String, dynamic>> colorOptions = [];
+        // Nếu không có màu được chỉ định, để colorOptions trống
+        if (!product.color.isEmpty) {
+          // Sử dụng ColorUtils để chuyển đổi tên màu sang đối tượng Color
+          if (product.color is List<String>) {
+            for (String colorName in product.color as List<String>) {
+              colorOptions.add({
+                "name": colorName,
+                "color": ColorUtils.getColorFromName(colorName),
+              });
+            }
+          } else {
+            // Assume product.color is a single String
+            colorOptions.add({
+              "name": product.color,
+              "color": ColorUtils.getColorFromName(product.color),
+            });
+          }
+        }
+
+        String selectedColor =
+            colorOptions.isNotEmpty ? colorOptions[0]["name"] : "Default";
+
+        showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return ProductVariantBottomsheet(
+                initialSelectedColor: selectedColor,
+                availableColors: colorOptions,
+                productName: product.name,
+                productImage: product.imageUrl,
+                productPrice: product.getFormattedPrice(),
+                productOriginalPrice: product.originalPrice > 0
+                    ? product.getFormattedOriginalPrice()
+                    : "",
+                productStock: product.quantity,
+                productId: product.id,
+                onAddToCart: (color, quantity) {
+                  
+                },
+              );
+            });
       },
     );
   }

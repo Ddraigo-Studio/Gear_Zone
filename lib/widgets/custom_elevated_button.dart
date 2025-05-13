@@ -44,23 +44,28 @@ Widget get buildElevatedButtonWidget => Container(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.h),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Changed to center for better text alignment
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Changed to spaceBetween for start and end alignment
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Center text within row
-                children: [
-                  leftIcon ?? const SizedBox.shrink(),
-                  if (leftIcon != null) SizedBox(width: 8.h),
-                  Text(
-                    text,
-                    style:
-                        buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
-                    textAlign: TextAlign.center, // Ensure text is centered
-                  ),
-                ],
+              // Left side with icon and text
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start, // Align to start (left)
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    leftIcon ?? const SizedBox.shrink(),
+                    if (leftIcon != null) SizedBox(width: 8.h),
+                    Text(
+                      text,
+                      style:
+                          buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
+                      textAlign: TextAlign.start, // Align text to start
+                    ),
+                  ],
+                ),
               ),
+              // Right side with optional icon
               rightIcon ?? const SizedBox.shrink()
             ],
           ),

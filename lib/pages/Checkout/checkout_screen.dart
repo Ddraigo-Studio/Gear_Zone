@@ -4,6 +4,7 @@ import '../../controller/checkout_controller.dart';
 import '../../controller/cart_controller.dart';
 import '../../core/app_export.dart';
 import '../../model/cart.dart';
+import '../../model/cart_item.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
@@ -27,7 +28,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   late CheckoutController _checkoutController;
   bool _isProcessing = false;
   bool _isVoucherApplied = true; // Để hiển thị ví dụ voucher đã được áp dụng
-
   @override
   void initState() {
     super.initState();
@@ -358,8 +358,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           top: Radius.circular(16.h),
                         ),
                       ),
-                      builder: (BuildContext context) {
-                        return AddVoucherBottomsheet();
+                      builder: (BuildContext context) {                        return AddVoucherBottomsheet();
                       },
                     );
                   },
@@ -463,7 +462,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
     );
   }
-
   Widget _buildPlaceOrderButton(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: 16.h),
@@ -494,10 +492,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   setState(() {
                     _isProcessing = true;
                   });
+                  
+                  // Lấy CartController để xóa các sản phẩm đã được thanh toán
+                  final cartController = CartController();
 
                   final success = await _checkoutController.completeCheckout();
 
                   if (success) {
+                    // Xóa các mục đã chọn khỏi giỏ hàng
+                    await cartController.removeSelectedItems();
+                    
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Đặt hàng thành công!'),

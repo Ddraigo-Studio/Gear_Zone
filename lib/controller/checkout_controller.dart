@@ -1,5 +1,6 @@
+// filepath: d:\HOCTAP\CrossplatformMobileApp\DOANCK\Project\Gear_Zone\lib\controller\checkout_controller.dart
 import 'package:flutter/foundation.dart';
-import '../model/cart.dart';
+import '../model/cart_item.dart';
 
 class CheckoutController extends ChangeNotifier {
   // Singleton pattern

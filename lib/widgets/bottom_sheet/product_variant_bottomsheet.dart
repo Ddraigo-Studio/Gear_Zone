@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/utils/color_utils.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
+import '../../controller/cart_controller.dart';
+import '../../model/cart_item.dart';
 
-class ProductVariantBottomsheet extends StatefulWidget {
-  final Function(String, int)? onAddToCart;
+class ProductVariantBottomsheet extends StatefulWidget {  final Function(String, int)? onAddToCart;
   final String? initialSelectedColor;
   final List<Map<String, dynamic>>? availableColors;
   final String? productName;
@@ -14,9 +15,9 @@ class ProductVariantBottomsheet extends StatefulWidget {
   final String? productPrice;
   final String? productOriginalPrice;
   final String? productStock;
-
+  final String productId;
   const ProductVariantBottomsheet({
-    Key? key,
+    super.key,
     this.onAddToCart,
     this.initialSelectedColor,
     this.availableColors,
@@ -25,7 +26,8 @@ class ProductVariantBottomsheet extends StatefulWidget {
     this.productPrice,
     this.productOriginalPrice,
     this.productStock,
-  }) : super(key: key);
+    required this.productId,
+  });
 
   @override
   State<ProductVariantBottomsheet> createState() => _ProductVariantBottomsheetState();
@@ -35,6 +37,12 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
   int quantity = 1;
   late String selectedColor;
   late List<Map<String, dynamic>> colorOptions;
+    // Helper function để xác định nên sử dụng dấu check màu trắng trên màu tối
+  bool _shouldUseWhiteCheckmark(Color color) {
+    // Sử dụng phương thức tiện ích từ ColorUtils
+    return ColorUtils.shouldUseWhiteText(color);
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -77,7 +85,7 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
                   _buildCartItem(context),
                   SizedBox(height: 16.h), // Added spacing          
                   // Chỉ hiển thị phần màu sắc nếu có màu sắc thực sự để chọn (không phải màu mặc định)
-                  if (colorOptions.isNotEmpty && colorOptions.length > 0 && colorOptions[0]["name"] != "Default") ...[
+                  if (colorOptions.isNotEmpty && colorOptions[0]["name"] != "Default") ...[
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -213,9 +221,7 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
     return Tooltip(
       message: colorName,
       preferBelow: false,
-      verticalOffset: 16,
-      padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.h),
-      textStyle: TextStyle(fontSize: 12.fSize, color: Colors.white),
+      verticalOffset: 20,
       child: InkWell(
         borderRadius: BorderRadius.circular(14.h),
         onTap: () {
@@ -229,16 +235,28 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(14.h),
-            border: isSelected ? Border.all(color: Colors.black, width: 2) : null,
+            border: Border.all(
+              color: isSelected ? Colors.black : Colors.transparent,
+              width: isSelected ? 2 : 0,
+            ),
             boxShadow: [
               BoxShadow(
-                color: appTheme.black900.withValues(alpha: 0.25),
+                color: appTheme.black900.withOpacity(0.25),
                 spreadRadius: 1.h,
                 blurRadius: 1.h,
                 offset: Offset(1, 1),
               ),
             ],
           ),
+          child: isSelected
+            ? Center(
+                child: Icon(
+                  Icons.check,
+                  color: _shouldUseWhiteCheckmark(color) ? Colors.white : Colors.black,
+                  size: 18.h,
+                ),
+              )
+            : null,
         ),
       ),
     );
@@ -325,48 +343,111 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
       ],
     );
   }
-
   Widget _buildActionButtons(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+    
     return SizedBox(
       width: double.infinity,
       child: Row(
-        spacing: 30.h,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [          
-          Expanded(
-            child: CustomOutlinedButton(
+          Expanded(            child: CustomOutlinedButton(
               alignment: Alignment.center,
-              height: Responsive.isDesktop(context) ? 48.h : 40.h, // Make consistent with "Mua ngay" button
+              height: isDesktop ? 50.h : 52.h,
               text: "Thêm vào giỏ",
               buttonStyle: CustomButtonStyles.outlinePrimaryTL26,
               buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanDeeppurple40018,
               onPressed: () {
-                // Call the onAddToCart callback with selected values
+                // Lấy instance của CartController
+                final cartController = CartController();
+                
+                // Tạo CartItem mới từ thông tin sản phẩm
+                final cartItem = CartItem(
+                  productId: widget.productId,
+                  imagePath: widget.productImage ?? '',
+                  productName: widget.productName ?? 'Sản phẩm không tên',
+                  color: selectedColor,
+                  quantity: quantity,
+                  originalPrice: double.tryParse(widget.productOriginalPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                  discountedPrice: double.tryParse(widget.productPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                );
+                
+                // Thêm vào giỏ hàng
+                cartController.addItem(cartItem);
+                  // Thông báo cho người dùng
+                String message = 'Đã thêm $quantity sản phẩm vào giỏ hàng';
+                  
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(message),
+                    duration: Duration(seconds: 2),
+                    action: SnackBarAction(
+                      label: 'XEM GIỎ HÀNG',                     
+                      onPressed: () {
+                        Navigator.pop(context); // Đóng bottom sheet
+                        Navigator.pushNamed(context, AppRoutes.myCartScreen);
+                      },
+                    ),
+                  ),
+                );
+                
+                // Vẫn gọi callback nếu có
                 if (widget.onAddToCart != null) {
                   widget.onAddToCart!(selectedColor, quantity);
                 }
+                
+                // Đóng bottom sheet sau khi thêm vào giỏ
+                Navigator.pop(context);
               },
             ),
           ),
           SizedBox(width: 10.h), // Add spacing between buttons
-          Expanded(            child: CustomElevatedButton(
-              alignment: Alignment.center,
-              height: Responsive.isDesktop(context) ? 48.h : 40.h,
-              text: "Mua ngay",
-              buttonStyle: CustomButtonStyles.outlineBlackTL263,
-              buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700,
-              onPressed: () {
-                // Call the onAddToCart callback with selected values and then navigate to checkout
-                if (widget.onAddToCart != null) {
-                  widget.onAddToCart!(selectedColor, quantity);
+          Expanded(
+            child: Container(
+              height: isDesktop ? 50.h : 52.h,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: appTheme.deepPurpleA200,                  
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26.h),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),                onPressed: () {
+                  // Lấy instance của CartController
+                  final cartController = CartController();
                   
-                  // Close the bottom sheet
+                  // Tạo CartItem mới từ thông tin sản phẩm
+                  final cartItem = CartItem(
+                    productId: widget.productId,
+                    imagePath: widget.productImage ?? '',
+                    productName: widget.productName ?? 'Sản phẩm không tên',
+                    color: selectedColor,
+                    quantity: quantity,
+                    originalPrice: double.tryParse(widget.productOriginalPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                    discountedPrice: double.tryParse(widget.productPrice?.replaceAll('.', '').replaceAll('đ', '').replaceAll(',', '') ?? '0') ?? 0,
+                  );
+                  
+                  // Thêm vào giỏ hàng
+                  cartController.addItem(cartItem);
+                  
+                  // Gọi callback nếu có
+                  if (widget.onAddToCart != null) {
+                    widget.onAddToCart!(selectedColor, quantity);
+                  }
+                  
+                  // Đóng bottom sheet
                   Navigator.pop(context);
                   
-                  // Navigate to checkout screen
+                  // Chuyển đến màn hình thanh toán
                   Navigator.pushNamed(context, AppRoutes.checkoutScreen);
-                }
-              },
+                },
+                child: Center(
+                  child: Text(
+                    "Mua ngay",
+                    style: CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
