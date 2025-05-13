@@ -3,6 +3,7 @@ import '../../../core/app_export.dart';
 import '../../../widgets/custom_icon_button.dart';
 import '../../core/utils/responsive.dart';
 import '../../model/product.dart';
+import '../../pages/Products/product_detail.dart';
 
 class WishListItem extends StatelessWidget {
   final int index;
@@ -19,7 +20,6 @@ class WishListItem extends StatelessWidget {
     final bool isDesktop = Responsive.isDesktop(context);
     final bool isTablet = Responsive.isTablet(context);
 
-    // Tính phần trăm giảm giá
     // Lấy dữ liệu đã được xử lý từ model
     String discountPercent = product.getDiscountPercent();
     String formattedPrice = product.getFormattedPrice();
@@ -53,180 +53,143 @@ class WishListItem extends StatelessWidget {
               ),
             ],
           );
+    
     return InkWell(
       onTap: () {
-        print('Tapped on ${product.name}');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(product: product),
+          ),
+        );
       },
       child: Container(
         width: itemWidth,
-        height: isDesktop
-            ? 240.h
-            : 220.h, // Thêm chiều cao cố định để tránh overflow
+        height: isDesktop ? 240.h : 220.h,
         decoration: bgDecoration,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.all(isDesktop ? 8.h : 6.h),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CustomIconButton(
-                    height: isDesktop ? 34.h : 30.h,
-                    width: isDesktop ? 34.h : 30.h,
-                    padding: EdgeInsets.all(6.h),
-                    decoration: IconButtonStyleHelper.none,
-                    alignment: Alignment.centerRight,
-                    child: CustomImageView(
-                      imagePath: ImageConstant.imgHeartIconlyPro,
-                    ),
-                    onTap: () {
-                      // Add your custom logic here
-                    },
-                  ),
-                  SizedBox(height: isDesktop ? 10.h : 8.h), // Reduced space
-                  CustomImageView(
-                    imagePath: product.imageUrl.isEmpty
-                        ? ImageConstant.imgImage1
-                        : product.imageUrl,
-                    height: isDesktop
-                        ? 90.h
-                        : isTablet
-                            ? 85.h
-                            : 80.h,
-                    width: isDesktop
-                        ? 90.h
-                        : isTablet
-                            ? 85.h
-                            : 80.h,
-                    fit: BoxFit.contain,
-                  ),
-                  SizedBox(height: isDesktop ? 10.h : 8.h), // Reduced space
-                  _ProductTitle(title: product.name, isDesktop: isDesktop),
-                  SizedBox(height: 3.h), // Reduced spacing
-                  _ProductPrice(
-                    originalPrice: formattedOriginalPrice,
-                    discountPrice: formattedPrice,
-                    discountPercent: discountPercent,
-                    isDesktop: isDesktop,
-                  ),
-                  SizedBox(height: 3.h), // Reduced spacing
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _ProductRating(
-                          rating: "4.5",
-                          isDesktop: isDesktop), // Hardcoded rating for now
-                      _AddToCartButton(isDesktop: isDesktop),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Widget cho tên sản phẩm
-class _ProductTitle extends StatelessWidget {
-  final String title;
-  final bool isDesktop;
-
-  const _ProductTitle({required this.title, this.isDesktop = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: EdgeInsets.only(left: 6.h),
-        child: Text(
-          title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall!.copyWith(
-            fontSize: isDesktop ? 12.fSize : 11.fSize,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Widget cho giá sản phẩm
-class _ProductPrice extends StatelessWidget {
-  final String originalPrice;
-  final String discountPrice;
-  final String discountPercent;
-  final bool isDesktop;
-
-  const _ProductPrice({
-    required this.originalPrice,
-    required this.discountPrice,
-    required this.discountPercent,
-    this.isDesktop = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 6.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+        child: Padding(
+          padding: EdgeInsets.all(isDesktop ? 8.h : 6.h),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
+              // Heart button aligned to the right
+              Align(
+                alignment: Alignment.topRight,
+                child: CustomIconButton(
+                  height: isDesktop ? 34.h : 30.h,
+                  width: isDesktop ? 34.h : 30.h,
+                  padding: EdgeInsets.all(6.h),
+                  decoration: IconButtonStyleHelper.none,
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgHeartIconlyPro,
+                  ),
+                  onTap: () {
+                    // Wishlist logic
+                  },
+                ),
+              ),
+              
+              // Product image centered
+              Align(
+                alignment: Alignment.center,
+                child: CustomImageView(
+                  imagePath: product.imageUrl.isEmpty
+                      ? ImageConstant.imgImage1
+                      : product.imageUrl,
+                  height: isDesktop ? 80.h : 70.h,
+                  width: isDesktop ? 80.h : 70.h,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              
+              // Spacer to push remaining content to the bottom
+              SizedBox(height: 8.h),
+              
+              // Fixed height container for product title (2 lines max)
+              Container(
+                height: isDesktop ? 36.h : 32.h,
+                alignment: Alignment.topLeft,
                 child: Text(
-                  originalPrice,
-                  style: theme.textTheme.labelMedium!.copyWith(
-                    decoration: TextDecoration.lineThrough,
-                    fontSize: isDesktop ? 11.fSize : 10.fSize,
+                  product.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall!.copyWith(
+                    fontSize: isDesktop ? 12.fSize : 11.fSize,
+                  ),
+                ),
+              ),
+              
+              // Price section
+              Container(
+                margin: EdgeInsets.only(top: 2.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        formattedOriginalPrice,
+                        style: theme.textTheme.labelMedium!.copyWith(
+                          decoration: TextDecoration.lineThrough,
+                          fontSize: isDesktop ? 11.fSize : 10.fSize,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 5.h,
+                        vertical: 2.h,
+                      ),
+                      decoration: AppDecoration.outlineRed.copyWith(
+                        borderRadius: BorderRadiusStyle.roundedBorder8,
+                      ),
+                      child: Text(
+                        discountPercent.toUpperCase(),
+                        textAlign: TextAlign.left,
+                        style: CustomTextStyles.labelMediumInterRed500.copyWith(
+                          fontSize: isDesktop ? 10.fSize : 9.fSize,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Discount price
+              Container(
+                margin: EdgeInsets.only(top: 2.h),
+                child: Text(
+                  formattedPrice,
+                  style: theme.textTheme.labelLarge!.copyWith(
+                    fontSize: isDesktop ? 12.fSize : 11.fSize,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 5.h,
-                  vertical: 2.h,
-                ),
-                decoration: AppDecoration.outlineRed.copyWith(
-                  borderRadius: BorderRadiusStyle.roundedBorder8,
-                ),
-                child: Text(
-                  discountPercent.toUpperCase(),
-                  textAlign: TextAlign.left,
-                  style: CustomTextStyles.labelMediumInterRed500.copyWith(
-                    fontSize: isDesktop ? 10.fSize : 9.fSize,
+              
+              // Bottom row with rating and cart button
+              Spacer(), // Push to bottom of available space
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _ProductRating(
+                    rating: "4.5",
+                    isDesktop: isDesktop,
                   ),
-                ),
+                  _AddToCartButton(isDesktop: isDesktop),
+                ],
               ),
             ],
           ),
-          Text(
-            discountPrice,
-            style: theme.textTheme.labelLarge!.copyWith(
-              fontSize: isDesktop ? 12.fSize : 11.fSize,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+        ),
       ),
-    );
+    );  
   }
 }
+
 
 // Widget cho đánh giá sản phẩm
 class _ProductRating extends StatelessWidget {
@@ -243,8 +206,8 @@ class _ProductRating extends StatelessWidget {
       children: [
         CustomImageView(
           imagePath: ImageConstant.imgDefaultIcon,
-          height: isDesktop ? 20.h : 18.h, // Reduced height
-          width: isDesktop ? 14.h : 12.h, // Reduced width
+          height: isDesktop ? 18.h : 16.h,
+          width: isDesktop ? 12.h : 10.h,
         ),
         Padding(
           padding: EdgeInsets.only(left: 2.h),
@@ -279,7 +242,7 @@ class _AddToCartButton extends StatelessWidget {
         width: isDesktop ? 18.h : 16.h,
       ),
       onTap: () {
-        // Add your custom logic here
+        // Add to cart logic
       },
     );
   }

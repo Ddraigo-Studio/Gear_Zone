@@ -12,6 +12,7 @@ import '../../controller/product_controller.dart';
 import '../../controller/category_controller.dart';
 import '../../core/utils/responsive.dart';
 import '../../widgets/service_section.dart';
+import '../Setting/setting_screen.dart';
 
 class HomeInitialPage extends StatefulWidget {
   const HomeInitialPage({super.key});
@@ -509,7 +510,12 @@ class HomeInitialPageState extends State<HomeInitialPage> {
             margin: EdgeInsets.only(left: 6.h, right: 12.h),
             child: InkWell(
               onTap: () {
-                // TODO: Xử lý khi nhấp vào user
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsScreen(),
+                  ),
+                );
               },
               child: CircleAvatar(
                 backgroundColor: Colors.white,

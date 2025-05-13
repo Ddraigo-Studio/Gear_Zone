@@ -54,7 +54,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     // Convert string color names to color options with Color objects
     colorOptions = colorsList.map((colorName) {
       return {"name": colorName, "color": _getColorFromName(colorName)};
-    }).toList();    // Make sure the selected color is in the available colors
+    }).toList(); // Make sure the selected color is in the available colors
     if (colorsList.isNotEmpty) {
       if (!colorsList.contains(selectedColor)) {
         selectedColor = colorsList.first;
@@ -230,48 +230,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
     return Scaffold(
       backgroundColor: appTheme.whiteA700,
       appBar: _buildAppBar(context),
       body: SafeArea(
-        child: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                    width: double.maxFinite,
-                    padding: EdgeInsets.only(
-                      left: 24.h,
-                      top: 36.h,
-                      right: 24.h,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        MyImageSlider(product: widget.product),
-                        SizedBox(height: 6.h),
-                        _buildProductInfoRow(context),
-                        SizedBox(height: 36.h),
-                        ProductTabTabPage(product: widget.product),
-                        SizedBox(height: 44.h),
-                        _buildRatingRow(context),
-                        SizedBox(height: 16.h),
-                        _buildReviewRow(context),
-                        SizedBox(height: 4.h),
-                        _buildReviewRow(context),
-                        SizedBox(height: 14.h),
-                        _buildCommentButton(context),
-                        SizedBox(height: 110.h),
-                      ],
-                    ),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  width: double.maxFinite,
+                  padding: EdgeInsets.only(
+                    left: isDesktop ? 120.h : 24.h,
+                    top: 36.h,
+                    right: isDesktop ? 120.h : 24.h,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      MyImageSlider(product: widget.product),
+                      SizedBox(height: 6.h),
+                      _buildProductInfoRow(context),
+                      SizedBox(height: 36.h),
+                      ProductTabTabPage(product: widget.product),
+                      SizedBox(height: 44.h),
+                      _buildRatingRow(context),
+                      SizedBox(height: 16.h),
+                      _buildReviewRow(context),
+                      SizedBox(height: 4.h),
+                      _buildReviewRow(context),
+                      SizedBox(height: 14.h),
+                      _buildCommentButton(context),
+                      SizedBox(height: 110.h),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: _buildFloatingActionButton(context),
@@ -390,8 +389,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
             ],
-          ),          // Chỉ hiển thị thông tin màu sắc nếu sản phẩm có màu sắc thực sự và danh sách màu không trống
-          if (widget.product.color.isNotEmpty && colorOptions.isNotEmpty && colorOptions[0]["name"] != "Default")
+          ), // Chỉ hiển thị thông tin màu sắc nếu sản phẩm có màu sắc thực sự và danh sách màu không trống
+          if (widget.product.color.isNotEmpty &&
+              colorOptions.isNotEmpty &&
+              colorOptions[0]["name"] != "Default")
             Row(
               children: [
                 Text(
@@ -404,7 +405,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Row(
                     children: colorOptions.map((colorOption) {
                       final bool isSelected =
-                          selectedColor == colorOption["name"];                      return Tooltip(
+                          selectedColor == colorOption["name"];
+                      return Tooltip(
                         message: colorOption["name"],
                         preferBelow: false,
                         verticalOffset: 20,

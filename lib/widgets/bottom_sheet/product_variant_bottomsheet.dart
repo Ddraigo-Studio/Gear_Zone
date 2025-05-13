@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/responsive.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 
 class ProductVariantBottomsheet extends StatefulWidget {
@@ -16,7 +15,7 @@ class ProductVariantBottomsheet extends StatefulWidget {
   final String? productStock;
 
   const ProductVariantBottomsheet({
-    Key? key,
+    super.key,
     this.onAddToCart,
     this.initialSelectedColor,
     this.availableColors,
@@ -25,7 +24,7 @@ class ProductVariantBottomsheet extends StatefulWidget {
     this.productPrice,
     this.productOriginalPrice,
     this.productStock,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductVariantBottomsheet> createState() => _ProductVariantBottomsheetState();
@@ -35,6 +34,15 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
   int quantity = 1;
   late String selectedColor;
   late List<Map<String, dynamic>> colorOptions;
+  
+  // Helper function to determine if we should use white checkmark on dark colors
+  bool _shouldUseWhiteCheckmark(Color color) {
+    // Calculate brightness using the formula: (0.299*R + 0.587*G + 0.114*B)
+    // If below 128, it's a dark color and should use white checkmark
+    final double brightness = (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue);
+    return brightness < 128;
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -213,9 +221,7 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
     return Tooltip(
       message: colorName,
       preferBelow: false,
-      verticalOffset: 16,
-      padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.h),
-      textStyle: TextStyle(fontSize: 12.fSize, color: Colors.white),
+      verticalOffset: 20,
       child: InkWell(
         borderRadius: BorderRadius.circular(14.h),
         onTap: () {
@@ -229,16 +235,28 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(14.h),
-            border: isSelected ? Border.all(color: Colors.black, width: 2) : null,
+            border: Border.all(
+              color: isSelected ? Colors.black : Colors.transparent,
+              width: isSelected ? 2 : 0,
+            ),
             boxShadow: [
               BoxShadow(
-                color: appTheme.black900.withValues(alpha: 0.25),
+                color: appTheme.black900.withOpacity(0.25),
                 spreadRadius: 1.h,
                 blurRadius: 1.h,
                 offset: Offset(1, 1),
               ),
             ],
           ),
+          child: isSelected
+            ? Center(
+                child: Icon(
+                  Icons.check,
+                  color: _shouldUseWhiteCheckmark(color) ? Colors.white : Colors.black,
+                  size: 18.h,
+                ),
+              )
+            : null,
         ),
       ),
     );
@@ -325,18 +343,18 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
       ],
     );
   }
-
   Widget _buildActionButtons(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+    
     return SizedBox(
       width: double.infinity,
       child: Row(
-        spacing: 30.h,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [          
           Expanded(
             child: CustomOutlinedButton(
               alignment: Alignment.center,
-              height: Responsive.isDesktop(context) ? 48.h : 40.h, // Make consistent with "Mua ngay" button
+              height: isDesktop ? 50.h : 52.h,
               text: "Thêm vào giỏ",
               buttonStyle: CustomButtonStyles.outlinePrimaryTL26,
               buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanDeeppurple40018,
@@ -349,24 +367,35 @@ class _ProductVariantBottomsheetState extends State<ProductVariantBottomsheet> {
             ),
           ),
           SizedBox(width: 10.h), // Add spacing between buttons
-          Expanded(            child: CustomElevatedButton(
-              alignment: Alignment.center,
-              height: Responsive.isDesktop(context) ? 48.h : 40.h,
-              text: "Mua ngay",
-              buttonStyle: CustomButtonStyles.outlineBlackTL263,
-              buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700,
-              onPressed: () {
-                // Call the onAddToCart callback with selected values and then navigate to checkout
-                if (widget.onAddToCart != null) {
-                  widget.onAddToCart!(selectedColor, quantity);
-                  
-                  // Close the bottom sheet
-                  Navigator.pop(context);
-                  
-                  // Navigate to checkout screen
-                  Navigator.pushNamed(context, AppRoutes.checkoutScreen);
-                }
-              },
+          Expanded(
+            child: Container(
+              height: isDesktop ? 50.h : 52.h,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: appTheme.deepPurpleA200,                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26.h),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+                onPressed: () {
+                  // Call the onAddToCart callback with selected values and then navigate to checkout
+                  if (widget.onAddToCart != null) {
+                    widget.onAddToCart!(selectedColor, quantity);
+                    
+                    // Close the bottom sheet
+                    Navigator.pop(context);
+                    
+                    // Navigate to checkout screen
+                    Navigator.pushNamed(context, AppRoutes.checkoutScreen);
+                  }
+                },
+                child: Center(
+                  child: Text(
+                    "Mua ngay",
+                    style: CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

@@ -48,8 +48,7 @@ class AddressData extends ChangeNotifier {
       Provider.of<AddressData>(context, listen: listen);
 }
 
-class Address {
-  final String id;           // ID duy nhất của địa chỉ
+class Address {       // ID duy nhất của địa chỉ
   final String userId;       // ID của người dùng sở hữu địa chỉ này
   final String fullName;     // Họ và tên người nhận
   final String phoneNumber;  // Số điện thoại
@@ -61,7 +60,6 @@ class Address {
   final String addressType;  // Loại địa chỉ: "Nhà", "Công ty", v.v.
 
   Address({
-    required this.id,
     required this.userId,
     required this.fullName,
     required this.phoneNumber,
@@ -76,7 +74,6 @@ class Address {
   // Chuyển đổi từ Map (JSON) sang Address
   factory Address.fromMap(Map<String, dynamic> data) {
     return Address(
-      id: data["id"] ?? "",
       userId: data["userId"] ?? "",
       fullName: data["fullName"] ?? "",
       phoneNumber: data["phoneNumber"] ?? "",
@@ -92,7 +89,6 @@ class Address {
   // Chuyển đổi từ Address sang Map (JSON)
   Map<String, dynamic> toMap() {
     return {
-      "id": id,
       "userId": userId,
       "fullName": fullName,
       "phoneNumber": phoneNumber,
@@ -107,7 +103,6 @@ class Address {
 
   // Tạo một bản sao của Address với một số thuộc tính được thay đổi
   Address copyWith({
-    String? id,
     String? userId,
     String? fullName,
     String? phoneNumber,
@@ -119,7 +114,6 @@ class Address {
     String? addressType,
   }) {
     return Address(
-      id: id ?? this.id,
       userId: userId ?? this.userId,
       fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
