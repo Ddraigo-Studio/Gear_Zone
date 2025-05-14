@@ -5,6 +5,10 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../Profile/edit_profile_screen.dart';
 import '../Profile/list_address_screen.dart';
+import '../../controller/auth_controller.dart';
+import '../../widgets/bottom_sheet/change_password_bottomsheet.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -44,9 +48,11 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
-  /// Section Widget
+  /// Section Widget  
   Widget _buildLoyaltyPointsSection(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
+    final authController = Provider.of<AuthController>(context);
+    final userModel = authController.userModel;
     
     return Container(
       width: double.maxFinite,
@@ -77,14 +83,16 @@ class SettingsScreen extends StatelessWidget {
                       width: 2.h,
                     ),
                     image: DecorationImage(
-                      image: AssetImage(ImageConstant.imgProfile),
+                      image: userModel?.photoURL != null && userModel!.photoURL!.isNotEmpty
+                          ? NetworkImage(userModel.photoURL!)
+                          : AssetImage(ImageConstant.imgProfile) as ImageProvider,
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 SizedBox(height: 12.h),
                 Text(
-                  "Gilbert Jones",
+                  userModel?.name ?? "Chưa đăng nhập",
                   style:
                       CustomTextStyles.bodyLargeBalooBhaijaanWhiteA700.copyWith(
                     fontSize: 24.h,
@@ -140,8 +148,7 @@ class SettingsScreen extends StatelessWidget {
                   offset: Offset(0, 5),
                 )
               ] : null,
-            ),
-            child: Column(
+            ),            child: Column(
               children: [
                 // Phần điểm tích lũy
                 RichText(
@@ -157,7 +164,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: "100 điểm",
+                        text: "${userModel?.loyaltyPoints ?? 0} điểm",
                         style: CustomTextStyles.titleMediumGabaritoDeeppurple400
                             .copyWith(
                           fontSize: 18.h,
@@ -183,7 +190,9 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: "10/04/2025",
+                        text: userModel != null 
+                            ? DateFormat('dd/MM/yyyy').format(userModel.createdAt)
+                            : "Chưa kích hoạt",
                         style: TextStyle(
                           fontSize: 16.h,
                           color: appTheme.red400,
@@ -202,9 +211,11 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
-  /// Section Widget
+  /// Section Widget  
   Widget _buildProfileInfoSection(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
+    final authController = Provider.of<AuthController>(context);
+    final userModel = authController.userModel;
     
     return Container(
       margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 30.h),
@@ -232,15 +243,15 @@ class SettingsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Gilbert Jones",
+                  userModel?.name ?? "Chưa đăng nhập",
                   style: CustomTextStyles.titleMediumGabaritoGray900Bold,
                 ),
                 Text(
-                  "Gilbertjones001@gmail.com",
+                  userModel?.email ?? "Email chưa cung cấp",
                   style: CustomTextStyles.bodyLargeGray900,
                 ),
                 Text(
-                  "121-224-7890",
+                  userModel?.phoneNumber ?? "Số điện thoại chưa cung cấp",
                   style: CustomTextStyles.bodyLargeGray900,
                 ),
               ],
@@ -292,8 +303,7 @@ class SettingsScreen extends StatelessWidget {
         Navigator.pushNamed(context, AppRoutes.listAddressScreen);
       },
     );
-  }
-  Widget _buttonChangePassword(BuildContext context) {
+  }  Widget _buttonChangePassword(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
     
     return CustomElevatedButton(
@@ -309,10 +319,17 @@ class SettingsScreen extends StatelessWidget {
           fit: BoxFit.contain,
         ),
       ),
-      buttonStyle: CustomButtonStyles.fillWhiteA,
-      buttonTextStyle: isDesktop 
+      rightIcon: CustomImageView(
+        imagePath: ImageConstant.imgIconsaxBrokenArrowright2,
+        height: isDesktop ? 28.h : 24.h,
+        width: isDesktop ? 30.h : 26.h,
+      ),
+      buttonStyle: CustomButtonStyles.fillWhiteA,      buttonTextStyle: isDesktop 
           ? CustomTextStyles.titleMediumGabaritoGray900SemiBold.copyWith(fontSize: 18.h)
           : CustomTextStyles.titleMediumGabaritoGray900SemiBold,
+      onPressed: () {
+        ChangePasswordBottomSheet.show(context);
+      },
     );
   }
   /// Section Widget
@@ -342,9 +359,9 @@ class SettingsScreen extends StatelessWidget {
           ? CustomTextStyles.titleMediumGabaritoGray900SemiBold.copyWith(fontSize: 18.h)
           : CustomTextStyles.titleMediumGabaritoGray900SemiBold,
     );
-  }
-  Widget _buttonLogout(BuildContext context) {
+  }  Widget _buttonLogout(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
+    final authController = Provider.of<AuthController>(context);
     
     return CustomElevatedButton(
       height: isDesktop ? 60.h : 50.h,
@@ -363,6 +380,46 @@ class SettingsScreen extends StatelessWidget {
       buttonTextStyle: isDesktop 
           ? CustomTextStyles.titleMediumGabaritoRed500SemiBold.copyWith(fontSize: 18.h)
           : CustomTextStyles.titleMediumGabaritoRed500SemiBold,
+      onPressed: () async {
+        // Hiển thị hộp thoại xác nhận trước khi đăng xuất
+        bool confirm = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Xác nhận đăng xuất"),
+              content: Text("Bạn có chắc chắn muốn đăng xuất?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text("Hủy"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text("Đăng xuất"),
+                ),
+              ],
+            );
+          },
+        ) ?? false;
+        
+        if (confirm) {
+          await authController.signOut();
+          // Chuyển về màn hình đăng nhập sau khi đăng xuất
+          Navigator.pushNamedAndRemoveUntil(
+            context, 
+            AppRoutes.login, 
+            (route) => false
+          );
+          
+          // Hiển thị thông báo đăng xuất thành công
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Đăng xuất thành công"),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }      },
     );
   }
 }

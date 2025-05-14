@@ -6,7 +6,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'controller/cart_controller.dart';
+import 'controller/auth_controller.dart';
 import 'core/app_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -24,8 +26,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [        ChangeNotifierProvider(
+    return MultiProvider(      providers: [
+        ChangeNotifierProvider(
+          create: (context) {
+            // Initialize AuthController
+            final authController = AuthController();
+            authController.initAuth();
+            return authController;
+          }
+        ),
+        ChangeNotifierProvider(
           create: (context) {
             // Initialize CartController
             final cartController = CartController();
@@ -36,12 +46,11 @@ class MyApp extends StatelessWidget {
               // Nếu sau này user đăng nhập, sẽ tự động merge với dữ liệu Firestore
               await cartController.loadCartFromLocalStorage();
               
-              // Nếu cần kiểm tra user đã đăng nhập thì có thể thêm logic ở đây
-              // Ví dụ:
-              // final auth = FirebaseAuth.instance;
-              // if (auth.currentUser != null) {
-              //   await cartController.loadCartFromFirestore(auth.currentUser!.uid);
-              // }
+              // Kiểm tra user đã đăng nhập
+              final auth = FirebaseAuth.instance;
+              if (auth.currentUser != null) {
+                await cartController.loadCartFromFirestore(auth.currentUser!.uid);
+              }
             });
             
             return cartController;
