@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/admin/Product/product_add_screen.dart';
-import 'package:gear_zone/controller/product_controller.dart';
-import 'package:gear_zone/model/product.dart';
+import 'package:gear_zone/controller/category_controller.dart';
+import 'package:gear_zone/model/category.dart';
 import 'package:provider/provider.dart';
-import 'Items/product_row_item.dart';
-import '../../../core/app_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'Items/category_row_item.dart';
+import '../../../core/app_provider.dart';
+import '../../../widgets/custom_image_view.dart';
+import 'category_add_screen.dart';
+import 'category_detail.dart';
 
-class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key});
+class CategoryScreen extends StatefulWidget {
+  const CategoryScreen({super.key});
 
   @override
-  State<ProductScreen> createState() => _ProductScreenState();
+  State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
-    // Lắng nghe thay đổi từ Provider để cập nhật giao diện khi danh mục thay đổi
+    // Lắng nghe thay đổi từ Provider để cập nhật giao diện
     final appProvider = Provider.of<AppProvider>(context);
-    final selectedCategory = appProvider.selectedCategory;
-    final productController = ProductController();
+    final categoryController = CategoryController();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12.0),
@@ -28,26 +29,12 @@ class _ProductScreenState extends State<ProductScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Page title
-          Row(
-            children: [
-              Text(
-                selectedCategory.isEmpty
-                    ? 'Danh sách sản phẩm'
-                    : 'Sản phẩm - $selectedCategory',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (selectedCategory.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: () {
-                    // Reset danh mục đã chọn
-                    appProvider.resetSelectedCategory();
-                  },
-                )
-            ],
+          const Text(
+            'Danh mục sản phẩm',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
 
           // Breadcrumb
@@ -76,24 +63,8 @@ class _ProductScreenState extends State<ProductScreen> {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text(
-                  'Sản phẩm',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
                 child: Text(
-                  'Laptop',
+                  'Danh mục sản phẩm',
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).primaryColor,
@@ -131,7 +102,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         ),
                         child: TextField(
                           decoration: InputDecoration(
-                            hintText: 'Tìm kiếm ID, tên sản phẩm',
+                            hintText: 'Tìm kiếm tên danh mục',
                             prefixIcon: const Icon(Icons.search,
                                 color: Colors.grey, size: 20),
                             border: InputBorder.none,
@@ -176,15 +147,14 @@ class _ProductScreenState extends State<ProductScreen> {
                       ),
                       child: TextButton.icon(
                         onPressed: () {
-                          // Thay đổi màn hình hiện tại sang ProductAddScreen (index 4)
-                          final appProvider =
-                              Provider.of<AppProvider>(context, listen: false);
-                          appProvider.setCurrentScreen(4);
+                          // Chuyển đến màn hình thêm danh mục
+                          appProvider.setCurrentScreen(
+                              5); // Index 5 là màn hình thêm danh mục
                         },
                         icon: const Icon(Icons.add,
                             color: Colors.white, size: 18),
                         label: const Text(
-                          'Sản phẩm mới',
+                          'Danh mục mới',
                           style: TextStyle(color: Colors.white, fontSize: 14),
                         ),
                         style: TextButton.styleFrom(
@@ -197,27 +167,11 @@ class _ProductScreenState extends State<ProductScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildCategoryTab(context, 'LapTop (50)',
-                          isSelected: true),
-                      _buildCategoryTab(context, 'Máy tính bàn (26)'),
-                      _buildCategoryTab(context, 'Chuột (121)'),
-                      _buildCategoryTab(context, 'Linh kiện (21)'),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 24),
 
-                // Hiển thị dữ liệu sản phẩm từ Firestore
-                StreamBuilder<List<ProductModel>>(
-                  stream: selectedCategory.isEmpty
-                      ? productController.getProducts()
-                      : productController
-                          .getProductsByCategory(selectedCategory),
+                // Hiển thị dữ liệu danh mục từ Firestore
+                StreamBuilder<List<CategoryModel>>(
+                  stream: categoryController.getCategories(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -237,21 +191,19 @@ class _ProductScreenState extends State<ProductScreen> {
                       );
                     }
 
-                    final products = snapshot.data ?? [];
-                    if (products.isEmpty) {
+                    final categories = snapshot.data ?? [];
+                    if (categories.isEmpty) {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
                             children: [
-                              const Icon(Icons.inventory_2_outlined,
+                              const Icon(Icons.category_outlined,
                                   size: 48, color: Colors.grey),
                               const SizedBox(height: 16),
-                              Text(
-                                selectedCategory.isEmpty
-                                    ? 'Không có sản phẩm nào'
-                                    : 'Không có sản phẩm nào trong danh mục $selectedCategory',
-                                style: const TextStyle(color: Colors.grey),
+                              const Text(
+                                'Không có danh mục nào',
+                                style: TextStyle(color: Colors.grey),
                               ),
                             ],
                           ),
@@ -287,32 +239,32 @@ class _ProductScreenState extends State<ProductScreen> {
                                   TableCellVerticalAlignment.middle,
                               columnWidths: const {
                                 0: FixedColumnWidth(40), // Checkbox
-                                1: FlexColumnWidth(3), // Sản phẩm
-                                2: FlexColumnWidth(1), // Giá
-                                3: FlexColumnWidth(1), // Số lượng
-                                4: FlexColumnWidth(1), // Ngày nhập
-                                5: FlexColumnWidth(1), // Trạng thái
-                                6: FlexColumnWidth(1), // Hành động
+                                1: FlexColumnWidth(3), // Danh mục
+                                2: FlexColumnWidth(1), // Ngày tạo
+                                3: FlexColumnWidth(1), // Hành động
                               },
                               children: [
                                 TableRow(
                                   decoration: const BoxDecoration(
                                     color: Color(0xffF6F6F6),
                                   ),
-                                  children: [                                    // Checkbox
+                                  children: [
+                                    // Checkbox
                                     Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
                                       alignment: Alignment.center,
                                       child: Checkbox(
                                         value: false,
                                         onChanged: (value) {},
                                       ),
                                     ),
-                                    // Sản phẩm
+                                    // Danh mục
                                     Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
                                       child: Text(
-                                        'Sản phẩm',
+                                        'Danh mục',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.grey.shade700,
@@ -320,33 +272,10 @@ class _ProductScreenState extends State<ProductScreen> {
                                         ),
                                       ),
                                     ),
-                                    // Giá
+                                    // Ngày tạo
                                     Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                                      child: Text(
-                                        'Giá',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                          fontSize: 14,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),                                    // Số lượng
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                                      child: Text(
-                                        'Số lượng',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                          fontSize: 14,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
                                       child: Text(
                                         'Ngày tạo',
                                         style: TextStyle(
@@ -357,21 +286,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
-                                    // Trạng thái
+
+                                    // Hành động
                                     Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                                      child: Text(
-                                        'Trạng thái',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                          fontSize: 14,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),                                    // Hành động
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
                                       child: Text(
                                         'Hành động',
                                         style: TextStyle(
@@ -385,39 +304,28 @@ class _ProductScreenState extends State<ProductScreen> {
                                   ],
                                 ),
                                 ...List.generate(
-                                  products.length,
-                                  (index) => buildProductTableRow(
-                                      context, index, products),
+                                  categories.length,
+                                  (index) => buildCategoryTableRow(
+                                      context, index, categories),
                                 ),
                               ],
                             ),
-                          ), // Pagination
+                          ),
+                          // Pagination
                           Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               children: [
-                                Consumer<AppProvider>(
-                                    builder: (context, appProvider, _) {
-                                  String category =
-                                      appProvider.selectedCategory;
-                                  String displayName =
-                                      category; // Sử dụng trực tiếp tên danh mục
-
-                                  String categoryInfo = category.isEmpty
-                                      ? "Tất cả sản phẩm"
-                                      : "Danh mục: $displayName";
-
-                                  return Text(
-                                    categoryInfo,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  );
-                                }),
+                                Text(
+                                  'Tổng số: ${categories.length} danh mục',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
                                 const Spacer(),
                                 Text(
-                                  'Trang trên',
+                                  'Trang',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey.shade600,
@@ -478,30 +386,6 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryTab(BuildContext context, String title,
-      {bool isSelected = false}) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.blue.shade50 : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: TextButton(
-        onPressed: () {},
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? Theme.of(context).primaryColor : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
       ),
     );
   }
