@@ -122,10 +122,14 @@ class AppRoutes {
     ordersDetailScreen: (context) => OrdersDetailScreen(), 
     // orderPlacedScreen: (context) => PaymentSuccess(), 
     // voucherDetailScreen: (context) => VoucherDetailScreen(),
-    settingsScreen: (context) => SettingsScreen(),
-    editProfileScreen: (context) => EditProfileScreen(), 
+    settingsScreen: (context) => SettingsScreen(),    editProfileScreen: (context) => EditProfileScreen(), 
     listAddressScreen: (context) => ListAddressScreen(), 
-    addAddressScreen: (context) => AddAddressScreen(),
+    addAddressScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return AddAddressScreen(
+        fromRegistration: args?['fromRegistration'] ?? false,
+      );
+    },
     initialRoute: (context) => SignUpScreen(),
 
     // Admin routes

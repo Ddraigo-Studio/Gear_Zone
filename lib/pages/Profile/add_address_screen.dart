@@ -6,10 +6,16 @@ import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'package:dvhcvn/dvhcvn.dart' as dvhcvn;
 import '../../model/address.dart';
+import '../../controller/auth_controller.dart';
 
 // ignore_for_file: must_be_immutable
 class AddAddressScreen extends StatefulWidget {
-  const AddAddressScreen({super.key});
+  final bool fromRegistration;
+  
+  const AddAddressScreen({
+    super.key, 
+    this.fromRegistration = false
+  });
 
   @override
   State<AddAddressScreen> createState() => _AddAddressScreenState();
@@ -21,21 +27,26 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   TextEditingController addressInputController = TextEditingController();
 
   late AddressData addressData;
-  
-  @override
+    @override
   void initState() {
     super.initState();
+    // If coming from registration, pre-fill user data from AuthController
+    if (widget.fromRegistration) {
+      final authController = AuthController();
+      if (authController.userModel != null) {
+        nameInputController.text = authController.userModel!.name;
+        phoneInputController.text = authController.userModel!.phoneNumber;
+      }
+    }
+    
     // Thêm listener cho các TextEditingController
     nameInputController.addListener(_updateButtonState);
     phoneInputController.addListener(_updateButtonState);
     addressInputController.addListener(_updateButtonState);
   }
-
   void _updateButtonState() {
-    // Gọi notifyListeners để cập nhật UI
-    if (addressData != null) {
-      addressData.refresh();
-    }
+    // Trigger UI refresh when text changes
+    addressData.refresh();
   }
 
   @override 
@@ -79,25 +90,49 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.max,
-                      children: [
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: Column(
-                            children: [
-                              _buildNameInput(context),
-                              SizedBox(height: 16.h),
-                              _buildPhoneInput(context),
-                              SizedBox(height: 16.h),
-                              _buildProvinceSelector(context),
-                              SizedBox(height: 16.h),
-                              _buildDistrictSelector(context),
-                              SizedBox(height: 16.h),
-                              _buildWardSelector(context),
-                              SizedBox(height: 16.h),
-                              _buildAddressInput(context),
-                            ],
+                      children: [                          SizedBox(
+                            width: double.maxFinite,
+                            child: Column(                              
+                              children: [
+                                // Only show name and phone inputs if not coming from registration
+                                if (widget.fromRegistration) ...[
+                                  Container(
+                                    padding: EdgeInsets.all(12.h),
+                                    decoration: BoxDecoration(
+                                      color: appTheme.gray100,
+                                      borderRadius: BorderRadius.circular(8.h),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.info_outline, color: appTheme.gray700),
+                                        SizedBox(width: 10.h),
+                                        Expanded(
+                                          child: Text(
+                                            "Địa chỉ sẽ được lưu với thông tin tài khoản của bạn",
+                                            style: CustomTextStyles.bodyMediumGray900,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 16.h),
+                                ],
+                                if (!widget.fromRegistration) ...[
+                                  _buildNameInput(context),
+                                  SizedBox(height: 16.h),
+                                  _buildPhoneInput(context),
+                                  SizedBox(height: 16.h),
+                                ],
+                                _buildProvinceSelector(context),
+                                SizedBox(height: 16.h),
+                                _buildDistrictSelector(context),
+                                SizedBox(height: 16.h),
+                                _buildWardSelector(context),
+                                SizedBox(height: 16.h),
+                                _buildAddressInput(context),
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -110,7 +145,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       ),
     );
   }
-
   /// Section Widget
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
@@ -130,7 +164,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         },
       ),
       title: AppbarSubtitleTwo(
-        text: "Địa chỉ mới",
+        text: widget.fromRegistration ? "Thêm địa chỉ" : "Địa chỉ mới",
       ),
     );
   }
@@ -293,42 +327,60 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       contentPadding: EdgeInsets.fromLTRB(12.h, 10.h, 12.h, 12.h),
     );
   }
-
   /// Section Widget
   Widget _buildSaveButton(BuildContext context) {
     return Consumer<AddressData>(
-      builder: (context, data, _) => ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        minimumSize: Size(double.infinity, 60.h),
-        shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30.h),
-        ),
-        backgroundColor: (data.province != null && data.district != null && data.ward != null &&
-                nameInputController.text.isNotEmpty && phoneInputController.text.isNotEmpty &&
-                addressInputController.text.isNotEmpty)
-          ? appTheme.deepPurple400
-          : appTheme.gray300,
-      ),
-      onPressed: (data.province != null && data.district != null && data.ward != null &&
-            nameInputController.text.isNotEmpty && phoneInputController.text.isNotEmpty &&
-            addressInputController.text.isNotEmpty)
-        ? () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-            content: Text('Đã lưu địa chỉ mới!'),
+      builder: (context, data, _) {
+        bool isValidAddress = data.province != null && 
+                             data.district != null && 
+                             data.ward != null &&
+                             addressInputController.text.isNotEmpty;
+                             
+        bool isValidContact = nameInputController.text.isNotEmpty && 
+                             phoneInputController.text.isNotEmpty;
+        
+        // If coming from registration, we already have user data, so only check address
+        bool isFormValid = widget.fromRegistration ? isValidAddress : (isValidAddress && isValidContact);
+        
+        return ElevatedButton(
+          onPressed: isFormValid
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Đã lưu địa chỉ mới!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  
+                  // Kiểm tra nếu đến từ màn hình đăng ký
+                  if (widget.fromRegistration) {
+                    // Chuyển đến trang chủ và xóa tất cả màn hình trước đó
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      AppRoutes.homeScreen,
+                      (route) => false,
+                    );
+                  } else {
+                    // Trường hợp bình thường, quay lại màn hình trước đó
+                    Navigator.pop(context);
+                  }
+                }
+              : null,
+          style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
+            minimumSize: Size(double.infinity, 60.h),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30.h),
             ),
-          );
-          Navigator.pop(context);
-          }
-        : null,
-      child: Text(
-        "Lưu",
-        style: theme.textTheme.titleLarge!.copyWith(
-        color: Colors.white,
-        ),
-      ),
-      ),
+          ),
+          child: Text(
+            "Lưu",
+            style: theme.textTheme.titleLarge!.copyWith(
+              color: Colors.white,
+            ),
+          ),
+        );
+      },
     );
   }
 
