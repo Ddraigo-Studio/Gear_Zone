@@ -23,7 +23,58 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
   bool isExpandedConfig = false;
   bool isExpandedDescription = false;
 
-  // Tạo một hàng thông tin
+
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TabBar(
+            labelColor: Theme.of(context).primaryColor,
+            unselectedLabelColor: Colors.grey,
+            dividerColor: Colors.transparent,
+            indicatorColor: Theme.of(context).primaryColor,
+            automaticIndicatorColorAdjustment: true,
+            labelStyle: CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(fontWeight: FontWeight.bold, fontSize: 18.h),
+            unselectedLabelStyle: CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(fontWeight: FontWeight.normal, fontSize: 16.h),
+            tabs: [
+              Tab(
+                child: Text("Thông tin"),
+              ),
+              Tab(
+                child: Text("Cấu hình"),
+              ),
+              Tab(
+                child: Text("Mô tả"),
+              ),
+            ],
+          ),
+          Container(
+            constraints: BoxConstraints(
+              minHeight: 200.h,
+              maxHeight: 400.h, // Cho phép co giãn từ 200-400
+            ),
+            child: TabBarView(
+              children: [
+                // Tab 1: Thông tin
+                _buildTabInfoSummary(context),
+                // Tab 2: Cấu hình
+                _buildTabInfoConfig(context),
+                // Tab 3: Mô tả
+                _buildTabInfoDescription(context),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+    // Tạo một hàng thông tin
   Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
@@ -48,54 +99,6 @@ class _ProductTabTabPageState extends State<ProductTabTabPage> {
                 color: valueColor ?? (value.isEmpty ? Colors.grey : null),
                 fontStyle: value.isEmpty ? FontStyle.italic : null,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TabBar(
-            labelColor: Theme.of(context).primaryColor,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Theme.of(context).primaryColor,
-            tabs: [
-              Tab(
-                child: Text("Thông tin",
-                    style: CustomTextStyles.bodySmallBalooBhaiGray900),
-              ),
-              Tab(
-                child: Text("Cấu hình",
-                    style: CustomTextStyles.bodySmallBalooBhaiGray900),
-              ),
-              Tab(
-                child: Text("Mô tả",
-                    style: CustomTextStyles.bodySmallBalooBhaiGray900),
-              ),
-            ],
-          ),
-          Container(
-            constraints: BoxConstraints(
-              minHeight: 200.h,
-              maxHeight: 400.h, // Cho phép co giãn từ 200-400
-            ),
-            child: TabBarView(
-              children: [
-                // Tab 1: Thông tin
-                _buildTabInfoSummary(context),
-                // Tab 2: Cấu hình
-                _buildTabInfoConfig(context),
-                // Tab 3: Mô tả
-                _buildTabInfoDescription(context),
-              ],
             ),
           ),
         ],

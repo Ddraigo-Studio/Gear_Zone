@@ -95,24 +95,18 @@ class CustomTextFormField extends StatelessWidget {
         decoration: boxDecoration,
         child: TextFormField(
           scrollPadding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          controller: controller,
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),          
+              controller: controller,
           focusNode: focusNode,
           onTapOutside: (event) {
-            if (focusNode != null) {
-              focusNode?.unfocus();
-            } else {
-              FocusManager.instance.primaryFocus?.unfocus();
-            }
+            FocusScope.of(context).unfocus();
           },
           autofocus: autofocus!,
           style:
               textStyle ?? CustomTextStyles.labelLargePoppinsBlack900SemiBold,
           obscureText: obscureText!,
           readOnly: readOnly!,
-          onTap: () {
-            onTap?.call();
-          },
+          onTap: onTap,
           textInputAction: textInputAction,
           keyboardType: textInputType,
           maxLines: maxLines ?? 1,
