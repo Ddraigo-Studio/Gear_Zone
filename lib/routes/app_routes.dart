@@ -13,10 +13,6 @@ import '../pages/Checkout/checkout_screen.dart';
 import '../pages/Checkout/payment_method_screen.dart';
 import '../pages/Checkout/payment_success.dart';
 
-// Create_Profile
-import '../pages/Create_Profile/add_profile_screen.dart';
-import '../pages/Create_Profile/address_new_screen.dart';
-
 //Home
 import '../pages/Home/home_screen.dart';
 import '../pages/Home/home_initial_page.dart'; // Add this import for HomeInitialPage
@@ -96,8 +92,6 @@ class AppRoutes {
   static const String adminCustomers = '/admin/Customer/customers';
 
   static Map<String, WidgetBuilder> routes = {
-    addProfileScreen: (context) => AddProfileScreen(),
-    addressNewScreen: (context) => AddressNewScreen(),
     login: (context) => LoginScreen(),
     signup: (context) => SignUpScreen(),
     homeScreen: (context) => HomeScreen(),    
