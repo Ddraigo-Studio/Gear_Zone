@@ -3,6 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:gear_zone/core/utils/size_utils.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+import '../core/utils/responsive.dart';
 import '../theme/theme_helper.dart';
 
 class MyBannerSlider extends StatefulWidget {
@@ -32,12 +33,12 @@ class _MyBannerSliderState extends State<MyBannerSlider> {
           child: CarouselSlider(
             options: CarouselOptions(
               autoPlay: true,
-              height: 250.h, // Tăng chiều cao để phù hợp với thiết kế mới
+              height: Responsive.isDesktop(context) ? 400.h : 250.h, // Tăng chiều cao để phù hợp với thiết kế mới
               autoPlayCurve: Curves.fastOutSlowIn,
               autoPlayAnimationDuration: const Duration(milliseconds: 800),
               autoPlayInterval: const Duration(seconds: 2),
-              enlargeCenterPage: false,
-              viewportFraction: 1.0,
+              enlargeCenterPage: true,
+              viewportFraction: 2.0,
               onPageChanged: (index, reason) {
                 setState(() {
                   myCurrentIndex = index;
@@ -52,45 +53,10 @@ class _MyBannerSliderState extends State<MyBannerSlider> {
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(item),
-                        fit: BoxFit.cover,
+                        fit:  Responsive.isDesktop(context)? BoxFit.contain : BoxFit.cover,
                       ),
                     ),
-                    child: Container(
-                      padding: EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.black.withOpacity(0.6),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'LAPTOP GAMING',
-                            style: TextStyle(
-                              color: Colors.amber,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Thách thức mọi cuộc chơi',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    
                   );
                 },
               );
@@ -99,6 +65,7 @@ class _MyBannerSliderState extends State<MyBannerSlider> {
         ),
         SizedBox(height: 8), // Add some space between the slider and the indicator
         AnimatedSmoothIndicator(
+          curve: Curves.slowMiddle,
           activeIndex: myCurrentIndex,
           count: myitems.length,
           effect: WormEffect(

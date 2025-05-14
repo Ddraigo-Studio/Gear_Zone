@@ -1,14 +1,14 @@
 class UserModel {
   final String uid;           // ID duy nhất của người dùng (từ Firebase Auth)
-  final String name;   // Tên hiển thị
+  final String name;          // Tên hiển thị
   final String email;         // Địa chỉ email
   final String phoneNumber;   // Số điện thoại
   final String? photoURL;     // Đường dẫn đến ảnh đại diện
   final int loyaltyPoints;    // Điểm tích lũy (như hiển thị trong giao diện)
   final DateTime createdAt;   // Ngày tạo tài khoản
-  final DateTime lastActive;  // Ngày hoạt động gần nhất
-  final List<String> addressIds; // Danh sách ID địa chỉ của người dùng
+  final List<Map<String, dynamic>> addressList; // Danh sách địa chỉ của người dùng
   final String? defaultAddressId; // ID của địa chỉ mặc định
+  final String? role; // Vai trò của người dùng (user, admin, etc.)
 
   UserModel({
     required this.uid,
@@ -18,9 +18,9 @@ class UserModel {
     this.photoURL,
     this.loyaltyPoints = 0,
     required this.createdAt,
-    required this.lastActive,
-    this.addressIds = const [],
+    this.addressList = const [],
     this.defaultAddressId,
+    this.role,
   });
 
   // Chuyển đổi từ Map (JSON) sang UserModel
@@ -35,13 +35,11 @@ class UserModel {
       createdAt: data["createdAt"] != null 
           ? DateTime.parse(data["createdAt"]) 
           : DateTime.now(),
-      lastActive: data["lastActive"] != null 
-          ? DateTime.parse(data["lastActive"]) 
-          : DateTime.now(),
-      addressIds: data["addressIds"] != null 
-          ? List<String>.from(data["addressIds"]) 
+      addressList: data["addressList"] != null 
+          ? List<Map<String, dynamic>>.from(data["addressList"]) 
           : [],
       defaultAddressId: data["defaultAddressId"],
+      role: data["role"],
     );
   }
 
@@ -55,24 +53,24 @@ class UserModel {
       "photoURL": photoURL,
       "loyaltyPoints": loyaltyPoints,
       "createdAt": createdAt.toIso8601String(),
-      "lastActive": lastActive.toIso8601String(),
-      "addressIds": addressIds,
+      "addressList": addressList,
       "defaultAddressId": defaultAddressId,
+      "role": role,
     };
   }
 
   // Tạo bản sao của UserModel với một số thuộc tính được thay đổi
   UserModel copyWith({
     String? uid,
-    String? displayName,
+    String? name,
     String? email,
     String? phoneNumber,
     String? photoURL,
     int? loyaltyPoints,
     DateTime? createdAt,
-    DateTime? lastActive,
-    List<String>? addressIds,
+    List<Map<String, dynamic>>? addressList,
     String? defaultAddressId,
+    String? role,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -82,9 +80,9 @@ class UserModel {
       photoURL: photoURL ?? this.photoURL,
       loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
       createdAt: createdAt ?? this.createdAt,
-      lastActive: lastActive ?? this.lastActive,
-      addressIds: addressIds ?? this.addressIds,
+      addressList: addressList ?? this.addressList,
       defaultAddressId: defaultAddressId ?? this.defaultAddressId,
+      role: role ?? this.role,
     );
   }
 
@@ -93,8 +91,9 @@ class UserModel {
     String? name,
     String? phoneNumber,
     int loyaltyPoints = 0,
-    List<String> addressIds = const [],
+    List<Map<String, dynamic>> addressList = const [],
     String? defaultAddressId,
+    String? role,
   }) {
     return UserModel(
       uid: firebaseUser.uid,
@@ -104,9 +103,9 @@ class UserModel {
       photoURL: firebaseUser.photoURL,
       loyaltyPoints: loyaltyPoints,
       createdAt: DateTime.now(),
-      lastActive: DateTime.now(),
-      addressIds: addressIds,
+      addressList: addressList,
       defaultAddressId: defaultAddressId,
+      role: role,
     );
   }
 
@@ -114,45 +113,45 @@ class UserModel {
   UserModel addLoyaltyPoints(int points) {
     return this.copyWith(
       loyaltyPoints: this.loyaltyPoints + points,
-      lastActive: DateTime.now(),
     );
   }
 
   // Phương thức thêm địa chỉ mới
-  UserModel addAddress(String addressId, {bool setAsDefault = false}) {
-    final newAddressIds = List<String>.from(addressIds);
-    newAddressIds.add(addressId);
+  UserModel addAddress(Map<String, dynamic> addressData, {bool setAsDefault = false}) {
+    final newAddressList = List<Map<String, dynamic>>.from(addressList);
+    newAddressList.add(addressData);
+    
+    final String addressId = addressData['id'] as String;
     
     return this.copyWith(
-      addressIds: newAddressIds,
+      addressList: newAddressList,
       defaultAddressId: setAsDefault ? addressId : defaultAddressId,
-      lastActive: DateTime.now(),
     );
   }
 
   // Phương thức xóa địa chỉ
   UserModel removeAddress(String addressId) {
-    final newAddressIds = List<String>.from(addressIds);
-    newAddressIds.remove(addressId);
+    final newAddressList = List<Map<String, dynamic>>.from(addressList)
+      .where((address) => address['id'] != addressId).toList();
     
     // Nếu địa chỉ bị xóa là địa chỉ mặc định, đặt địa chỉ mặc định về null
     final newDefaultAddressId = 
         addressId == defaultAddressId ? null : defaultAddressId;
     
     return this.copyWith(
-      addressIds: newAddressIds,
+      addressList: newAddressList,
       defaultAddressId: newDefaultAddressId,
-      lastActive: DateTime.now(),
     );
   }
 
   // Phương thức cập nhật địa chỉ mặc định
   UserModel updateDefaultAddress(String addressId) {
-    if (!addressIds.contains(addressId)) return this;
+    // Kiểm tra xem addressId có tồn tại trong danh sách địa chỉ không
+    bool addressExists = addressList.any((address) => address['id'] == addressId);
+    if (!addressExists) return this;
     
     return this.copyWith(
       defaultAddressId: addressId,
-      lastActive: DateTime.now(),
     );
   }
 }

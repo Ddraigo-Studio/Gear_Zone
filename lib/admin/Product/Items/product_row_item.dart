@@ -265,10 +265,11 @@ Widget buildMobileProductItem(
               height: 40,
               margin: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),                image: DecorationImage(
+                borderRadius: BorderRadius.circular(4),                
+                image: DecorationImage(
                   image: product.imageUrl.isNotEmpty 
                       ? NetworkImage(product.imageUrl) 
-                      : const AssetImage('assets/images/image_not_found.png') as ImageProvider,
+                      : const AssetImage('assets/images/img_logo.png') as ImageProvider,
                   fit: BoxFit.cover,
                   onError: (exception, stackTrace) {},
                 ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/cart_controller.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
+import '../../core/utils/responsive.dart';
 import '../../widgets/items/cart_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
@@ -11,16 +11,17 @@ import '../Checkout/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: _buildAppBar(context),
       backgroundColor: appTheme.gray10001,
       body: Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 24.h),
+        padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 120.h : 16.h, vertical: 24.h),
         child: Column(
           children: [
             _buildCartListSection(context),
@@ -60,7 +61,7 @@ class CartScreen extends StatelessWidget {
 
   Widget _buildCartListSection(BuildContext context) {
     final cartController = Provider.of<CartController>(context);
-    
+
     return Expanded(
       child: SingleChildScrollView(
         child: Column(
@@ -96,10 +97,7 @@ class CartScreen extends StatelessWidget {
                   },
                   onSelectionChanged: (selected) {
                     cartController.toggleItemSelection(
-                      item.productId, 
-                      item.color, 
-                      selected
-                    );
+                        item.productId, item.color, selected);
                   },
                 );
               },
@@ -117,34 +115,38 @@ class CartScreen extends StatelessWidget {
     final tax = 10000.0;
     final discount = 8000.0;
     final totalPrice = selectedPrice + shippingFee + tax - discount;
-    
+
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 8.h,
-        vertical: 10.h,
+        horizontal: 16.h,
+        vertical: 16.h,
       ),
       decoration: BoxDecoration(
-            color: appTheme.deepPurple1003f, // Màu tím nhạt
-            borderRadius: BorderRadius.circular(12.h),
+        color: appTheme.deepPurple1003f, // Màu tím nhạt
+        borderRadius: BorderRadius.circular(12.h),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        spacing: 6.h,
         children: [
+          SizedBox(height: 5.h),
           _buildSummaryRow(
             title: "Phí vận chuyển",
             price: "${shippingFee.toInt()}đ",
           ),
+          SizedBox(height: 10.h),
           _buildSummaryRow(
             title: "Thuế",
             price: "${tax.toInt()}đ",
           ),
-          Divider(),
+          SizedBox(height: 10.h),
+          Divider(color: appTheme.gray300),
+          SizedBox(height: 10.h),
           _buildSummaryRow(
             title: "Tổng",
             price: "${totalPrice.toInt()}đ",
             isTotal: true,
           ),
+          SizedBox(height: 5.h),
         ],
       ),
     );
@@ -152,11 +154,12 @@ class CartScreen extends StatelessWidget {
 
   Widget _buildCheckoutRow(BuildContext context) {
     final cartController = Provider.of<CartController>(context);
-    
+    final bool isDesktop = Responsive.isDesktop(context);
+
     return Container(
       height: 80.h,
       padding: EdgeInsets.symmetric(
-        horizontal: 24.h,
+        horizontal: isDesktop ? 120.h : 24.h,
         vertical: 14.h,
       ),
       decoration: AppDecoration.fillWhiteA,
@@ -167,39 +170,42 @@ class CartScreen extends StatelessWidget {
             text: "Chọn tất cả",
             value: cartController.allItemsSelected,
             onChange: (value) {
-              cartController.selectAllItems(value ?? false);
+              cartController.selectAllItems(value);
             },
           ),
           Container(
-            height: 48.h,
-            width: 120.h,
+            height: isDesktop ? 55.h : 48.h,
+            width: isDesktop ? 150.h : 120.h,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: cartController.selectedItemCount > 0 
-                    ? appTheme.deepPurpleA200 
+                backgroundColor: cartController.selectedItemCount > 0
+                    ? appTheme.deepPurpleA200
                     : Colors.grey,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24.h),
                 ),
               ),
-              onPressed: cartController.selectedItemCount > 0 
+              onPressed: cartController.selectedItemCount > 0
                   ? () {
                       // Lấy danh sách các sản phẩm đã chọn
                       final selectedItems = cartController.getSelectedItems();
                       // Chuyển đến màn hình thanh toán với danh sách sản phẩm đã chọn
                       Navigator.push(
-                        context, 
+                        context,
                         MaterialPageRoute(
                           builder: (context) => CheckoutScreen(
                             selectedItems: selectedItems,
                           ),
                         ),
                       );
-                    } 
+                    }
                   : null,
-              child: Text(
-                "Thanh toán",
-                style: CustomTextStyles.bodyLargeBlack900.copyWith(color: Colors.white),
+              child: Center(
+                child: Text(
+                  "Thanh toán",
+                  style: CustomTextStyles.bodyLargeBlack900
+                      .copyWith(color: Colors.white),
+                ),
               ),
             ),
           ),
@@ -212,7 +218,6 @@ class CartScreen extends StatelessWidget {
     required String title,
     required String price,
     bool isTotal = false,
-    Color? priceColor,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -232,7 +237,9 @@ class CartScreen extends StatelessWidget {
           style: isTotal
               ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold
                   .copyWith(color: appTheme.red400)
-              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(color: appTheme.gray900,),
+              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                  color: appTheme.gray900,
+                ),
         ),
       ],
     );

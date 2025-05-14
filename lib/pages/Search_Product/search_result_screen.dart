@@ -3,13 +3,13 @@ import 'package:responsive_grid_list/responsive_grid_list.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/items/product_carousel_item_widget.dart';
-import '../../widgets/items/search_results_grid_item_widget.dart';
 import '../../widgets/app_bar/appbar_leading_iconbutton_one.dart';
 import '../../widgets/app_bar/appbar_title_searchview.dart';
 import '../../widgets/app_bar/appbar_trailing_iconbutton_one.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
+import '../../model/product.dart';
 
 // ignore_for_file: must_be_immutable
 class SearchResultScreen extends StatelessWidget {
@@ -151,24 +151,42 @@ class SearchResultScreen extends StatelessWidget {
 
   /// Section Widget
   Widget _buildSearchResultsGrid(BuildContext context) {
-    final List<Map<String, String>> products = [
-      {
-        'imagePath': ImageConstant.imgImage1,
-        'productName': 'Huawei Matebook X13',
-        'discountPrice': '17.390.000đ',
-        'originalPrice': '20.990.000đ',
-        'discountPercent': '31%',
-        'rating': '5.0',
-      },
-      {
-        'imagePath': ImageConstant.imgProduct4,
-        'productName': 'Dell XPS 13',
-        'discountPrice': '21.990.000đ',
-        'originalPrice': '24.990.000đ',
-        'discountPercent': '20%',
-        'rating': '4.5',
-      },
-      // Thêm các sản phẩm khác ở đây
+    // Create a list of ProductModel objects
+    final List<ProductModel> products = [
+      ProductModel(
+        id: '1',
+        name: 'Huawei Matebook X13',
+        description: 'Huawei Matebook X13 laptop',
+        price: 17390000,
+        originalPrice: 20990000,
+        imageUrl: ImageConstant.imgImage1,
+        category: 'Laptop',
+        brand: 'Huawei',
+        discount: 31,
+        additionalImages: [],
+        processor: 'Intel Core i7',
+        ram: '16GB',
+        storage: '512GB SSD',
+        graphicsCard: 'Intel Iris Xe',
+        display: '13-inch 2K',
+      ),
+      ProductModel(
+        id: '2',
+        name: 'Dell XPS 13',
+        description: 'Dell XPS 13 laptop',
+        price: 21990000,
+        originalPrice: 24990000,
+        imageUrl: ImageConstant.imgProduct4,
+        category: 'Laptop',
+        brand: 'Dell',
+        discount: 20,
+        additionalImages: [],
+        processor: 'Intel Core i7',
+        ram: '16GB',
+        storage: '1TB SSD',
+        graphicsCard: 'Intel Iris Xe',
+        display: '13-inch 4K',
+      ),
     ];
     return Expanded(
       child: ResponsiveGridListBuilder(
@@ -182,113 +200,15 @@ class SearchResultScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           physics: BouncingScrollPhysics(),
           children: items,
-        ),
-        gridItems: List.generate(
+        ),        gridItems: List.generate(
           products.length,
           (index) {
-            final product = products[index];
             return ProductCarouselItem(
-              imagePath: product['imagePath']!,
-              productName: product['productName']!,
-              discountPrice: product['discountPrice']!,
-              originalPrice: product['originalPrice']!,
-              discountPercent: product['discountPercent']!,
-              rating: product['rating']!,
+              product: products[index],
             );
           },
         ),
       ),
     );
   }
-
-  /// Section Widget
-  Widget _buildPaginationControls(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 8.h),
-      child: Row(
-        children: [
-          CustomIconButton(
-            height: 34.h,
-            width: 34.h,
-            padding: EdgeInsets.all(6.h),
-            decoration: IconButtonStyleHelper.outlineDeepPurpleA,
-            child: CustomImageView(
-              imagePath: ImageConstant.imgArrowLeft,
-            ),
-          ),
-          Container(
-            width: 34.h,
-            height: 34.h,
-            alignment: Alignment.center,
-            decoration: AppDecoration.secondaryVariant100.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder16,
-            ),
-            child: Text(
-              "1",
-              textAlign: TextAlign.center,
-              style: CustomTextStyles.labelLargePoppinsDeeppurple500,
-            ),
-          ),
-          Container(
-            width: 34.h,
-            height: 34.h,
-            alignment: Alignment.center,
-            decoration: AppDecoration.fillDeepPurpleA.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder16,
-            ),
-            child: Text(
-              "2",
-              textAlign: TextAlign.center,
-              style: CustomTextStyles.labelLargePoppinsDeeppurple50,
-            ),
-          ),
-          Container(
-            width: 34.h,
-            height: 34.h,
-            alignment: Alignment.center,
-            decoration: AppDecoration.secondaryVariant100.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder16,
-            ),
-            child: Text(
-              "3",
-              textAlign: TextAlign.center,
-              style: CustomTextStyles.labelLargePoppinsDeeppurple500,
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Text(
-              "...",
-              style: CustomTextStyles.bodyMediumPoppinsBluegray300,
-            ),
-          ),
-          Container(
-            width: 34.h,
-            height: 34.h,
-            alignment: Alignment.center,
-            decoration: AppDecoration.secondaryVariant100.copyWith(
-              borderRadius: BorderRadiusStyle.roundedBorder16,
-            ),
-            child: Text(
-              "15",
-              textAlign: TextAlign.center,
-              style: CustomTextStyles.labelLargePoppinsDeeppurple500,
-            ),
-          ),
-          CustomIconButton(
-            height: 34.h,
-            width: 34.h,
-            padding: EdgeInsets.all(6.h),
-            decoration: IconButtonStyleHelper.outlineDeepPurpleA,
-            child: CustomImageView(
-              imagePath: ImageConstant.imgArrowRightDeepPurple500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
 }

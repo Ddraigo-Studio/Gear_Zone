@@ -31,6 +31,7 @@ import '../pages/Plash_Screen/plash_screen.dart';
 // Products
 import '../pages/Products/category_screen.dart';
 import '../pages/Products/product_detail.dart';
+import '../pages/Products/category_products_page.dart';
 
 // Profile
 import '../pages/Profile/edit_profile_screen.dart';
@@ -62,14 +63,16 @@ class AppRoutes {
   static const String plashScreen = '/plash_screen';
   static const String notificationEmptyScreen = '/notification_empty_screen';
   static const String notificationsScreen = '/notifications_screen';
-  static const String ordersHistoryScreen = '/orders_history_screen';
+  static const String ordersHistoryScreen = '/orders_history_screen';  
   static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
   static const String ordersDetailScreen = '/order_detail_screen';
   static const String categoriesScreen = '/category_screen';
+  static const String categoryProductsPage = '/category_products';
   static const String categoriestwoScreen = '/categoriestwo_screen';
   static const String searchResultEmptyScreen = '/search_result_empty_screen';
   static const String searchResultScreen = '/search_result_screen';
   static const String productDetail = '/product_detail';
+  static const String productDetailScreen = '/product_detail_screen';
   static const String emptyCartScreen = '/empty_cart_screen';
   static const String myCartScreen = '/cart_screen';
   static const String checkoutScreen = '/checkout_screen';
@@ -88,7 +91,7 @@ class AppRoutes {
   static const String admin = '/admin';
   static const String adminDashboard = '/admin/Dashboard/dashboard';
   static const String adminProducts = '/admin/Product/products';
-  static const String adminProductDetail = '/admin/Product/product_detail_screen';
+  static const String adminProductDetail = '/admin/Product/product_detail';
   static const String adminProductAdd = '/admin/Product/product_add_screen';
   static const String adminCustomers = '/admin/Customer/customers';
 
@@ -97,22 +100,37 @@ class AppRoutes {
     addressNewScreen: (context) => AddressNewScreen(),
     login: (context) => LoginScreen(),
     signup: (context) => SignUpScreen(),
-    homeScreen: (context) => HomeScreen(),
+    homeScreen: (context) => HomeScreen(),    
     homeInitialPage: (context) => HomeInitialPage(), 
     plashScreen: (context) => PlashScreenScreen(),
     categoriesScreen: (context) => CategoriesScreen(),
-    productDetail: (context) => ProductDetailScreen(),
+    categoryProductsPage: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return CategoryProductsPage(
+        categoryId: args?['categoryId'] ?? '',
+      );
+    },
+    productDetail: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return ProductDetailScreen(
+        product: args?['product'],
+      );
+    },
     myCartScreen: (context) => CartScreen(),
     checkoutScreen: (context) => CheckoutScreen(), 
     methodCheckoutScreen: (context) => PaymentMethodScreen(),
     ordersDetailScreen: (context) => OrdersDetailScreen(), 
     // orderPlacedScreen: (context) => PaymentSuccess(), 
     // voucherDetailScreen: (context) => VoucherDetailScreen(),
-    settingsScreen: (context) => SettingsScreen(),
-    editProfileScreen: (context) => EditProfileScreen(), 
+    settingsScreen: (context) => SettingsScreen(),    editProfileScreen: (context) => EditProfileScreen(), 
     listAddressScreen: (context) => ListAddressScreen(), 
-    addAddressScreen: (context) => AddAddressScreen(),
-    initialRoute: (context) => AdminScreen(),
+    addAddressScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return AddAddressScreen(
+        fromRegistration: args?['fromRegistration'] ?? false,
+      );
+    },
+    initialRoute: (context) => SignUpScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),

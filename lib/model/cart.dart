@@ -1,45 +1,50 @@
-class CartItem {
-  final String productId;
-  final String imagePath;
-  final String productName;
-  final String color;
-  int quantity;
-  final double originalPrice;
-  final double discountedPrice;
-  bool isSelected;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'cart_item.dart';
 
-  CartItem({
-    required this.productId,
-    required this.imagePath,
-    required this.productName,
-    required this.color,
-    required this.quantity,
-    required this.originalPrice,
-    required this.discountedPrice,
-    this.isSelected = false,
-  });
+class CartModel {
+  final String? userId;                // Dùng làm document ID (có thể null cho khách hàng chưa đăng nhập)
+  final List<CartItem> items;   
 
-  double get totalPrice => discountedPrice * quantity;
+  CartModel({
+    this.userId,
+    this.items = const [],
+  });  factory CartModel.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    String docId = doc.id;
+    
+    return CartModel(
+      userId: docId,
+      items: data['items'] != null
+          ? (data['items'] as List)
+              .map((e) => CartItem.fromMap(Map<String, dynamic>.from(e)))
+              .toList()
+          : [],
+    );
+  }
 
-  CartItem copyWith({
-    String? productId,
-    String? imagePath,
-    String? productName,
-    String? color,
-    int? quantity,
-    double? originalPrice,
-    double? discountedPrice,
-    bool? isSelected,
+  factory CartModel.fromMap(Map<String, dynamic> data, {String? docId}) {
+    return CartModel(
+      userId: docId,
+      items: data['items'] != null
+          ? (data['items'] as List)
+              .map((e) => CartItem.fromMap(Map<String, dynamic>.from(e)))
+              .toList()
+          : [],
+    );
+  }
+  Map<String, dynamic> toMap() {
+    return {
+      'items': items.map((i) => i.toMap()).toList(),
+    };
+  }
+
+  CartModel copyWith({
+    String? userId,
+    List<CartItem>? items,
   }) {
-    return CartItem(
-      productId: productId ?? this.productId,
-      imagePath: imagePath ?? this.imagePath,
-      productName: productName ?? this.productName,
-      color: color ?? this.color,
-      quantity: quantity ?? this.quantity,
-      originalPrice: originalPrice ?? this.originalPrice,
-      discountedPrice: discountedPrice ?? this.discountedPrice,
-      isSelected: isSelected ?? this.isSelected,
+    return CartModel(
+      userId: userId ?? this.userId,
+      items: items ?? this.items,
     );
   }
 }

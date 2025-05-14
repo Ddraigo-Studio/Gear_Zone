@@ -4,19 +4,53 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+// Thêm hàm xử lý URL Imgur
+String processImgurUrl(String url) {
+  String processedUrl = url;
+  
+  // Nếu URL thuộc imgur.com nhưng không phải định dạng i.imgur.com
+  if (url.contains('imgur.com') && !url.contains('i.imgur.com')) {
+    // Trường hợp 1: URL kiểu https://imgur.com/abcd123
+    if (!url.endsWith('.jpg') && !url.endsWith('.png') && !url.endsWith('.gif') && !url.endsWith('.jpeg')) {
+      // Lấy ID hình ảnh
+      String imgId = url.split('/').last;
+      // Xóa phần query parameters nếu có
+      imgId = imgId.split('?').first;
+      // Tạo URL mới với định dạng i.imgur.com
+      processedUrl = 'https://i.imgur.com/$imgId.png';
+      print("Đã chuyển URL $url thành $processedUrl");
+    } 
+    // Trường hợp 2: URL kiểu https://imgur.com/abcd123.jpg
+    else {
+      processedUrl = url.replaceFirst('imgur.com', 'i.imgur.com');
+      print("Đã chuyển URL $url thành $processedUrl");
+    }
+  }
+  
+  return processedUrl;
+}
+
 extension ImageTypeExtension on String {
   ImageType get imageType {
     // Check if the string is empty before processing
     if (this.isEmpty) {
       return ImageType.unknown;
     }
+    
+    // Check for network images first (URLs)
     if (this.startsWith('http') || this.startsWith('https')) {
       return ImageType.network;
-    } else if (this.endsWith('.svg')) {
+    } 
+    // Check for SVG files
+    else if (this.endsWith('.svg')) {
       return ImageType.svg;
-    } else if (this.startsWith('file://')) {
+    } 
+    // Check for file:// protocol
+    else if (this.startsWith('file://')) {
       return ImageType.file;
-    } else {
+    } 
+    // Default to PNG/local asset
+    else {
       return ImageType.png;
     }
   }
@@ -37,7 +71,7 @@ class CustomImageView extends StatelessWidget {
     this.radius,
     this.margin,
     this.border,
-    this.placeHolder = 'assets/images/image_not_found.png',
+    this.placeHolder = 'assets/images/img_logo.png',
   });
 
   /// [imagePath] is required parameter for showing image
@@ -105,18 +139,22 @@ class CustomImageView extends StatelessWidget {
     } else {
       return _buildImageView();
     }
-  }
-  Widget _buildImageView() {
-  if (imagePath == null || imagePath!.isEmpty) {
-    return Image.asset(
-      placeHolder,
-      height: height,
-      width: width,
-      fit: fit ?? BoxFit.cover,
-    );
-  }
+  }  Widget _buildImageView() {    if (imagePath == null || imagePath!.isEmpty) {
+      return Container(
+        height: height,
+        width: width,
+        color: Colors.grey[100],
+        child: Center(
+          child: Icon(
+            Icons.image_not_supported,
+            size: height != null ? height! * 0.3 : 24,
+            color: Colors.grey[400],
+          ),
+        ),
+      );
+    }
   
-  switch (imagePath!.imageType) {
+    switch (imagePath!.imageType) {
       case ImageType.svg:
         return Container(
           height: height,
@@ -140,54 +178,71 @@ class CustomImageView extends StatelessWidget {
           width: width,
           fit: fit ?? BoxFit.cover,
           color: color,
-        );      case ImageType.network:
-        // Check if imagePath is empty or null before using CachedNetworkImage
+        );
+        
+      case ImageType.network:        // For web platform, use Image.network directly
         if (imagePath == null || imagePath!.isEmpty) {
-          return Image.asset(
-            placeHolder,
+          return Container(
             height: height,
             width: width,
-            fit: fit,
-            color: color,
+            color: Colors.grey[100],
+            child: Center(
+              child: Icon(
+                Icons.image_not_supported,
+                size: height != null ? height! * 0.3 : 24,
+                color: Colors.grey[400],
+              ),
+            ),
           );
         }
         
-        return CachedNetworkImage(
+        // Use regular Image.network instead of CachedNetworkImage for web
+        return Image.network(
+          processImgurUrl(imagePath!),
           height: height,
           width: width,
-          fit: fit,
-          imageUrl: imagePath!,
+          fit: fit ?? BoxFit.cover,
           color: color,
-          placeholder: (context, url) => Container(
-            height: 30,
-            width: 30,
-            child: LinearProgressIndicator(
-              color: Colors.grey.shade200,
-              backgroundColor: Colors.grey.shade100,
-            ),
-          ),
-          errorWidget: (context, url, error) => Image.asset(
-            placeHolder,
-            height: height,
-            width: width,
-            fit: fit ?? BoxFit.cover,
-          ),
-        );      case ImageType.png:
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              height: height,
+              width: width,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / 
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },          errorBuilder: (context, error, stackTrace) {
+            print("Lỗi tải ảnh từ URL: ${imagePath}, lỗi: $error");
+            return Container(
+              height: height,
+              width: width,
+              color: Colors.grey[100],
+              child: Center(
+                child: Icon(
+                  Icons.image_not_supported,
+                  size: height != null ? height! * 0.3 : 24,
+                  color: Colors.grey[400],
+                ),
+              ),
+            );
+          },
+        );
+          case ImageType.png:
       case ImageType.unknown:
-        default:
-          return Image.asset(
-            imagePath!,
-            height: height,
-            width: width,
-            fit: fit ?? BoxFit.cover,
-            color: color,
-          );      }
-    // This code should not be reached unless there's an error
-    return Image.asset(
-      placeHolder,
-      height: height,
-      width: width,
-      fit: fit ?? BoxFit.cover,
-    );
+        return Image.asset(
+          imagePath!,
+          height: height,
+          width: width,
+          fit: fit ?? BoxFit.cover,
+          color: color,
+        );
+    }
+    
   }
 }
