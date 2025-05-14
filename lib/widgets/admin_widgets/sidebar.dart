@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_svg_provider/flutter_svg_provider.dart';
+import 'package:gear_zone/core/app_export.dart';
 import 'package:gear_zone/core/app_provider.dart';
+import 'package:gear_zone/controller/category_controller.dart';
+import 'package:gear_zone/controller/product_controller.dart';
+import 'package:gear_zone/model/category.dart';
 import 'package:provider/provider.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
 
+  @override
+  State<Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  final CategoryController _categoryController = CategoryController();
+  
   @override
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context);
@@ -91,21 +101,49 @@ class Sidebar extends StatelessWidget {
                     currentIndex: appProvider.currentScreen,
                   ),
 
-                  _buildNestedMenuItem(
+                  FutureBuilder<int>(
+                    future: CategoryController().getCategoriesCount(),
+                    builder: (context, snapshot) {
+                      final categoryCount = snapshot.data?.toString() ?? "0";
+                      return _buildMenuItem(
+                        context,
+                        icon: Icons.category_outlined,
+                        title: 'Danh mục sản phẩm',
+                        index: 3, // Đổi thành index 3 để phù hợp với cấu trúc mới
+                        currentIndex: appProvider.currentScreen,
+                        detail: categoryCount,
+                      );
+                    },
+                  ),
+
+                  FutureBuilder<int>(
+                    future: ProductController().getTotalProductCount(),
+                    builder: (context, snapshot) {
+                      final productCount = snapshot.data?.toString() ?? "0";
+                      return _buildNestedMenuItem(
+                        context,
+                        icon: Icons.inventory_2_outlined,
+                        title: 'Sản phẩm',
+                        index: 1,  // Đổi thành index 1
+                        currentIndex: appProvider.currentScreen,
+                        detail: productCount,
+                      );
+                    }
+                  ),
+
+                  _buildMenuItem(
                     context,
-                    icon: Icons.inventory_2_outlined,
-                    title: 'Sản phẩm',
-                    index: 1,
+                    icon: Icons.card_giftcard_rounded,
+                    title: 'Voucher',
+                    index: 6,  // Cập nhật index
                     currentIndex: appProvider.currentScreen,
-                    detail: '119',
                   ),
 
                   _buildMenuItem(
                     context,
                     icon: Icons.receipt_outlined,
-                    title: 'Giao dịch',
-                    detail: '441',
-                    index: 7,
+                    title: 'Đơn hàng',
+                    index: 8,  // Cập nhật index
                     currentIndex: appProvider.currentScreen,
                   ),
 
@@ -113,15 +151,7 @@ class Sidebar extends StatelessWidget {
                     context,
                     icon: Icons.people_outline,
                     title: 'Khách hàng',
-                    index: 3,
-                    currentIndex: appProvider.currentScreen,
-                  ),
-
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.insert_chart_outlined,
-                    title: 'Báo cáo bán hàng',
-                    index: 4,
+                    index: 9,  // Cập nhật index
                     currentIndex: appProvider.currentScreen,
                   ),
 
@@ -144,48 +174,19 @@ class Sidebar extends StatelessWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.settings_outlined,
-                    title: 'Tài khoản & Cài đặt',
-                    index: 5,
+                    title: 'Cài đặt',
+                    index: 10,  // Cập nhật index
                     currentIndex: appProvider.currentScreen,
                   ),
-
+                  
                   _buildMenuItem(
                     context,
-                    icon: Icons.help_outline_outlined,
-                    title: 'Giúp đỡ',
-                    index: 6,
+                    icon: Icons.chat_outlined,
+                    title: 'Hộp thoại',
+                    index: 11,  // Cập nhật index
                     currentIndex: appProvider.currentScreen,
                   ),
 
-                  const SizedBox(height: 20),
-
-                  // Dark mode toggle
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                        children: [
-                        const Icon(Icons.dark_mode_outlined,
-                          size: 18, color: Colors.grey),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Text(
-                          'Chế độ tối',
-                          style: TextStyle(fontSize: 14),
-                          ),
-                        ),
-                        Transform.scale(
-                          scale: 0.8, // Makes the switch smaller overall
-                          child: Switch(
-                          value: false,
-                          onChanged: (value) {},
-                          activeColor: Colors.deepPurple,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -220,14 +221,14 @@ class Sidebar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Guy Hawkins',
+                        'Admin GearZone',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
-                        'Admin',
+                        'Quản trị viên',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -337,6 +338,9 @@ class Sidebar extends StatelessWidget {
     final isSelected = index == currentIndex;
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     final themeColor = Theme.of(context).primaryColor;
+    
+    // Thêm FutureBuilder để lấy số lượng sản phẩm từ Firestore
+    final categoryCount = detail ?? "0";
 
     return Theme(
       // Sử dụng Theme để loại bỏ đường viền màu đen của ExpansionTile
@@ -352,15 +356,17 @@ class Sidebar extends StatelessWidget {
       ),
       child: ExpansionTile(
         onExpansionChanged: (isExpanded) {
-          appProvider.setCurrentScreen(index);
+          appProvider.setCurrentScreen(1);
           // Khi chọn menu chính "Sản phẩm", hiển thị tất cả sản phẩm
+          // Reset cả category và productId
           appProvider.resetSelectedCategory();
+          appProvider.setCurrentProductId(''); // Reset ID sản phẩm để hiển thị danh sách thay vì chi tiết
           if (Responsive.isMobile(context)) {
             Navigator.pop(context);
           }
         },
         initiallyExpanded: isSelected,
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+        tilePadding: EdgeInsets.symmetric(horizontal: 16.h,),
         leading: Icon(
           icon, 
           size: 18, 
@@ -403,41 +409,65 @@ class Sidebar extends StatelessWidget {
         iconColor: themeColor,
         collapsedIconColor: Colors.grey[600],
         children: [
-          // Giữ lại Container với border bên trái màu tím
+          // Load danh mục từ Firestore
           Padding(
             padding: const EdgeInsets.only(left: 24.0),
             child: Consumer<AppProvider>(
               builder: (context, appProvider, _) {
                 // Lấy danh mục đã chọn từ AppProvider để hiển thị trạng thái active
                 String selectedCategory = appProvider.selectedCategory.toLowerCase();
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildNestedSubMenuItem(
-                      context, 
-                      'laptop', 
-                      displayName: 'Laptop',
-                      isActive: selectedCategory == 'laptop'
-                    ),
-                    _buildNestedSubMenuItem(
-                      context, 
-                      'mouse', 
-                      displayName: 'Chuột',
-                      isActive: selectedCategory == 'mouse'
-                    ),
-                    _buildNestedSubMenuItem(
-                      context, 
-                      'monitor', 
-                      displayName: 'Màn hình',
-                      isActive: selectedCategory == 'monitor'
-                    ),
-                    _buildNestedSubMenuItem(
-                      context, 
-                      'pc', 
-                      displayName: 'PC',
-                      isActive: selectedCategory == 'pc'
-                    ),
-                  ],
+                
+                // Stream builder để hiển thị danh mục từ Firestore
+                return StreamBuilder<List<CategoryModel>>(
+                  stream: _categoryController.getCategories(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Center(
+                          child: SizedBox(
+                            width: 20, 
+                            height: 20, 
+                            child: CircularProgressIndicator(strokeWidth: 2)
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    if (snapshot.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Lỗi: ${snapshot.error}',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      );
+                    }
+                    
+                    final categories = snapshot.data ?? [];
+                    
+                    if (categories.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('Không có danh mục nào'),
+                      );
+                    }
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: categories.map((category) {
+                        final categoryId = category.id.toLowerCase();
+                        final categoryName = category.categoryName;
+                        
+                        return _buildNestedSubMenuItem(
+                          context,
+                          categoryName,  // Sử dụng categoryName thay vì categoryId
+                          displayName: categoryName,
+                          isActive: selectedCategory == categoryName  // So sánh với categoryName
+                        );
+                      }).toList(),
+                    );
+                  },
                 );
               },
             ),
@@ -451,41 +481,65 @@ class Sidebar extends StatelessWidget {
     // Màu tím chủ đạo của ứng dụng khi active
     final themeColor = Theme.of(context).primaryColor;
     final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final productController = ProductController();
     
-    return InkWell(
-      onTap: () {
-        // Đặt danh mục được chọn vào Provider
-        appProvider.setSelectedCategory(title);
-        // Giữ nguyên màn hình sản phẩm (index 1)
-        appProvider.setCurrentScreen(1);
-        // Nếu đang ở mobile thì đóng drawer
-        if (Responsive.isMobile(context)) {
-          Navigator.pop(context);
-        }
-      },
-      child: Row(
-        children: [
-          // Sử dụng SvgPicture.asset thay thế Container
-          SvgPicture.asset(
-            'icons/icon_line.svg',
-            fit: BoxFit.cover,
-            // Thay đổi màu của SVG tùy theo trạng thái active
-            colorFilter: ColorFilter.mode(
-              isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
-              BlendMode.srcIn,
-            ),
+    return FutureBuilder<int>(
+      future: productController.countProductsByCategory(title),
+      builder: (context, snapshot) {
+        final productCount = snapshot.data ?? 0;
+        
+        return InkWell(
+          onTap: () {
+            // Đặt danh mục được chọn vào Provider
+            appProvider.setSelectedCategory(title);
+            // Giữ nguyên màn hình sản phẩm (index 2)
+            appProvider.setCurrentScreen(2);
+            // Nếu đang ở mobile thì đóng drawer
+            if (Responsive.isMobile(context)) {
+              Navigator.pop(context);
+            }
+          },
+          child: Row(
+            children: [
+              // Sử dụng SvgPicture.asset thay thế Container
+              SvgPicture.asset(
+                'icons/icon_line.svg',
+                fit: BoxFit.cover,
+                // Thay đổi màu của SVG tùy theo trạng thái active
+                colorFilter: ColorFilter.mode(
+                  isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                displayName ?? title,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isActive ? themeColor : Colors.grey[600],
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                margin: const EdgeInsets.only(right: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEEEEE),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  productCount.toString(),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text(
-            displayName ?? title,
-            style: TextStyle(
-              fontSize: 14,
-              color: isActive ? themeColor : Colors.grey[600],
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 }

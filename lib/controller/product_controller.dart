@@ -149,11 +149,10 @@ class ProductController {  final FirebaseFirestore _firestore = FirebaseFirestor
         return ProductModel.fromMap(data);
       }).toList();
     });
-  }
-  // Lọc sản phẩm theo danh mục
-  Stream<List<ProductModel>> getProductsByCategory(String category) {
+  }  // Lọc sản phẩm theo danh mục
+  Stream<List<ProductModel>> getProductsByCategory(String categoryName) {
     return _productsCollection
-        .where('category', isEqualTo: category)
+        .where('category', isEqualTo: categoryName)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -334,6 +333,28 @@ class ProductController {  final FirebaseFirestore _firestore = FirebaseFirestor
       print('Lỗi khi lấy sản phẩm PC: $e');
       return [];
     }  
+  }
+  // Đếm tổng số sản phẩm trong database
+  Future<int> getTotalProductCount() async {
+    try {
+      final QuerySnapshot snapshot = await _productsCollection.get();
+      return snapshot.docs.length;
+    } catch (e) {
+      print('Lỗi khi đếm tổng số sản phẩm: $e');
+      return 0;
+    }
+  }
+  
+  // Đếm số sản phẩm theo danh mục  
+  Future<int> countProductsByCategory(String categoryName) async {
+    try {
+      final QuerySnapshot snapshot = 
+          await _productsCollection.where('category', isEqualTo: categoryName).get();
+      return snapshot.docs.length;
+    } catch (e) {
+      print('Lỗi khi đếm sản phẩm theo danh mục: $e');
+      return 0;
+    }
   }
 
   // Lấy sản phẩm theo danh mục cụ thể truyền vào (Future version)

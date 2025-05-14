@@ -4,11 +4,13 @@ class AppProvider extends ChangeNotifier {
   int _currentScreen = 0;
   bool _isViewOnlyMode = false; // Theo dõi chế độ xem hay sửa
   String _currentProductId = ''; // ID sản phẩm hiện tại đang xem/sửa
+  String _currentCategoryId = ''; // ID danh mục hiện tại đang xem/sửa
   String _selectedCategory = ''; // Danh mục sản phẩm được chọn (laptop, mouse, monitor, pc)
   
   int get currentScreen => _currentScreen;
   bool get isViewOnlyMode => _isViewOnlyMode;
   String get currentProductId => _currentProductId;
+  String get currentCategoryId => _currentCategoryId;
   String get selectedCategory => _selectedCategory;
   
   void setCurrentScreen(int index, {bool isViewOnly = false}) {
@@ -19,6 +21,11 @@ class AppProvider extends ChangeNotifier {
   
   void setCurrentProductId(String productId) {
     _currentProductId = productId;
+    notifyListeners();
+  }
+  
+  void setCurrentCategoryId(String categoryId) {
+    _currentCategoryId = categoryId;
     notifyListeners();
   }
   

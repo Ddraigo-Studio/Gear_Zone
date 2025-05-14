@@ -4,6 +4,7 @@ import '../../../core/app_provider.dart';  // Import AppProvider
 import '../../../core/utils/responsive.dart';  // Import Responsive
 import 'package:provider/provider.dart';   // Import Provider
 import '../../../controller/product_controller.dart';  // Import ProductController
+import '../../../widgets/custom_image_view.dart';  // Import CustomImageView
 
 
 
@@ -51,19 +52,17 @@ TableRow buildProductTableRow(
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Row(
-            children: [
-              Container(
+            children: [              Container(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),                  
-                  image: DecorationImage(
-                    image: product.imageUrl.isNotEmpty 
-                        ? NetworkImage(product.imageUrl) 
-                        : Image.asset(
-                            'assets/images/img_logo.png',
-                            fit: BoxFit.cover,
-                          ).image,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: CustomImageView(
+                    imagePath: product.imageUrl.isNotEmpty 
+                        ? product.imageUrl
+                        : 'assets/images/img_logo.png',
+                    height: 48,
+                    width: 48,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -259,19 +258,19 @@ Widget buildMobileProductItem(
                 value: false,
                 onChanged: (value) {},
               ),
-            ),
-            Container(
+            ),            Container(
               width: 40,
               height: 40,
               margin: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),                
-                image: DecorationImage(
-                  image: product.imageUrl.isNotEmpty 
-                      ? NetworkImage(product.imageUrl) 
-                      : const AssetImage('assets/images/img_logo.png') as ImageProvider,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: CustomImageView(
+                  imagePath: product.imageUrl.isNotEmpty 
+                      ? product.imageUrl 
+                      : 'assets/images/img_logo.png',
+                  height: 40,
+                  width: 40,
                   fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {},
                 ),
               ),
             ),
