@@ -2,13 +2,14 @@
 class CategoryModel {
   final String id;
   final String imagePath;
-  final String categoryName;  String ceatedAt;
+  final String categoryName;
+  String ceatedAt;
+  
   CategoryModel({
     required this.id,
     required this.imagePath,
     required this.categoryName,
-    String? ceatedAt,
-  }) : this.ceatedAt = ceatedAt ?? DateTime.now().toIso8601String();
+    String? ceatedAt,  }) : this.ceatedAt = ceatedAt ?? DateTime.now().toIso8601String();
 
   // From Map method to create a CategoryModel from a Map
   factory CategoryModel.fromMap(Map<String, dynamic> map) {
@@ -17,9 +18,8 @@ class CategoryModel {
       imagePath: map['imagePath'] ?? '',
       categoryName: map['categoryName'] ?? '',
       ceatedAt: map['ceatedAt'] ?? DateTime.now().toIso8601String(),
-    );
-  }
-
+    );  }
+  
   // To Map method to convert CategoryModel to a Map
   Map<String, dynamic> toMap() {
     return {
@@ -29,7 +29,7 @@ class CategoryModel {
       'ceatedAt': ceatedAt,
     };
   }
-
+  
   // Create a copy of this CategoryModel with given attributes
   CategoryModel copyWith({
     String? id,
