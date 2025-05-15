@@ -3,18 +3,157 @@ import 'package:gear_zone/model/product.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 
-class ProductController {  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+class ProductController {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   late final CollectionReference _productsCollection;
   
   ProductController() {
     _productsCollection = _firestore.collection('products');
+  }  // Lấy danh sách sản phẩm có phân trang
+  Future<Map<String, dynamic>> getProductsPaginated({int page = 1, int limit = 20}) async {
+    try {
+      // Lấy tổng số sản phẩm
+      final totalSnapshot = await _productsCollection.get();
+      final total = totalSnapshot.size;
+      
+      // Lấy dữ liệu sản phẩm theo trang - đối với Firestore, chúng ta cần thực hiện phân trang thủ công
+      Query query = _productsCollection
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+          
+      // Nếu không phải trang đầu tiên, chúng ta cần lấy tài liệu chốt
+      if (page > 1) {
+        // Lấy tài liệu cuối cùng của trang trước
+        final lastDoc = await _productsCollection
+            .orderBy('createdAt', descending: true)
+            .limit((page - 1) * limit)
+            .get()
+            .then((snap) => snap.docs.isNotEmpty ? snap.docs.last : null);
+            
+        if (lastDoc != null) {
+          query = query.startAfterDocument(lastDoc);
+        }
+      }
+      
+      final QuerySnapshot querySnapshot = await query.get();
+          
+      // Chuyển đổi dữ liệu thành danh sách sản phẩm
+      final List<ProductModel> products = querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+      
+      // Tính tổng số trang
+      final int totalPages = (total / limit).ceil();
+      
+      return {
+        'products': products,
+        'total': total,
+        'totalPages': totalPages,
+        'currentPage': page,
+        'hasNextPage': page < totalPages,
+        'hasPreviousPage': page > 1,
+      };
+    } catch (e) {
+      print('Lỗi khi lấy sản phẩm phân trang: $e');
+      return {
+        'products': <ProductModel>[],
+        'total': 0,
+        'totalPages': 1,
+        'currentPage': 1,
+        'hasNextPage': false,
+        'hasPreviousPage': false,
+      };
+    }
+  }
+    // Lấy danh sách sản phẩm theo danh mục có phân trang
+  Future<Map<String, dynamic>> getProductsByCategoryPaginated(
+      String category, {int page = 1, int limit = 20}) async {
+    try {
+      // Lấy tổng số sản phẩm của danh mục
+      final totalSnapshot = await _productsCollection
+          .where('category', isEqualTo: category)
+          .get();
+      final total = totalSnapshot.size;
+      
+      // Lấy dữ liệu sản phẩm theo trang - đối với Firestore, chúng ta cần thực hiện phân trang thủ công
+      // Vì Firestore không hỗ trợ offset trực tiếp, chúng ta sẽ dùng startAfter để lấy trang tiếp theo
+      Query query = _productsCollection
+          .where('category', isEqualTo: category)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+          
+      // Nếu không phải trang đầu tiên, chúng ta cần lấy tài liệu chốt
+      if (page > 1) {
+        // Lấy tài liệu cuối cùng của trang trước
+        final lastDoc = await _productsCollection
+            .where('category', isEqualTo: category)
+            .orderBy('createdAt', descending: true)
+            .limit((page - 1) * limit)
+            .get()
+            .then((snap) => snap.docs.isNotEmpty ? snap.docs.last : null);
+            
+        if (lastDoc != null) {
+          query = query.startAfterDocument(lastDoc);
+        }
+      }
+      
+      final QuerySnapshot querySnapshot = await query.get();
+          
+      // Chuyển đổi dữ liệu thành danh sách sản phẩm
+      final List<ProductModel> products = querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+      
+      // Tính tổng số trang
+      final int totalPages = (total / limit).ceil();
+      
+      return {
+        'products': products,
+        'total': total,
+        'totalPages': totalPages,
+        'currentPage': page,
+        'hasNextPage': page < totalPages,
+        'hasPreviousPage': page > 1,
+      };
+    } catch (e) {
+      print('Lỗi khi lấy sản phẩm theo danh mục phân trang: $e');
+      return {
+        'products': <ProductModel>[],
+        'total': 0,
+        'totalPages': 1,
+        'currentPage': 1,
+        'hasNextPage': false,
+        'hasPreviousPage': false,
+      };
+    }
   }
 
-  // Lấy danh sách sản phẩm
+  // Giữ các phương thức stream cho khả năng tương thích ngược
   Stream<List<ProductModel>> getProducts() {
     return _productsCollection
         .orderBy('createdAt', descending: true)
+        .limit(20) // Giới hạn 20 sản phẩm mặc định
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+    });
+  }
+  
+  // Cập nhật phương thức lấy sản phẩm theo danh mục với giới hạn
+  Stream<List<ProductModel>> getProductsByCategory(String category) {
+    return _productsCollection
+        .where('category', isEqualTo: category)
+        .orderBy('createdAt', descending: true)
+        .limit(20) // Giới hạn 20 sản phẩm mặc định
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -141,18 +280,6 @@ class ProductController {  final FirebaseFirestore _firestore = FirebaseFirestor
         .orderBy('name')
         .startAt([keyword])
         .endAt([keyword + '\uf8ff'])
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
-        return ProductModel.fromMap(data);
-      }).toList();
-    });
-  }  // Lọc sản phẩm theo danh mục
-  Stream<List<ProductModel>> getProductsByCategory(String categoryName) {
-    return _productsCollection
-        .where('category', isEqualTo: categoryName)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {

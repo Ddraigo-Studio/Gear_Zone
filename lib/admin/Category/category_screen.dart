@@ -3,9 +3,10 @@ import 'package:gear_zone/controller/category_controller.dart';
 import 'package:gear_zone/model/category.dart';
 import 'package:provider/provider.dart';
 import 'Items/category_row_item.dart';
-import '../../../core/app_provider.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../widgets/admin_widgets/breadcrumb.dart';
+import '../../core/app_provider.dart';
+import '../../core/utils/responsive.dart';
+import '../../widgets/admin_widgets/breadcrumb.dart';
+import '../../widgets/pagination_widget.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -15,11 +16,76 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
+  final CategoryController _categoryController = CategoryController();
+  
+  // Thông tin phân trang
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _hasNextPage = false;
+  bool _hasPreviousPage = false;
+  int _totalItems = 0;
+  final int _itemsPerPage = 20;
+  List<CategoryModel> _categories = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final appProvider = Provider.of<AppProvider>(context);
+    if (appProvider.reloadCategoryList) {
+      _loadCategories();
+      appProvider.setReloadCategoryList(false);
+    }
+  }
+
+  // Load danh mục với phân trang
+  Future<void> _loadCategories() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final result = await _categoryController.getCategoriesPaginated(
+        page: _currentPage, 
+        limit: _itemsPerPage
+      );
+      
+      setState(() {
+        _categories = result['categories'];
+        _totalItems = result['total'];
+        _totalPages = result['totalPages'];
+        _currentPage = result['currentPage'];
+        _hasNextPage = result['hasNextPage'];
+        _hasPreviousPage = result['hasPreviousPage'];
+        _isLoading = false;
+        _errorMessage = '';
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Lỗi khi tải danh mục: $e';
+      });
+    }
+  }
+
+  // Xử lý khi thay đổi trang
+  void _handlePageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+    _loadCategories();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Lắng nghe thay đổi từ Provider để cập nhật giao diện
     final appProvider = Provider.of<AppProvider>(context);
-    final categoryController = CategoryController();
+    final isMobile = Responsive.isMobile(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12.0),
@@ -33,14 +99,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-          ),          // Breadcrumb
+          ),
+          
+          // Breadcrumb
           Breadcrumb(
             items: [
               BreadcrumbBuilder.dashboard(context),
               BreadcrumbBuilder.categories(context),
             ],
           ),
-          const SizedBox(height: 24),          // Search and filters
+          
+          const SizedBox(height: 24),
+          
+          // Search and filters
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -223,298 +294,175 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           ),
                         ],
                       ),
-                const SizedBox(height: 24),                // Hiển thị dữ liệu danh mục từ Firestore
-                StreamBuilder<List<CategoryModel>>(
-                  stream: categoryController.getCategories(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Text('Lỗi: ${snapshot.error}'),
-                        ),
-                      );
-                    }
-
-                    final categories = snapshot.data ?? [];
-                    if (categories.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            children: [
-                              const Icon(Icons.category_outlined,
-                                  size: 48, color: Colors.grey),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Không có danh mục nào',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }                    // Khi ở chế độ mobile, sử dụng CategoryListView thay vì bảng truyền thống
-                    final isMobile = Responsive.isMobile(context);
-                    
-                    if (isMobile) {
-                      return CategoryListView(categories: categories);
-                    }
-
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                const SizedBox(height: 24),
+                
+                // Hiển thị dữ liệu danh mục
+                _isLoading 
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
                       ),
-                      child: Column(
-                        children: [                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: const BoxDecoration(
-                              color: Color(0xffF6F6F6),
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(12),
-                                topRight: Radius.circular(12),
-                              ),
-                            ),                            child: Column(
+                    )
+                  : _errorMessage.isNotEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Text('Lỗi: $_errorMessage'),
+                        ),
+                      )
+                    : _categories.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
                               children: [
-                                // Table header
-                                Table(
-                                  defaultVerticalAlignment:
-                                      TableCellVerticalAlignment.middle,
-                                  columnWidths: const {
-                                    0: FixedColumnWidth(40), // Checkbox
-                                    1: FlexColumnWidth(3), // Danh mục
-                                    2: FlexColumnWidth(1), // Ngày tạo
-                                    3: FlexColumnWidth(1), // Hành động
-                                  },
-                                  children: [
-                                    TableRow(
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xffF6F6F6),
-                                      ),
-                                      children: [
-                                        // Checkbox
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 10.0),
-                                          alignment: Alignment.center,
-                                          child: Checkbox(
-                                            value: false,
-                                            onChanged: (value) {},
-                                          ),
-                                        ),
-                                        // Danh mục
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 10.0),
-                                          child: Text(
-                                            'Danh mục',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey.shade700,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                        // Ngày tạo
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 10.0),
-                                          child: Text(
-                                            'Ngày tạo',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey.shade700,
-                                              fontSize: 14,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                        // Hành động
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 10.0),
-                                          child: Text(
-                                            'Hành động',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey.shade700,
-                                              fontSize: 14,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                const Icon(Icons.category_outlined,
+                                    size: 48, color: Colors.grey),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Không có danh mục nào',
+                                  style: TextStyle(color: Colors.grey),
                                 ),
-                                
-                                // Table body
-                                buildCategoryTable(context, categories: categories),
                               ],
                             ),
-                          ),                          // Pagination - Responsive layout
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Responsive.isMobile(context)
-                                ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                          ),
+                        )
+                      : isMobile
+                        // Mobile view - danh sách dọc các danh mục
+                        ? CategoryListView(categories: _categories)
+                        // Desktop view - bảng danh mục
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xffF6F6F6),
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(12),
+                                      topRight: Radius.circular(12),
+                                    ),
+                                  ),
+                                  child: Column(
                                     children: [
-                                      // Category count
-                                      Text(
-                                        'Tổng số: ${categories.length} danh mục',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      // Page controls
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                      // Table header
+                                      Table(
+                                        defaultVerticalAlignment:
+                                            TableCellVerticalAlignment.middle,
+                                        columnWidths: const {
+                                          0: FixedColumnWidth(40), // Checkbox
+                                          1: FlexColumnWidth(3), // Danh mục
+                                          2: FlexColumnWidth(1), // Ngày tạo
+                                          3: FlexColumnWidth(1), // Hành động
+                                        },
                                         children: [
-                                          Text(
-                                            'Trang',
-                                            style: TextStyle(
-                                              fontSize: 14, 
-                                              color: Colors.grey.shade600,
+                                          TableRow(
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xffF6F6F6),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 12, vertical: 8),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(color: Colors.grey.shade300),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Text('1',
-                                                    style: TextStyle(fontSize: 14)),
-                                                const SizedBox(width: 4),
-                                                const Icon(Icons.keyboard_arrow_down,
-                                                    size: 16),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          IconButton(
-                                            icon: const Icon(Icons.keyboard_arrow_left),
-                                            onPressed: () {},
-                                            style: IconButton.styleFrom(
-                                              padding: EdgeInsets.zero,
-                                              minimumSize: const Size(32, 32),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(4),
-                                                side: BorderSide(
-                                                    color: Colors.grey.shade300),
+                                            children: [
+                                              // Checkbox
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                    vertical: 10.0),
+                                                alignment: Alignment.center,
+                                                child: Checkbox(
+                                                  value: false,
+                                                  onChanged: (value) {},
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          IconButton(
-                                            icon: const Icon(Icons.keyboard_arrow_right),
-                                            onPressed: () {},
-                                            style: IconButton.styleFrom(
-                                              padding: EdgeInsets.zero,
-                                              minimumSize: const Size(32, 32),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(4),
-                                                side: BorderSide(
-                                                    color: Colors.grey.shade300),
+                                              // Danh mục
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                    vertical: 10.0),
+                                                child: Text(
+                                                  'Danh mục',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey.shade700,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
+                                              // Ngày tạo
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                    vertical: 10.0),
+                                                child: Text(
+                                                  'Ngày tạo',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey.shade700,
+                                                    fontSize: 14,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                              // Hành động
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                    vertical: 10.0),
+                                                child: Text(
+                                                  'Hành động',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey.shade700,
+                                                    fontSize: 14,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
+                                      
+                                      // Table body
+                                      buildCategoryTable(context, categories: _categories),
                                     ],
-                                  ) 
-                                : Row(
+                                  ),
+                                ),
+                                
+                                // Phân trang
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
                                     children: [
                                       Text(
-                                        'Tổng số: ${categories.length} danh mục',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        'Trang',
+                                        'Tổng: $_totalItems danh mục | Hiển thị ${_categories.length} mục',
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.grey.shade600,
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        decoration: BoxDecoration(
-                                          border:
-                                              Border.all(color: Colors.grey.shade300),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Text('1',
-                                                style: TextStyle(fontSize: 14)),
-                                            const SizedBox(width: 4),
-                                            const Icon(Icons.keyboard_arrow_down,
-                                                size: 16),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      IconButton(
-                                        icon: const Icon(Icons.keyboard_arrow_left),
-                                        onPressed: () {},
-                                        style: IconButton.styleFrom(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(4),
-                                            side: BorderSide(
-                                                color: Colors.grey.shade300),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      IconButton(
-                                        icon: const Icon(Icons.keyboard_arrow_right),
-                                        onPressed: () {},
-                                        style: IconButton.styleFrom(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(4),
-                                            side: BorderSide(
-                                                color: Colors.grey.shade300),
-                                          ),
-                                        ),
+                                      const Spacer(),
+                                      
+                                      // Widget phân trang
+                                      PaginationWidget(
+                                        currentPage: _currentPage,
+                                        totalPages: _totalPages,
+                                        hasNextPage: _hasNextPage,
+                                        hasPreviousPage: _hasPreviousPage,
+                                        onPageChanged: _handlePageChanged,
                                       ),
                                     ],
                                   ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
               ],
             ),
           ),
