@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:gear_zone/core/app_export.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../../controller/category_controller.dart';
@@ -8,6 +9,7 @@ import '../../../widgets/custom_image_view.dart';
 import 'package:provider/provider.dart';
 import '../../../core/app_provider.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
+import '../../../widgets/admin_widgets/breadcrumb.dart';
 
 class CategoryDetail extends StatefulWidget {
   final String categoryId;
@@ -366,13 +368,11 @@ class _CategoryDetailState extends State<CategoryDetail> {
           content: Text('Xóa danh mục thành công'),
           backgroundColor: Colors.green,
         ),
-      );
-
-      // Trở về màn hình danh sách
+      );      // Trở về màn hình danh sách
       if (mounted) {
         Provider.of<AppProvider>(context, listen: false)
             .setCurrentCategoryId('');
-        Provider.of<AppProvider>(context, listen: false).setCurrentScreen(3);
+        Provider.of<AppProvider>(context, listen: false).setCurrentScreen(AppScreen.categoryList);
       }
     } catch (e) {
       // Đóng dialog loading nếu có lỗi
@@ -394,10 +394,9 @@ class _CategoryDetailState extends State<CategoryDetail> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = Responsive.isDesktop(context);
+    final isMobile = Responsive.isMobile(context);
 
     return Scaffold(
-      
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage.isNotEmpty && _category == null
@@ -421,7 +420,7 @@ class _CategoryDetailState extends State<CategoryDetail> {
                           Provider.of<AppProvider>(context, listen: false)
                               .setCurrentCategoryId('');
                           Provider.of<AppProvider>(context, listen: false)
-                              .setCurrentScreen(3);
+                              .setCurrentScreen(AppScreen.categoryList);
                         },
                         child: const Text('Quay lại danh sách'),
                       ),
@@ -445,54 +444,12 @@ class _CategoryDetailState extends State<CategoryDetail> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                Provider.of<AppProvider>(context, listen: false)
-                                    .setCurrentScreen(0);
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: const Text(
-                                'Bảng điều khiển',
-                                style:
-                                    TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right,
-                                size: 16, color: Colors.grey),
-                            TextButton(
-                              onPressed: () {
-                                Provider.of<AppProvider>(context, listen: false)
-                                    .setCurrentCategoryId('');
-                                Provider.of<AppProvider>(context, listen: false)
-                                    .setCurrentScreen(3);
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: const Text(
-                                'Danh mục',
-                                style:
-                                    TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right,
-                                size: 16, color: Colors.grey),
-                            Text(
-                              _category?.categoryName ?? 'Chi tiết',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                            ),
+                        const SizedBox(height: 8),                        
+                        Breadcrumb(
+                          items: [
+                            BreadcrumbBuilder.dashboard(context),
+                            BreadcrumbBuilder.categories(context),
+                            BreadcrumbBuilder.categoryDetail(context, _category?.categoryName ?? 'Chi tiết'),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -521,490 +478,394 @@ class _CategoryDetailState extends State<CategoryDetail> {
                             ),
                           ),
 
-                        // Main content with two panels side by side
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Main form - Left panel
-                            Expanded(
-                              flex: 1,
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Thông tin danh mục',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Lorem ipsum dolor sit amet consectetur. Non ac nulla aliquam aenean in velit mattis.',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 30),
-
-                                      // Mã danh mục
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Mã danh mục',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          TextFormField(
-                                            controller: _idController,
-                                            decoration: InputDecoration(
-                                              hintText: 'Nhập mã danh mục',
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                borderSide: BorderSide(
-                                                    color:
-                                                        Colors.grey.shade300),
-                                              ),
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 16),
-                                              fillColor: Colors.white,
-                                              filled: true,
-                                            ),
-                                            enabled:
-                                                false, // ID không thể thay đổi
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 24),
-
-                                      // Tên danh mục
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Tên danh mục',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          TextFormField(
-                                            controller: _nameController,
-                                            decoration: InputDecoration(
-                                              hintText: 'Nhập tên sản phẩm',
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                borderSide: BorderSide(
-                                                    color:
-                                                        Colors.grey.shade300),
-                                              ),
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 16),
-                                              fillColor: Colors.white,
-                                              filled: true,
-                                            ),
-                                            validator: (value) {
-                                              if (value == null ||
-                                                  value.isEmpty) {
-                                                return 'Vui lòng nhập tên danh mục';
-                                              }
-                                              return null;
-                                            },
-                                            enabled: !widget.isViewOnly,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                        // Main content - responsive layout
+                        isMobile
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildCategoryInfoCard(),
+                                  const SizedBox(height: 20),
+                                  _buildCategoryImageCard(),
+                                  const SizedBox(height: 20),
+                                  _buildActionButtons(),
+                                ],
+                              )
+                            : Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Main form - Left panel
+                                  Expanded(
+                                    flex: 1,
+                                    child: _buildCategoryInfoCard(),
                                   ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20, width: 20),
-                            Expanded(
-                              flex: 1,
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text(
-                                            'Hình ảnh danh mục',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          if (!widget.isViewOnly)
-                                            // Toggle between URL and file upload
-                                            SegmentedButton<bool>(
-                                              segments: const [
-                                                ButtonSegment<bool>(
-                                                  value: false,
-                                                  label: Text('Tải lên'),
-                                                ),
-                                                ButtonSegment<bool>(
-                                                  value: true,
-                                                  label: Text('URL'),
-                                                ),
-                                              ],
-                                              selected: {_isUrlInput},
-                                              onSelectionChanged:
-                                                  (newSelection) {
-                                                setState(() {
-                                                  _isUrlInput =
-                                                      newSelection.first;
-                                                });
-                                              },
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            'Chú ý:',
-                                            style: TextStyle(
-                                              color: Colors.deepPurple,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'Định dạng ảnh SVG, PNG, or JPG (kích cỡ tối đa 4mb)',
-                                            style: TextStyle(
-                                              color: Colors.grey.shade600,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      
-                                      const SizedBox(height: 20),
-
-                                      // URL input or file upload based on toggle and view mode
-                                      if (_isUrlInput && !widget.isViewOnly)
-                                        TextFormField(
-                                          controller: _imageUrlController,
-                                          decoration: InputDecoration(
-                                            hintText: 'Nhập URL hình ảnh',
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: BorderSide(
-                                                  color: Colors.grey.shade300),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 16),
-                                            fillColor: Colors.white,
-                                            filled: true,
-                                          ),
-                                          enabled: !widget.isViewOnly,
-                                        )
-                                      else if (widget.isViewOnly)
-                                        // Chỉ hiển thị ảnh trong chế độ xem
-                                        Container(
-                                          width: double.infinity,
-                                          height: 300,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Colors.blue.shade200,
-                                              width: 1,
-                                              style: BorderStyle.solid,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: _category
-                                                      ?.imagePath.isNotEmpty ==
-                                                  true
-                                              ? ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: CustomImageView(
-                                                    imagePath:
-                                                        _category!.imagePath,
-                                                    fit: BoxFit.contain,
-                                                    width: double.infinity,
-                                                    height: double.infinity,
-                                                  ),
-                                                )
-                                              : Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.image_outlined,
-                                                      size: 48,
-                                                      color: Colors
-                                                          .deepPurple.shade200,
-                                                    ),
-                                                    const SizedBox(height: 12),
-                                                    const Text(
-                                                      'Không có hình ảnh',
-                                                      style: TextStyle(
-                                                        color: Colors.grey,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                        )
-                                      else
-                                        // Khung upload ảnh trong chế độ chỉnh sửa
-                                        InkWell(
-                                          onTap: !widget.isViewOnly
-                                              ? _pickImage
-                                              : null,
-                                          child: Container(
-                                            width: double.infinity,
-                                            height: 300,
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                color: Colors.blue.shade200,
-                                                width: 1,
-                                                style: BorderStyle.solid,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: _imageFile != null
-                                                ? Stack(
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                        child: CustomImageView(
-                                                          imagePath:
-                                                              _imageFile!.path,
-                                                          fit: BoxFit.contain,
-                                                          width:
-                                                              double.infinity,
-                                                          height:
-                                                              double.infinity,
-                                                        ),
-                                                      ),
-                                                      if (!widget.isViewOnly)
-                                                        Positioned(
-                                                          top: 8,
-                                                          right: 8,
-                                                          child: CircleAvatar(
-                                                            radius: 16,
-                                                            backgroundColor:
-                                                                Colors.black
-                                                                    .withOpacity(
-                                                                        0.6),
-                                                            child: IconButton(
-                                                              icon: const Icon(
-                                                                  Icons.close,
-                                                                  size: 16,
-                                                                  color: Colors
-                                                                      .white),
-                                                              onPressed:
-                                                                  _removeImage,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  )
-                                                : _category?.imagePath
-                                                            .isNotEmpty ==
-                                                        true
-                                                    ? Stack(
-                                                        alignment:
-                                                            Alignment.center,
-                                                        children: [
-                                                          ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8),
-                                                            child:
-                                                                CustomImageView(
-                                                              imagePath:
-                                                                  _category!
-                                                                      .imagePath,
-                                                              fit: BoxFit.contain,
-                                                              width: double
-                                                                  .infinity,
-                                                              height: double
-                                                                  .infinity,
-                                                            ),
-                                                          ),
-                                                          if (!widget
-                                                              .isViewOnly)
-                                                            Positioned(
-                                                              top: 8,
-                                                              right: 8,
-                                                              child:
-                                                                  CircleAvatar(
-                                                                radius: 16,
-                                                                backgroundColor:
-                                                                    Colors.black
-                                                                        .withOpacity(
-                                                                            0.6),
-                                                                child:
-                                                                    IconButton(
-                                                                  icon: const Icon(
-                                                                      Icons
-                                                                          .close,
-                                                                      size: 16,
-                                                                      color: Colors
-                                                                          .white),
-                                                                  onPressed:
-                                                                      _removeImage,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                        ],
-                                                      )
-                                                    : Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Icon(
-                                                            Icons
-                                                                .image_outlined,
-                                                            size: 48,
-                                                            color: Colors
-                                                                .deepPurple
-                                                                .shade200,
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 12),
-                                                          const Text(
-                                                            'Ảnh',
-                                                            style: TextStyle(
-                                                              color:
-                                                                  Colors.grey,
-                                                              fontSize: 16,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                          ),
-                                        ), // Upload indicator
-                                      if (_isUploading && !widget.isViewOnly)
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 10.0),
-                                          child: LinearProgressIndicator(
-                                            value: double.parse(_uploadProgress
-                                                    .replaceAll('%', '')) /
-                                                100,
-                                            backgroundColor: Colors.grey[200],
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    Colors.deepPurple),
-                                          ),
-                                        ),
-
-                                      const SizedBox(height: 20),
-
-                                      // Buttons
-                                      if (!widget.isViewOnly)
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                onPressed: () {
-                                                  Provider.of<AppProvider>(
-                                                          context,
-                                                          listen: false)
-                                                      .setCurrentCategoryId('');
-                                                  Provider.of<AppProvider>(
-                                                          context,
-                                                          listen: false)
-                                                      .setCurrentScreen(3);
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                  foregroundColor: Colors.black,
-                                                  backgroundColor: Colors.white,
-                                                  padding: const EdgeInsets
-                                                      .symmetric(vertical: 16),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                    side: BorderSide(
-                                                        color: Colors
-                                                            .grey.shade300),
-                                                  ),
-                                                ),
-                                                child: const Text(
-                                                    'Discard Changes'),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                onPressed: _saveCategory,
-                                                style: ElevatedButton.styleFrom(
-                                                  foregroundColor: Colors.white,
-                                                  backgroundColor:
-                                                      Colors.deepPurple,
-                                                  padding: const EdgeInsets
-                                                      .symmetric(vertical: 16),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                ),
-                                                child:
-                                                    const Text('Save Changes'),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                    ],
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      children: [
+                                        _buildCategoryImageCard(),
+                                        const SizedBox(height: 20),
+                                        _buildActionButtons(),
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
                 ),
+    );
+  }
+
+  // Category information card
+  Widget _buildCategoryInfoCard() {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Thông tin danh mục',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            
+            const SizedBox(height: 30),
+
+            // Mã danh mục
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Mã danh mục',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _idController,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập mã danh mục',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                  enabled: false, // ID không thể thay đổi
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Tên danh mục
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tên danh mục',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập tên sản phẩm',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Vui lòng nhập tên danh mục';
+                    }
+                    return null;
+                  },
+                  enabled: !widget.isViewOnly,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Category image card
+  Widget _buildCategoryImageCard() {
+    final isMobile = Responsive.isMobile(context);
+    
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              spacing: 10,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Hình ảnh danh mục',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                if (!widget.isViewOnly)
+                  // Toggle between URL and file upload
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: 
+                          SegmentedButton<bool>(
+                            segments: const [
+                              ButtonSegment<bool>(
+                                value: false,
+                                label: Text('Tải lên'),
+                              ),
+                              ButtonSegment<bool>(
+                                value: true,
+                                label: Text('URL'),
+                              ),
+                            ],
+                            selected: {_isUrlInput},
+                            onSelectionChanged: (newSelection) {
+                              setState(() {
+                                _isUrlInput = newSelection.first;
+                              });
+                            },
+                          ),
+                        
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Chú ý:',
+                  style: TextStyle(
+                    color: Colors.deepPurple,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Định dạng ảnh SVG, PNG, or JPG (kích cỡ tối đa 4mb)',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 20),            // URL input or file upload based on toggle and view mode
+            if (_isUrlInput && !widget.isViewOnly)
+              // Text field for URL input
+              TextFormField(
+                controller: _imageUrlController,
+                decoration: InputDecoration(
+                  hintText: 'Nhập URL hình ảnh',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 16),
+                  fillColor: Colors.white,
+                  filled: true,
+                ),
+                enabled: !widget.isViewOnly,
+              )
+            else
+              // Container for image display/upload
+              Container(
+                width: double.infinity,
+                height: isMobile ? 200 : 300,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.blue.shade200,
+                    width: 1,
+                    style: BorderStyle.solid,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: widget.isViewOnly
+                    // View-only mode
+                    ? (_category?.imagePath.isNotEmpty == true
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: CustomImageView(
+                              key: ValueKey('category_image_${DateTime.now().millisecondsSinceEpoch}'),
+                              imagePath: _category!.imagePath,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.image_outlined,
+                                size: isMobile ? 36 : 48,
+                                color: Colors.deepPurple.shade200,
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Không có hình ảnh',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ))
+                    // Edit mode
+                    : InkWell(
+                        onTap: _pickImage,
+                        child: _imageFile != null
+                            // Show existing category image or placeholder                                  : _category?.imagePath.isNotEmpty == true
+                                ? Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: CustomImageView(
+                                          key: ValueKey('category_image_${DateTime.now().millisecondsSinceEpoch}'),
+                                          imagePath: _category!.imagePath,
+                                          fit: BoxFit.contain,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: CircleAvatar(
+                                          radius: 16,
+                                          backgroundColor: Colors.black.withOpacity(0.6),
+                                          child: IconButton(
+                                            icon: const Icon(
+                                                Icons.close,
+                                                size: 16,
+                                                color: Colors.white),
+                                            onPressed: _removeImage,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_photo_alternate,
+                                  size: isMobile ? 36 : 48,
+                                  color: Colors.deepPurple.shade200,
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Ảnh danh mục',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                if (!widget.isViewOnly)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      'Nhấn để tải lên',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+  // Action buttons
+  Widget _buildActionButtons() {
+    return Visibility(
+      visible: !widget.isViewOnly,
+      child: Row(
+        spacing: 24.h,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          SizedBox(
+            height: 40.h, // Đặt chiều cao cố định cho nút
+            child: OutlinedButton.icon(
+              onPressed: _deleteCategory,
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              label: const Text(
+                'Xóa danh mục',
+                style: TextStyle(color: Colors.red),
+              ),
+              style: OutlinedButton.styleFrom(
+                
+                side: const BorderSide(color: Colors.red),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                minimumSize: const Size(120, 48), // Đặt kích thước tối thiểu
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 40.h, // Đặt chiều cao cố định cho nút
+            child: ElevatedButton.icon(
+              onPressed: _saveCategory,
+              icon: const Icon(Icons.save, color: Colors.white),
+              label: const Text('Lưu thay đổi'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Theme.of(context).primaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                minimumSize: const Size(120, 48), // Đặt kích thước tối thiểu
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

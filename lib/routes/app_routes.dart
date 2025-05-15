@@ -124,7 +124,7 @@ class AppRoutes {
         fromRegistration: args?['fromRegistration'] ?? false,
       );
     },
-    initialRoute: (context) => HomeScreen(),
+    initialRoute: (context) => AdminScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),

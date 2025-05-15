@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 // Thêm hàm xử lý URL Imgur
@@ -18,12 +17,10 @@ String processImgurUrl(String url) {
       imgId = imgId.split('?').first;
       // Tạo URL mới với định dạng i.imgur.com
       processedUrl = 'https://i.imgur.com/$imgId.png';
-      print("Đã chuyển URL $url thành $processedUrl");
     } 
     // Trường hợp 2: URL kiểu https://imgur.com/abcd123.jpg
     else {
       processedUrl = url.replaceFirst('imgur.com', 'i.imgur.com');
-      print("Đã chuyển URL $url thành $processedUrl");
     }
   }
   
@@ -178,9 +175,8 @@ class CustomImageView extends StatelessWidget {
           width: width,
           fit: fit ?? BoxFit.cover,
           color: color,
-        );
-        
-      case ImageType.network:        // For web platform, use Image.network directly
+        );          case ImageType.network:
+        // Kiểm tra lại nếu đường dẫn rỗng (mặc dù đã kiểm tra ở trên nhưng đề phòng)
         if (imagePath == null || imagePath!.isEmpty) {
           return Container(
             height: height,
@@ -195,44 +191,61 @@ class CustomImageView extends StatelessWidget {
             ),
           );
         }
-        
-        // Use regular Image.network instead of CachedNetworkImage for web
-        return Image.network(
-          processImgurUrl(imagePath!),
-          height: height,
-          width: width,
-          fit: fit ?? BoxFit.cover,
-          color: color,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              height: height,
-              width: width,
-              child: Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded / 
-                          loadingProgress.expectedTotalBytes!
-                      : null,
+          try {
+          // Sử dụng Image.network thay vì CachedNetworkImage do CachedNetworkImage bị lỗi
+          final processedUrl = processImgurUrl(imagePath!);
+          return Image.network(
+            processedUrl,
+            height: height,
+            width: width,
+            fit: fit ?? BoxFit.cover,
+            color: color,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                height: height,
+                width: width,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null && loadingProgress.expectedTotalBytes! > 0
+                        ? loadingProgress.cumulativeBytesLoaded / 
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
                 ),
-              ),
-            );
-          },          errorBuilder: (context, error, stackTrace) {
-            print("Lỗi tải ảnh từ URL: ${imagePath}, lỗi: $error");
-            return Container(
-              height: height,
-              width: width,
-              color: Colors.grey[100],
-              child: Center(
-                child: Icon(
-                  Icons.image_not_supported,
-                  size: height != null ? height! * 0.3 : 24,
-                  color: Colors.grey[400],
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Không in ra log lỗi nếu không cần thiết
+              return Container(
+                height: height,
+                width: width,
+                color: Colors.grey[100],
+                child: Center(
+                  child: Icon(
+                    Icons.image_not_supported,
+                    size: height != null ? height! * 0.3 : 24,
+                    color: Colors.grey[400],
+                  ),
                 ),
+              );
+            },
+          );
+        } catch (e) {
+          // Xử lý mọi lỗi trong quá trình xử lý URL hoặc tạo widget
+          return Container(
+            height: height,
+            width: width,
+            color: Colors.grey[100],
+            child: Center(
+              child: Icon(
+                Icons.broken_image,
+                size: height != null ? height! * 0.3 : 24,
+                color: Colors.grey[400],
               ),
-            );
-          },
-        );
+            ),
+          );
+        }
           case ImageType.png:
       case ImageType.unknown:
         return Image.asset(

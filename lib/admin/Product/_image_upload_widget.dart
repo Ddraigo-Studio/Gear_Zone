@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:gear_zone/widgets/custom_image_view.dart';
 
 class ImageUploadBox extends StatelessWidget {
   final String label;
@@ -51,46 +52,17 @@ class ImageUploadBox extends StatelessWidget {
                     borderRadius: BorderRadius.circular(3),
                     child: Image.file(
                       imageFiles[index!],
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     ),
                   )
                 : (hasUrl
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(3),
-                        child: Image.network(
-                          imageUrls[index!],
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded / 
-                                      loadingProgress.expectedTotalBytes!
-                                    : null,
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) => Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.image_not_supported,
-                                  size: 18,
-                                  color: Theme.of(context).primaryColor.withOpacity(0.5),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'Lỗi tải ảnh',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        child: CustomImageView(
+                          imagePath: imageUrls[index!],
+                          fit: BoxFit.contain,
+                          height: 80,
+                          width: double.infinity,
                         ),
                       )
                     : Center(

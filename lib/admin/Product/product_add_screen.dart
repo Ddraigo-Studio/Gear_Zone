@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:gear_zone/controller/product_controller.dart';
+import 'package:gear_zone/controller/image_handling_controller.dart';
 import 'package:gear_zone/model/product.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ProductAddScreen extends StatefulWidget {
   const ProductAddScreen({super.key});
@@ -25,24 +25,11 @@ class ProductAddState extends State<ProductAddScreen> {
       TextEditingController();
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
-
   String? _selectedCategory;
   String? _selectedStatus;
-  // Variables for image handling
-  File? _mainImage;
-  List<File> _additionalImages = [];
-  bool _isUploadingImages = false;
-
-  // Variables for image URLs
-  String _mainImageUrl = '';
-  List<String> _additionalImageUrls = List.filled(3, '');
-
-  // Toggle between file upload and URL
-  bool _isUrlInput = false;
-
-  final TextEditingController _mainImageUrlController = TextEditingController();
-  final List<TextEditingController> _additionalImageUrlControllers =
-      List.generate(3, (_) => TextEditingController());
+  
+  // Image handling controller
+  final ImageHandlingController _imageController = ImageHandlingController();
 
   String? _validatePrice(String? value) {
     if (value == null || value.isEmpty) {
@@ -86,92 +73,50 @@ class ProductAddState extends State<ProductAddScreen> {
 
   // Khởi tạo controller
   final ProductController _productController = ProductController();
-
-  // Phương thức để chọn ảnh từ thư viện
-  Future<File?> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      return File(image.path);
-    }
-    return null;
-  }
-
   // Phương thức để chọn ảnh chính
   Future<void> _pickMainImage() async {
-    final File? pickedImage = await _pickImage();
-    if (pickedImage != null) {
-      setState(() {
-        _mainImage = pickedImage;
-      });
-    }
+    await _imageController.pickMainImage();
+    setState(() {}); // Trigger UI update
   }
 
   // Phương thức để chọn ảnh phụ
   Future<void> _pickAdditionalImage(int index) async {
-    final File? pickedImage = await _pickImage();
-    if (pickedImage != null) {
-      setState(() {
-        while (_additionalImages.length <= index) {
-          _additionalImages.add(File(''));
-        }
-        _additionalImages[index] = pickedImage;
-      });
-    }
+    await _imageController.pickAdditionalImage(index);
+    setState(() {}); // Trigger UI update
   }
-
+  
+  // Phương thức để xóa ảnh chính
+  void _removeMainImage() {
+    _imageController.removeMainImage();
+    setState(() {}); // Trigger UI update
+  }
+  
+  // Phương thức để xóa ảnh phụ
+  void _removeAdditionalImage(int index) {
+    _imageController.removeAdditionalImage(index);
+    setState(() {}); // Trigger UI update
+  }
+  
+  // Phương thức để thêm vị trí cho ảnh phụ
+  void _addAdditionalImageSlot() {
+    _imageController.addAdditionalImageSlot();
+    setState(() {}); // Trigger UI update
+  }
+  
+  // Phương thức để thêm controller cho URL ảnh phụ
+  void _addAdditionalUrlController() {
+    _imageController.addAdditionalUrlController();
+    setState(() {}); // Trigger UI update
+  }
+  
+  // Phương thức để xóa controller URL ảnh phụ
+  void _removeAdditionalUrlController(int index) {
+    _imageController.removeAdditionalUrlController(index);
+    setState(() {}); // Trigger UI update
+  }
   // Phương thức để upload tất cả ảnh và lấy URLs
   Future<Map<String, dynamic>> _uploadAllImages(String productId) async {
-    String mainImageUrl = '';
-    List<String> additionalImageUrls = [];
-
-    setState(() {
-      _isUploadingImages = true;
-    });
-
-    try {
-      // Nếu người dùng chọn ảnh từ thiết bị
-      if (!_isUrlInput) {
-        // Upload ảnh chính
-        if (_mainImage != null) {
-          mainImageUrl = await _productController.uploadProductImage(
-                  _mainImage!, productId,
-                  isMainImage: true) ??
-              '';
-        }
-
-        // Upload ảnh phụ
-        for (int i = 0; i < _additionalImages.length; i++) {
-          if (_additionalImages[i].path.isNotEmpty) {
-            String? url = await _productController.uploadProductImage(
-                _additionalImages[i], productId,
-                isMainImage: false);
-            if (url != null && url.isNotEmpty) {
-              additionalImageUrls.add(url);
-            }
-          }
-        }
-      } else {
-        // Nếu người dùng nhập URL
-        mainImageUrl = _mainImageUrlController.text;
-
-        for (var controller in _additionalImageUrlControllers) {
-          if (controller.text.isNotEmpty) {
-            additionalImageUrls.add(controller.text);
-          }
-        }
-      }
-    } finally {
-      setState(() {
-        _isUploadingImages = false;
-      });
-    }
-
-    return {
-      'mainImageUrl': mainImageUrl,
-      'additionalImageUrls': additionalImageUrls
-    };
+    return await _imageController.uploadAllImages(productId, context);
   }
 
   // Phương thức xử lý khi nhấn nút lưu
@@ -209,17 +154,15 @@ class ProductAddState extends State<ProductAddScreen> {
             ),
           );
         },
-      );
-
-      // Tạo đối tượng ProductModel từ dữ liệu form
+      );      // Tạo đối tượng ProductModel từ dữ liệu form
       ProductModel product = ProductModel(
         id: _idController.text,
         name: _nameController.text,
         description: _descriptionController.text,
         price: double.tryParse(_priceController.text) ?? 0,
         originalPrice: double.tryParse(_originalPriceController.text) ?? 0,
-        imageUrl: '', // TODO: Cần thêm xử lý upload hình ảnh
-        additionalImages: [], // TODO: Cần thêm xử lý upload nhiều hình ảnh
+        imageUrl: _mainImageUrl,
+        additionalImages: _imageController.getNonEmptyAdditionalImageUrls(),
         category: _selectedCategory ?? 'laptop',
         brand: _brandController.text,
         seriNumber: _codeController.text,
@@ -227,7 +170,7 @@ class ProductAddState extends State<ProductAddScreen> {
         status: _selectedStatus ?? 'out_of_stock',
         inStock: _selectedStatus == 'available',
         discount: int.tryParse(_discountController.text) ?? 0,
-      ); // Lưu sản phẩm vào Firestore (chưa có ảnh)
+      );// Lưu sản phẩm vào Firestore (chưa có ảnh)
       String? productId;
       if (_idController.text.isEmpty) {
         productId = await _productController.addProduct(product);
@@ -294,29 +237,31 @@ class ProductAddState extends State<ProductAddScreen> {
       );
     }
   }
-
   @override
   void initState() {
     super.initState();
-    // Add listeners to URL controllers to update the UI when they change
-    _mainImageUrlController.addListener(_updateMainImageUrlPreview);
   }
 
   @override
   void dispose() {
-    _mainImageUrlController.removeListener(_updateMainImageUrlPreview);
-    _mainImageUrlController.dispose();
-    for (var controller in _additionalImageUrlControllers) {
-      controller.dispose();
-    }
+    _imageController.dispose();
     super.dispose();
   }
-
-  // Update the main image URL preview when the text changes
-  void _updateMainImageUrlPreview() {
-    setState(() {
-      _mainImageUrl = _mainImageUrlController.text;
-    });
+  
+  // Helper getters to access image controller properties
+  File? get _mainImage => _imageController.mainImage;
+  List<File> get _additionalImages => _imageController.additionalImages;
+  String get _mainImageUrl => _imageController.mainImageUrl;
+  List<String> get _additionalImageUrls => _imageController.additionalImageUrls;
+  TextEditingController get _mainImageUrlController => _imageController.mainImageUrlController;
+  List<TextEditingController> get _additionalImageUrlControllers => _imageController.additionalImageUrlControllers;
+  bool get _isUrlInput => _imageController.isUrlInput;
+  bool get _isUploadingImages => _imageController.isUploadingImages;
+  
+  // Helper setter to toggle URL input mode
+  void _setUrlInputMode(bool value) {
+    _imageController.toggleInputMode(value);
+    setState(() {}); // Refresh UI
   }
 
   @override
@@ -1670,12 +1615,9 @@ class ProductAddState extends State<ProductAddScreen> {
                       label: Text('Từ URL', style: TextStyle(fontSize: 12)),
                       icon: Icon(Icons.link, size: 16),
                     ),
-                  ],
-                  selected: {_isUrlInput},
+                  ],                  selected: {_isUrlInput},
                   onSelectionChanged: (Set<bool> newSelection) {
-                    setState(() {
-                      _isUrlInput = newSelection.first;
-                    });
+                    _setUrlInputMode(newSelection.first);
                   },
                 ),
               ),
@@ -1794,88 +1736,8 @@ class ProductAddState extends State<ProductAddScreen> {
                               ),
                       ),
                     ),
-          const SizedBox(height: 12),
-
-          // Additional images row
-          _isUrlInput
-              ? Column(
-                  children: List.generate(3, (index) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'URL hình ảnh ${index + 2}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: _additionalImageUrlControllers[index],
-                          decoration: InputDecoration(
-                            hintText: 'Nhập URL hình ảnh ${index + 2}',
-                            hintStyle: TextStyle(
-                                fontSize: 13, color: Colors.grey.shade400),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(4),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade300),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
-                            isDense: true,
-                          ),
-                          style: const TextStyle(fontSize: 13),
-                          onChanged: (value) {
-                            setState(() {
-                              _additionalImageUrls[index] = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 6),
-                        if (_additionalImageUrls[index].isNotEmpty)
-                          Container(
-                            width: double.infinity,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade200),
-                            ),
-                            child: Image.network(
-                              _additionalImageUrls[index],
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Center(
-                                child: Icon(Icons.image_not_supported,
-                                    size: 30, color: Colors.grey),
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 12),
-                      ],
-                    );
-                  }),
-                )
-              : Row(
-                  children: List.generate(3, (index) {
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: index > 0 ? 12 : 0,
-                        ),
-                        child: _buildImageUploadBox(
-                          context,
-                          'Ảnh ${index + 2}',
-                          onTap: () => _pickAdditionalImage(index),
-                          imageFile: _additionalImages.length > index
-                              ? _additionalImages[index]
-                              : null,
-                        ),
-                      ),
-                    );
-                  }),
-                ),
+          const SizedBox(height: 12),          // Additional images row
+          _buildAdditionalImagesSection(),
         ],
       ),
     );
@@ -1925,5 +1787,128 @@ class ProductAddState extends State<ProductAddScreen> {
         ),
       ),
     );
+  }
+
+  // Build additional image URL inputs
+  Widget _buildAdditionalImageUrlInputs() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _additionalImageUrlControllers.length + 1,
+      itemBuilder: (context, index) {
+        if (index == _additionalImageUrlControllers.length) {
+          // Button to add more URL inputs
+          return TextButton.icon(
+            onPressed: _addAdditionalUrlController,
+            icon: const Icon(Icons.add_link, size: 18),
+            label: const Text(
+              'Thêm URL ảnh phụ',
+              style: TextStyle(fontSize: 13),
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).primaryColor,
+            ),
+          );
+        }
+        
+        // Text field for each additional image URL
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'URL hình ảnh ${index + 2}',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _additionalImageUrlControllers[index],
+                    decoration: InputDecoration(
+                      hintText: 'Nhập URL hình ảnh ${index + 2}',
+                      hintStyle: TextStyle(
+                          fontSize: 13, color: Colors.grey.shade400),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide:
+                            BorderSide(color: Colors.grey.shade300),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      isDense: true,
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (value) => setState(() {}), // Will auto-update via controller
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                  onPressed: () => _removeAdditionalUrlController(index),
+                  tooltip: 'Xóa URL ảnh này',
+                  constraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 40,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            if (index < _additionalImageUrls.length && _additionalImageUrls[index].isNotEmpty)
+              Container(
+                width: double.infinity,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Image.network(
+                  _additionalImageUrls[index],
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Center(
+                    child: Icon(Icons.image_not_supported,
+                        size: 30, color: Colors.grey),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 12),
+          ],
+        );
+      },
+    );
+  }
+
+  // Build additional images section based on current mode (URL input or file upload)
+  Widget _buildAdditionalImagesSection() {
+    if (_isUrlInput) {
+      // URL input mode
+      return _buildAdditionalImageUrlInputs();
+    } else {
+      // File upload mode
+      return Row(
+        children: List.generate(3, (index) {
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: index > 0 ? 12 : 0,
+              ),
+              child: _buildImageUploadBox(
+                context,
+                'Ảnh ${index + 2}',
+                onTap: () => _pickAdditionalImage(index),
+                imageFile: _additionalImages.length > index
+                    ? _additionalImages[index]
+                    : null,
+              ),
+            ),
+          );
+        }),
+      );
+    }
   }
 }

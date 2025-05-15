@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'Items/category_row_item.dart';
 import '../../../core/app_provider.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../widgets/admin_widgets/breadcrumb.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -14,20 +15,6 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  // Theo dõi các mục đã được mở rộng
-  Set<int> _expandedItems = {};
-
-  // Xử lý mở rộng/thu gọn cho mục mobile
-  void _toggleExpanded(int index) {
-    setState(() {
-      if (_expandedItems.contains(index)) {
-        _expandedItems.remove(index);
-      } else {
-        _expandedItems.add(index);
-      }
-    });
-  }
-  
   @override
   Widget build(BuildContext context) {
     // Lắng nghe thay đổi từ Provider để cập nhật giao diện
@@ -46,42 +33,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-          ),
-
-          // Breadcrumb
-          Row(
-            children: [
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Bảng điều khiển',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Danh mục sản phẩm',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
+          ),          // Breadcrumb
+          Breadcrumb(
+            items: [
+              BreadcrumbBuilder.dashboard(context),
+              BreadcrumbBuilder.categories(context),
             ],
           ),
           const SizedBox(height: 24),          // Search and filters
@@ -170,7 +126,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                   child: TextButton.icon(
                                     onPressed: () {
                                       // Chuyển đến màn hình thêm danh mục
-                                      appProvider.setCurrentScreen(5);
+                                      appProvider.setCurrentScreen(AppScreen.categoryAdd);
                                     },
                                     icon: const Icon(Icons.add,
                                         color: Colors.white, size: 18),
@@ -249,7 +205,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             child: TextButton.icon(
                               onPressed: () {
                                 // Chuyển đến màn hình thêm danh mục
-                                appProvider.setCurrentScreen(5);
+                                appProvider.setCurrentScreen(AppScreen.categoryAdd);
                               },
                               icon: const Icon(Icons.add,
                                   color: Colors.white, size: 18),
@@ -307,35 +263,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           ),
                         ),
                       );
-                    }                    // Khi ở chế độ mobile, sử dụng buildMobileCategoryItem thay vì bảng truyền thống
+                    }                    // Khi ở chế độ mobile, sử dụng CategoryListView thay vì bảng truyền thống
                     final isMobile = Responsive.isMobile(context);
                     
                     if (isMobile) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: List.generate(
-                            categories.length,
-                            (index) => buildMobileCategoryItem(
-                              context, 
-                              index, 
-                              categories[index],
-                              isExpanded: _expandedItems.contains(index),
-                              onExpandToggle: _toggleExpanded,
-                            ),
-                          ),
-                        ),
-                      );
+                      return CategoryListView(categories: categories);
                     }
 
                     return Container(

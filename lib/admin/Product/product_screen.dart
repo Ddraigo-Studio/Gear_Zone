@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'Items/product_row_item.dart';
 import '../../../core/app_provider.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../widgets/admin_widgets/breadcrumb.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -26,8 +27,7 @@ class _ProductScreenState extends State<ProductScreen> {
       padding: const EdgeInsets.all(12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Page title
+        children: [          // Page title
           Row(
             children: [
               Text(
@@ -49,57 +49,13 @@ class _ProductScreenState extends State<ProductScreen> {
                 )
             ],
           ),
-
-          // Breadcrumb
-          Row(
-            children: [
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Bảng điều khiển',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Sản phẩm',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Laptop',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
+            // Breadcrumb
+          Breadcrumb(
+            items: [
+              BreadcrumbBuilder.dashboard(context),
+              BreadcrumbBuilder.products(context),
+              if (selectedCategory.isNotEmpty)
+                BreadcrumbBuilder.productCategory(context, selectedCategory),
             ],
           ),
           const SizedBox(height: 24),
@@ -185,12 +141,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                     borderRadius: BorderRadius.circular(14),
                                     color: const Color(0xFF7C3AED),
                                   ),
-                                  child: TextButton.icon(
-                                    onPressed: () {
+                                  child: TextButton.icon(                                    onPressed: () {
                                       // Chuyển đến màn hình thêm sản phẩm
                                       final appProvider =
                                           Provider.of<AppProvider>(context, listen: false);
-                                      appProvider.setCurrentScreen(4);
+                                      appProvider.setCurrentScreen(AppScreen.productAdd);
                                     },
                                     icon: const Icon(Icons.add,
                                         color: Colors.white, size: 18),
@@ -266,12 +221,11 @@ class _ProductScreenState extends State<ProductScreen> {
                               borderRadius: BorderRadius.circular(14),
                               color: const Color(0xFF7C3AED),
                             ),
-                            child: TextButton.icon(
-                              onPressed: () {
-                                // Thay đổi màn hình hiện tại sang ProductAddScreen (index 4)
+                            child: TextButton.icon(                              onPressed: () {
+                                // Thay đổi màn hình hiện tại sang ProductAddScreen
                                 final appProvider =
                                     Provider.of<AppProvider>(context, listen: false);
-                                appProvider.setCurrentScreen(4);
+                                appProvider.setCurrentScreen(AppScreen.productAdd);
                               },
                               icon: const Icon(Icons.add,
                                   color: Colors.white, size: 18),
