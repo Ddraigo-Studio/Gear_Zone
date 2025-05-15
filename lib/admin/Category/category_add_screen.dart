@@ -9,20 +9,19 @@ import 'package:provider/provider.dart';
 import '../../../core/app_provider.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 import 'package:dotted_border/dotted_border.dart';
+import '../../../widgets/admin_widgets/breadcrumb.dart';
 
 class CategoryAddScreen extends StatefulWidget {
-  const CategoryAddScreen({Key? key}) : super(key: key);
+  const CategoryAddScreen({super.key});
 
   @override
   State<CategoryAddScreen> createState() => _CategoryAddScreenState();
 }
 
 class _CategoryAddScreenState extends State<CategoryAddScreen> {
-  final _formKey = GlobalKey<FormState>();
   final CategoryController _categoryController = CategoryController();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
 
   String _errorMessage = '';
   File? _imageFile;
@@ -31,9 +30,7 @@ class _CategoryAddScreenState extends State<CategoryAddScreen> {
   String _uploadProgress = '';
 
   // Toggle between file upload and URL
-  bool _isUrlInput = false;
 
-  final TextEditingController _imageUrlController = TextEditingController();
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -146,11 +143,9 @@ class _CategoryAddScreenState extends State<CategoryAddScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Thêm danh mục thành công')),
-      );
-
-      // Trở về màn hình danh sách
+      );      // Trở về màn hình danh sách
       if (mounted) {
-        Provider.of<AppProvider>(context, listen: false).setCurrentScreen(3);
+        Provider.of<AppProvider>(context, listen: false).setCurrentScreen(AppScreen.categoryList);
       }
     } catch (e) {
       setState(() {
@@ -162,287 +157,303 @@ class _CategoryAddScreenState extends State<CategoryAddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = Responsive.isMobile(context);
+    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thêm danh mục mới'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Provider.of<AppProvider>(context, listen: false)
-                .setCurrentScreen(3);
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveCategory,
-          ),
-        ],
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Left panel - Category info
-                    Expanded(
-                      flex: 1,
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    // Breadcrumb navigation
+                    Breadcrumb(
+                      items: [
+                        BreadcrumbBuilder.dashboard(context),
+                        BreadcrumbBuilder.categories(context),
+                        BreadcrumbItem(
+                          title: 'Thêm danh mục mới',
+                          isActive: true,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Thông tin danh mục',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Lorem ipsum dolor sit amet consectetur. Non ac nulla aliquam aenean in velit mattis.',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 30),
-
-                              // Mã danh mục
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Mã danh mục',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: _idController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Nhập mã danh mục',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                      ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 16),
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Tên danh mục
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Tên danh mục',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: _nameController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Nhập tên sản phẩm',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                      ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 16),
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Title for mobile view
+                    if (isMobile)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16.0),
+                        child: Text(
+                          'Thêm danh mục mới',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(width: 20),
-
-                    // Right panel - Image upload
-                    Expanded(
-                      flex: 1,
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
+                    
+                    // Content layout - Row for desktop/tablet, Column for mobile
+                    isMobile
+                        ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Hình ảnh danh mục',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Chú ý:',
-                                    style: TextStyle(
-                                      color: Colors.deepPurple,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Định dạng ảnh SVG, PNG, or JPG (kích cỡ tối đa 4mb)',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              _buildCategoryInfoCard(context),
                               const SizedBox(height: 20),
-
-                              // Image upload area
-                              InkWell(
-                                onTap: _pickImage,
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 300,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.blue.shade200,
-                                      width: 1,
-                                      style: BorderStyle.solid,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),                                  child: _imageFile != null
-                                      ? ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: CustomImageView(
-                                            imagePath: _imageFile!.path,
-                                            fit: BoxFit.contain,
-                                            width: double.infinity,
-                                            height: double.infinity,
-                                          ),
-                                        )
-                                      : Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.image_outlined,
-                                              size: 48,
-                                              color: Colors.deepPurple.shade200,
-                                            ),
-                                            const SizedBox(height: 12),
-                                            const Text(
-                                              'Ảnh',
-                                              style: TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                ),
-                              ),
-                              if (_isUploading)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: LinearProgressIndicator(
-                                    value: double.parse(_uploadProgress
-                                            .replaceAll('%', '')) /
-                                        100,
-                                    backgroundColor: Colors.grey[200],
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.deepPurple),
-                                  ),
-                                ),
-
-                              const SizedBox(height: 20),
-
-                              // Buttons
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        Provider.of<AppProvider>(context,
-                                                listen: false)
-                                            .setCurrentScreen(3);
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        foregroundColor: Colors.black,
-                                        backgroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          side: BorderSide(
-                                              color: Colors.grey.shade300),
-                                        ),
-                                      ),
-                                      child: const Text('Discard Changes'),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: _saveCategory,
-                                      style: ElevatedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        backgroundColor: Colors.deepPurple,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      child: const Text('Save Changes'),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              _buildImageUploadCard(context),
+                            ],
+                          )
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 1, child: _buildCategoryInfoCard(context)),
+                              const SizedBox(width: 20),
+                              Expanded(flex: 1, child: _buildImageUploadCard(context)),
                             ],
                           ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
             ),
+    );
+  }
+
+  // Category information card
+  Widget _buildCategoryInfoCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Thông tin danh mục',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            // Mã danh mục
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Mã danh mục',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _idController,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập mã danh mục',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                          color: Colors.grey.shade300),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Tên danh mục
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tên danh mục',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập tên sản phẩm',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                          color: Colors.grey.shade300),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Image upload card
+  Widget _buildImageUploadCard(BuildContext context) {
+    final bool isMobile = Responsive.isMobile(context);
+    
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Hình ảnh danh mục',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Chú ý:',
+                  style: TextStyle(
+                    color: Colors.deepPurple,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Định dạng ảnh SVG, PNG, or JPG (kích cỡ tối đa 4mb)',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Image upload area
+            InkWell(
+              onTap: _pickImage,
+              child: Container(
+                width: double.infinity,
+                height: isMobile ? 200 : 300,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.blue.shade200,
+                    width: 1,
+                    style: BorderStyle.solid,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: _imageFile != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CustomImageView(
+                          imagePath: _imageFile!.path,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.image_outlined,
+                            size: isMobile ? 36 : 48,
+                            color: Colors.deepPurple.shade200,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Ảnh',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            if (_isUploading)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: LinearProgressIndicator(
+                  value: double.parse(_uploadProgress.replaceAll('%', '')) / 100,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                ),
+              ),
+
+            const SizedBox(height: 20),
+
+            // Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Provider.of<AppProvider>(context, listen: false)
+                          .setCurrentScreen(AppScreen.categoryList);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('Hủy'),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _saveCategory,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.deepPurple,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('Lưu thay đổi'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

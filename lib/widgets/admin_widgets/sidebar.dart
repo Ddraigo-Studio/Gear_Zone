@@ -97,8 +97,8 @@ class _SidebarState extends State<Sidebar> {
                     context,
                     icon: Icons.dashboard_outlined,
                     title: 'Bảng điều khiển',
-                    index: 0,
-                    currentIndex: appProvider.currentScreen,
+                    screen: AppScreen.dashboard,
+                    currentScreen: appProvider.currentScreen,
                   ),
 
                   FutureBuilder<int>(
@@ -109,8 +109,8 @@ class _SidebarState extends State<Sidebar> {
                         context,
                         icon: Icons.category_outlined,
                         title: 'Danh mục sản phẩm',
-                        index: 3, // Đổi thành index 3 để phù hợp với cấu trúc mới
-                        currentIndex: appProvider.currentScreen,
+                        screen: AppScreen.categoryList,
+                        currentScreen: appProvider.currentScreen,
                         detail: categoryCount,
                       );
                     },
@@ -124,8 +124,8 @@ class _SidebarState extends State<Sidebar> {
                         context,
                         icon: Icons.inventory_2_outlined,
                         title: 'Sản phẩm',
-                        index: 1,  // Đổi thành index 1
-                        currentIndex: appProvider.currentScreen,
+                        screen: AppScreen.productList,
+                        currentScreen: appProvider.currentScreen,
                         detail: productCount,
                       );
                     }
@@ -135,24 +135,24 @@ class _SidebarState extends State<Sidebar> {
                     context,
                     icon: Icons.card_giftcard_rounded,
                     title: 'Voucher',
-                    index: 6,  // Cập nhật index
-                    currentIndex: appProvider.currentScreen,
+                    screen: AppScreen.customerList, // Tạm thời dùng màn hình khách hàng, sau này có thể thay bằng voucher
+                    currentScreen: appProvider.currentScreen,
                   ),
 
                   _buildMenuItem(
                     context,
                     icon: Icons.receipt_outlined,
                     title: 'Đơn hàng',
-                    index: 8,  // Cập nhật index
-                    currentIndex: appProvider.currentScreen,
+                    screen: AppScreen.dashboard, // Tạm thời dùng màn hình Dashboard vì chưa có màn hình đơn hàng
+                    currentScreen: appProvider.currentScreen,
                   ),
 
                   _buildMenuItem(
                     context,
                     icon: Icons.people_outline,
                     title: 'Khách hàng',
-                    index: 9,  // Cập nhật index
-                    currentIndex: appProvider.currentScreen,
+                    screen: AppScreen.customerList,
+                    currentScreen: appProvider.currentScreen,
                   ),
 
                   const Divider(height: 32),
@@ -175,16 +175,16 @@ class _SidebarState extends State<Sidebar> {
                     context,
                     icon: Icons.settings_outlined,
                     title: 'Cài đặt',
-                    index: 10,  // Cập nhật index
-                    currentIndex: appProvider.currentScreen,
+                    screen: AppScreen.dashboard, // Tạm thời sử dụng dashboard vì chưa có màn hình cài đặt
+                    currentScreen: appProvider.currentScreen,
                   ),
                   
                   _buildMenuItem(
                     context,
                     icon: Icons.chat_outlined,
                     title: 'Hộp thoại',
-                    index: 11,  // Cập nhật index
-                    currentIndex: appProvider.currentScreen,
+                    screen: AppScreen.dashboard, // Tạm thời sử dụng dashboard vì chưa có màn hình hộp thoại
+                    currentScreen: appProvider.currentScreen,
                   ),
 
                 ],
@@ -257,16 +257,24 @@ class _SidebarState extends State<Sidebar> {
     BuildContext context, {
     required IconData icon,
     required String title,
-    required int index,
-    required int currentIndex,
+    AppScreen? screen,
+    int? index,
+    required dynamic currentScreen,
     String? detail,
   }) {
-    final isSelected = index == currentIndex;
+    final isSelected = screen != null 
+        ? screen == currentScreen 
+        : index == currentScreen;
     final appProvider = Provider.of<AppProvider>(context, listen: false);
 
     return InkWell(
       onTap: () {
-        appProvider.setCurrentScreen(index);
+        if (screen != null) {
+          appProvider.setCurrentScreen(screen);
+        } else if (index != null) {
+          // Legacy support for index-based navigation
+          appProvider.setCurrentScreenByIndex(index);
+        }
         if (Responsive.isMobile(context)) {
           Navigator.pop(context);
         }
@@ -331,17 +339,19 @@ class _SidebarState extends State<Sidebar> {
     BuildContext context, {
     required IconData icon,
     required String title,
-    required int index,
-    required int currentIndex,
+    AppScreen? screen,
+    int? index,
+    required dynamic currentScreen,
     String? detail,
   }) {
-    final isSelected = index == currentIndex;
+    final isSelected = screen != null
+        ? screen == currentScreen
+        : index == currentScreen;
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     final themeColor = Theme.of(context).primaryColor;
     
-    // Thêm FutureBuilder để lấy số lượng sản phẩm từ Firestore
-    final categoryCount = detail ?? "0";
-
+    // Không cần lưu trữ biến categoryCount vì đã được sử dụng trực tiếp từ detail
+    
     return Theme(
       // Sử dụng Theme để loại bỏ đường viền màu đen của ExpansionTile
       data: Theme.of(context).copyWith(
@@ -359,7 +369,12 @@ class _SidebarState extends State<Sidebar> {
       child: ExpansionTile(
         onExpansionChanged: (isExpanded) {
           if (isExpanded) {
-            appProvider.setCurrentScreen(1);
+            if (screen != null) {
+              appProvider.setCurrentScreen(AppScreen.productList);
+            } else if (index != null) {
+              // Legacy support
+              appProvider.setCurrentScreenByIndex(1);
+            }
             // Khi chọn menu chính "Sản phẩm", hiển thị tất cả sản phẩm
             // Reset cả category và productId
             appProvider.resetSelectedCategory();
@@ -460,14 +475,14 @@ class _SidebarState extends State<Sidebar> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: categories.map((category) {
-                        final categoryId = category.id.toLowerCase();
+                        // Chỉ sử dụng categoryName, không cần categoryId
                         final categoryName = category.categoryName;
                         
                         return _buildNestedSubMenuItem(
                           context,
-                          categoryName,  // Sử dụng categoryName thay vì categoryId
+                          categoryName,
                           displayName: categoryName,
-                          isActive: selectedCategory == categoryName  // So sánh với categoryName
+                          isActive: selectedCategory == categoryName
                         );
                       }).toList(),
                     );
@@ -504,10 +519,10 @@ class _SidebarState extends State<Sidebar> {
                 // Trước tiên reset ID sản phẩm để không còn ở chế độ xem chi tiết nữa
                 appProvider.setCurrentProductId('');
                 // Reset trạng thái xem
-                appProvider.setCurrentScreen(2, isViewOnly: false);
+                appProvider.setCurrentScreen(AppScreen.productDetail, isViewOnly: false);
               } else {
-                // Giữ nguyên màn hình sản phẩm (index 2)
-                appProvider.setCurrentScreen(2);
+                // Giữ nguyên màn hình sản phẩm
+                appProvider.setCurrentScreen(AppScreen.productDetail);
               }
               
               // Nếu đang ở mobile thì đóng drawer

@@ -161,18 +161,18 @@ class AdminScreen extends StatelessWidget {
         ],
       ),
     );
-  }  Widget _buildCurrentScreen(int screenIndex) {
+  }  Widget _buildCurrentScreen(AppScreen screenIndex) {
     return Builder(
       builder: (context) {
         // Lấy trạng thái xem/sửa từ AppProvider
         final appProvider = Provider.of<AppProvider>(context, listen: false);
         
         switch (screenIndex) {          
-          case 0:
+          case AppScreen.dashboard:
             return const DashboardScreen();
-          case 1:
+          case AppScreen.productList:
             return const ProductScreen(); // Màn hình danh sách sản phẩm
-          case 2:
+          case AppScreen.productDetail:
             // Kiểm tra nếu có productId thì hiển thị chi tiết, nếu không thì hiển thị danh sách sản phẩm
             if (appProvider.currentProductId.isNotEmpty) {
               return ProductDetail(isViewOnly: appProvider.isViewOnlyMode);
@@ -180,9 +180,9 @@ class AdminScreen extends StatelessWidget {
               // Hiển thị danh sách sản phẩm, có thể lọc theo danh mục nếu có
               return const ProductScreen();
             }
-          case 3:
+          case AppScreen.categoryList:
             return const CategoryScreen(); // Màn hình danh sách danh mục
-          case 4:
+          case AppScreen.categoryDetail:
             // Kiểm tra nếu có categoryId thì hiển thị chi tiết, nếu không thì hiển thị danh sách danh mục
             if (appProvider.currentCategoryId.isNotEmpty) {
               return CategoryDetail(
@@ -192,11 +192,11 @@ class AdminScreen extends StatelessWidget {
             } else {
               return const CategoryScreen();
             }
-          case 5:
+          case AppScreen.categoryAdd:
             return const CategoryAddScreen(); // Màn hình thêm danh mục mới
-          case 6:
+          case AppScreen.customerList:
             return const CustomerScreen(); // Màn hình khách hàng
-          case 7:
+          case AppScreen.productAdd:
             return const ProductAddScreen(); // Màn hình thêm sản phẩm mới
           default:
             return const DashboardScreen();

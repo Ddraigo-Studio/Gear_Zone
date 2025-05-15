@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../model/category.dart';
 import '../../../core/app_provider.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../core/utils/date_time_utils.dart';
 import '../../../widgets/custom_image_view.dart';
 import 'package:provider/provider.dart';
 import '../../../controller/category_controller.dart';
-
 
 /// Tạo TableRow dựa trên CategoryModel được cung cấp
 /// 
@@ -53,8 +53,8 @@ TableRow buildCategoryTableRow(
                 width: isMobile ? 40 : 48,
                 height: isMobile ? 40 : 48,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: CustomImageView(
+                  borderRadius: BorderRadius.circular(4),                  child: CustomImageView(
+                    key: ValueKey('category_list_${category.id}'),
                     imagePath: category.imagePath.isNotEmpty 
                         ? category.imagePath
                         : 'assets/images/img_logo.png',
@@ -98,7 +98,7 @@ TableRow buildCategoryTableRow(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
           child: Text(
-            category.ceatedAt.substring(0, 16),
+            formatDate(category.ceatedAt),
             style: TextStyle(
               fontSize: isMobile ? 12 : 13,
               height: 1.4,
@@ -123,7 +123,7 @@ TableRow buildCategoryTableRow(
                 onPressed: () {
                   // Xem chi tiết danh mục
                   appProvider.setCurrentCategoryId(category.id);
-                  appProvider.setCurrentScreen(4, isViewOnly: true);
+                  appProvider.setCurrentScreen(AppScreen.categoryDetail, isViewOnly: true);
                 },
                 color: Colors.grey,
                 padding: const EdgeInsets.all(4),
@@ -137,7 +137,7 @@ TableRow buildCategoryTableRow(
                 onPressed: () {
                   // Sửa danh mục
                   appProvider.setCurrentCategoryId(category.id);
-                  appProvider.setCurrentScreen(4, isViewOnly: false);
+                  appProvider.setCurrentScreen(AppScreen.categoryDetail, isViewOnly: false);
                 },
                 icon: const Icon(Icons.edit_outlined, size: 20),
                 color: Colors.grey,
@@ -207,8 +207,8 @@ Widget buildMobileCategoryItem(
                 height: 40,
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: CustomImageView(
+                  borderRadius: BorderRadius.circular(4),                  child: CustomImageView(
+                    key: ValueKey('category_mobile_${category.id}'),
                     imagePath: category.imagePath.isNotEmpty 
                         ? category.imagePath 
                         : 'assets/images/img_logo.png',
@@ -277,7 +277,7 @@ Widget buildMobileCategoryItem(
                       ),
                     ),
                     Text(
-                      category.ceatedAt.substring(0, 16),
+                      formatDate(category.ceatedAt),
                       style: const TextStyle(fontSize: 14),
                     ),
                   ],
@@ -302,7 +302,7 @@ Widget buildMobileCategoryItem(
                           onPressed: () {
                             // Xem chi tiết danh mục
                             appProvider.setCurrentCategoryId(category.id);
-                            appProvider.setCurrentScreen(4, isViewOnly: true);
+                            appProvider.setCurrentScreen(AppScreen.categoryDetail, isViewOnly: true);
                           },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
@@ -316,7 +316,7 @@ Widget buildMobileCategoryItem(
                           onPressed: () {
                             // Sửa danh mục
                             appProvider.setCurrentCategoryId(category.id);
-                            appProvider.setCurrentScreen(4, isViewOnly: false);
+                            appProvider.setCurrentScreen(AppScreen.categoryDetail, isViewOnly: false);
                           },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
@@ -397,7 +397,7 @@ Future<void> deleteCategory(BuildContext context, String categoryId) async {
     
     // Đảm bảo quay lại màn hình danh sách danh mục sau khi xóa
     if (success) {
-      appProvider.setCurrentScreen(3);
+      appProvider.setCurrentScreen(AppScreen.categoryList);
     }
   } catch (e) {
     // Đóng dialog loading
@@ -431,4 +431,63 @@ Table buildCategoryTable(BuildContext context, {List<CategoryModel>? categories}
       (index) => buildCategoryTableRow(context, index, categoryList),
     ),
   );
+}
+
+/// Widget hiển thị danh sách danh mục ở chế độ mobile
+/// Quản lý trạng thái mở rộng nội bộ để tránh reload toàn bộ màn hình
+class CategoryListView extends StatefulWidget {
+  final List<CategoryModel> categories;
+
+  const CategoryListView({
+    super.key,
+    required this.categories,
+  });
+
+  @override
+  State<CategoryListView> createState() => _CategoryListViewState();
+}
+
+class _CategoryListViewState extends State<CategoryListView> {
+  // Theo dõi các mục đã được mở rộng
+  Set<int> _expandedItems = {};
+  
+  // Xử lý mở rộng/thu gọn cho từng mục
+  void _toggleExpanded(int index) {
+    setState(() {
+      if (_expandedItems.contains(index)) {
+        _expandedItems.remove(index);
+      } else {
+        _expandedItems.add(index);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: widget.categories.length,
+        itemBuilder: (context, index) => buildMobileCategoryItem(
+          context, 
+          index, 
+          widget.categories[index],
+          isExpanded: _expandedItems.contains(index),
+          onExpandToggle: _toggleExpanded,
+        ),
+      ),
+    );
+  }
 }

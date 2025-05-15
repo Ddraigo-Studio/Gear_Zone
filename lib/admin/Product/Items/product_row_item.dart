@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../model/product.dart';
-import '../../../core/app_provider.dart';  // Import AppProvider
-import '../../../core/utils/responsive.dart';  // Import Responsive
-import 'package:provider/provider.dart';   // Import Provider
-import '../../../controller/product_controller.dart';  // Import ProductController
-import '../../../widgets/custom_image_view.dart';  // Import CustomImageView
-
-
+import '../../../core/app_provider.dart'; // Import AppProvider
+import '../../../core/utils/responsive.dart'; // Import Responsive
+import 'package:provider/provider.dart'; // Import Provider
+import '../../../controller/product_controller.dart'; // Import ProductController
+import '../../../widgets/custom_image_view.dart'; // Import CustomImageView
 
 TableRow buildProductTableRow(
     BuildContext context, int index, List<ProductModel> products) {
@@ -44,14 +42,15 @@ TableRow buildProductTableRow(
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Row(
-            children: [              
+            children: [
               Container(
                 width: 48,
                 height: 48,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: CustomImageView(
-                    imagePath: product.imageUrl.isNotEmpty 
+                    key: ValueKey('product_list_${product.id}'),
+                    imagePath: product.imageUrl.isNotEmpty
                         ? product.imageUrl
                         : 'assets/images/img_logo.png',
                     height: 48,
@@ -164,14 +163,16 @@ TableRow buildProductTableRow(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [              IconButton(
+            children: [
+              IconButton(
                 icon: const Icon(Icons.visibility_outlined,
                     size: 20), // Tăng kích thước icon
                 onPressed: () {
                   // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
                   appProvider.setCurrentProductId(product.id);
                   // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
-                  appProvider.setCurrentScreen(2, isViewOnly: true); // Index 2 là ProductDetail
+                  appProvider.setCurrentScreen(AppScreen.productDetail,
+                      isViewOnly: true); // Index 2 là ProductDetail
                 },
                 color: Colors.grey,
                 padding: const EdgeInsets.all(4), // Thêm padding
@@ -181,9 +182,11 @@ TableRow buildProductTableRow(
                 tooltip: 'Xem sản phẩm',
               ),
               const SizedBox(width: 8), // Thêm khoảng cách giữa các icon
-              IconButton(                onPressed: () {
+              IconButton(
+                onPressed: () {
                   // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
-                  appProvider.setCurrentScreen(2, isViewOnly: false); // Index 2 là ProductDetail
+                  appProvider.setCurrentScreen(AppScreen.productDetail,
+                      isViewOnly: false); // Index 2 là ProductDetail
                   // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
                   appProvider.setCurrentProductId(product.id);
                 },
@@ -215,14 +218,9 @@ TableRow buildProductTableRow(
   );
 }
 
-
 Widget buildMobileProductItem(
-    BuildContext context, 
-    int index, 
-    ProductModel product,
-    {bool isExpanded = false, 
-    Function(int)? onExpandToggle}) {
-  
+    BuildContext context, int index, ProductModel product,
+    {bool isExpanded = false, Function(int)? onExpandToggle}) {
   bool isAvailable = product.status == 'Có sẵn' || product.inStock;
   final appProvider = Provider.of<AppProvider>(context, listen: false);
 
@@ -251,7 +249,7 @@ Widget buildMobileProductItem(
                   value: false,
                   onChanged: (value) {},
                 ),
-              ),            
+              ),
               Container(
                 width: 48,
                 height: 48,
@@ -262,9 +260,9 @@ Widget buildMobileProductItem(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
                   child: CustomImageView(
-                    key: ValueKey('product_${product.id}'),
-                    imagePath: product.imageUrl.isNotEmpty 
-                        ? product.imageUrl 
+                    key: ValueKey('product_mobile_${product.id}'),
+                    imagePath: product.imageUrl.isNotEmpty
+                        ? product.imageUrl
                         : 'assets/images/img_logo.png',
                     height: 48,
                     width: 48,
@@ -316,17 +314,17 @@ Widget buildMobileProductItem(
               ),
             ],
           ),
-        ),        // Sử dụng AnimatedCrossFade để tạo hiệu ứng mở rộng mượt mà
+        ), // Sử dụng AnimatedCrossFade để tạo hiệu ứng mở rộng mượt mà
         AnimatedCrossFade(
           duration: const Duration(milliseconds: 300),
-          crossFadeState: isExpanded 
-              ? CrossFadeState.showSecond 
-              : CrossFadeState.showFirst,
+          crossFadeState:
+              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           firstChild: const SizedBox(height: 0),
           secondChild: Container(
             width: double.infinity,
             color: Colors.grey.shade50,
-            padding: const EdgeInsets.only(left: 76, right: 16, bottom: 16, top: 8),
+            padding:
+                const EdgeInsets.only(left: 76, right: 16, bottom: 16, top: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -413,7 +411,9 @@ Widget buildMobileProductItem(
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: isAvailable ? Colors.green.shade700 : Colors.red.shade700,
+                          color: isAvailable
+                              ? Colors.green.shade700
+                              : Colors.red.shade700,
                         ),
                       ),
                     ),
@@ -440,7 +440,8 @@ Widget buildMobileProductItem(
                             // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
                             appProvider.setCurrentProductId(product.id);
                             // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
-                            appProvider.setCurrentScreen(2, isViewOnly: true); // Index 2 là ProductDetail
+                            appProvider.setCurrentScreen(AppScreen.productDetail,
+                                isViewOnly: true); // Index 2 là ProductDetail
                           },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
@@ -453,7 +454,8 @@ Widget buildMobileProductItem(
                           icon: const Icon(Icons.edit_outlined, size: 20),
                           onPressed: () {
                             // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
-                            appProvider.setCurrentScreen(2, isViewOnly: false); // Index 2 là ProductDetail
+                            appProvider.setCurrentScreen(AppScreen.productDetail,
+                                isViewOnly: false); // Index 2 là ProductDetail
                             // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
                             appProvider.setCurrentProductId(product.id);
                           },
@@ -477,7 +479,8 @@ Widget buildMobileProductItem(
                   ],
                 ),
               ],
-            ),          ),
+            ),
+          ),
         ),
       ],
     ),
@@ -485,7 +488,7 @@ Widget buildMobileProductItem(
 }
 
 /// Xây dựng bảng sản phẩm hoàn chỉnh với danh sách sản phẩm tùy chỉnh
-/// 
+///
 /// [context] Context hiện tại để lấy Theme
 /// [products] Danh sách các sản phẩm để hiển thị, nếu không cung cấp sẽ sử dụng dữ liệu mẫu
 /// Widget hiển thị danh sách sản phẩm từ Firestore
@@ -512,7 +515,7 @@ class _ProductListViewState extends State<ProductListView> {
     super.didChangeDependencies();
     // Lấy danh mục được chọn từ Provider
     final appProvider = Provider.of<AppProvider>(context);
-    
+
     // Load lại sản phẩm khi danh mục thay đổi
     _loadProducts(appProvider.selectedCategory);
   }
@@ -523,10 +526,10 @@ class _ProductListViewState extends State<ProductListView> {
       _isLoading = true;
       _errorMessage = '';
     });
-    
+
     // Stream sẽ được sử dụng để lấy dữ liệu
     Stream<List<ProductModel>> productsStream;
-    
+
     // Nếu có danh mục được chọn thì lọc theo danh mục
     if (category.isNotEmpty) {
       productsStream = _productController.getProductsByCategory(category);
@@ -534,7 +537,7 @@ class _ProductListViewState extends State<ProductListView> {
       // Ngược lại, lấy tất cả sản phẩm
       productsStream = _productController.getProducts();
     }
-    
+
     // Lắng nghe stream và cập nhật state
     productsStream.listen(
       (products) {
@@ -550,7 +553,8 @@ class _ProductListViewState extends State<ProductListView> {
         });
       },
     );
-  }  // Theo dõi các mục đã được mở rộng
+  } // Theo dõi các mục đã được mở rộng
+
   Set<int> _expandedItems = {};
 
   // Xử lý mở rộng/thu gọn cho mục mobile
@@ -570,18 +574,17 @@ class _ProductListViewState extends State<ProductListView> {
     final appProvider = Provider.of<AppProvider>(context);
     final selectedCategory = appProvider.selectedCategory;
     final isMobile = Responsive.isMobile(context);
-    
+
     if (_isLoading) {
       return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Đang tải sản phẩm...'),
-          ],
-        )
-      );
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Đang tải sản phẩm...'),
+        ],
+      ));
     }
 
     if (_errorMessage.isNotEmpty) {
@@ -602,39 +605,38 @@ class _ProductListViewState extends State<ProductListView> {
 
     if (_products.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),            Text(
-              selectedCategory.isEmpty 
-                  ? 'Không có sản phẩm nào' 
-                  : 'Không có sản phẩm nào trong danh mục ${selectedCategory}',
-              textAlign: TextAlign.center,
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey),
+          const SizedBox(height: 16),
+          Text(
+            selectedCategory.isEmpty
+                ? 'Không có sản phẩm nào'
+                : 'Không có sản phẩm nào trong danh mục ${selectedCategory}',
+            textAlign: TextAlign.center,
+          ),
+          if (selectedCategory.isNotEmpty) const SizedBox(height: 16),
+          if (selectedCategory.isNotEmpty)
+            ElevatedButton(
+              onPressed: () {
+                appProvider.resetSelectedCategory();
+              },
+              child: const Text('Hiển thị tất cả sản phẩm'),
             ),
-            if (selectedCategory.isNotEmpty)
-              const SizedBox(height: 16),
-            if (selectedCategory.isNotEmpty)
-              ElevatedButton(
-                onPressed: () {
-                  appProvider.resetSelectedCategory();
-                },
-                child: const Text('Hiển thị tất cả sản phẩm'),
-              ),
-          ],
-        )
-      );
+        ],
+      ));
     }
 
-  // Hiển thị sản phẩm theo chế độ xem
-    return isMobile 
+    // Hiển thị sản phẩm theo chế độ xem
+    return isMobile
         ? ListView.builder(
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(), 
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: _products.length,
             itemBuilder: (context, index) => buildMobileProductItem(
-              context, 
-              index, 
+              context,
+              index,
               _products[index],
               isExpanded: _expandedItems.contains(index),
               onExpandToggle: _toggleExpanded,
@@ -647,25 +649,26 @@ class _ProductListViewState extends State<ProductListView> {
 /// Phương thức xóa sản phẩm
 Future<void> deleteProduct(BuildContext context, String productId) async {
   final ProductController productController = ProductController();
-  
+
   // Hiển thị dialog xác nhận
   bool confirmed = await showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Xác nhận xóa'),
-      content: const Text('Bạn có chắc chắn muốn xóa sản phẩm này không?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Hủy'),
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Xác nhận xóa'),
+          content: const Text('Bạn có chắc chắn muốn xóa sản phẩm này không?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+            ),
+          ],
         ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Xóa', style: TextStyle(color: Colors.red)),
-        ),
-      ],
-    ),
-  ) ?? false;
+      ) ??
+      false;
 
   if (!confirmed) return;
 
@@ -678,23 +681,22 @@ Future<void> deleteProduct(BuildContext context, String productId) async {
 
   try {
     bool success = await productController.deleteProduct(productId);
-    
+
     // Đóng dialog loading
     Navigator.pop(context);
-    
+
     // Hiển thị thông báo kết quả
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success 
-          ? 'Xóa sản phẩm thành công' 
-          : 'Xóa sản phẩm thất bại'),
+        content:
+            Text(success ? 'Xóa sản phẩm thành công' : 'Xóa sản phẩm thất bại'),
         backgroundColor: success ? Colors.green : Colors.red,
       ),
     );
   } catch (e) {
     // Đóng dialog loading
     Navigator.pop(context);
-    
+
     // Hiển thị thông báo lỗi
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -705,11 +707,9 @@ Future<void> deleteProduct(BuildContext context, String productId) async {
   }
 }
 
-
-
 Table buildProductTable(BuildContext context, {List<ProductModel>? products}) {
   final productList = products ?? [];
-  
+
   return Table(
     columnWidths: const {
       0: FixedColumnWidth(40), // Checkbox
