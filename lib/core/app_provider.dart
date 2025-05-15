@@ -30,6 +30,11 @@ class AppProvider extends ChangeNotifier {
   }
   
   void setSelectedCategory(String category) {
+    // If we're selecting a new category, ensure we exit view-only mode
+    if (_selectedCategory != category && _isViewOnlyMode) {
+      _isViewOnlyMode = false;
+      _currentProductId = '';
+    }
     _selectedCategory = category;
     notifyListeners();
   }

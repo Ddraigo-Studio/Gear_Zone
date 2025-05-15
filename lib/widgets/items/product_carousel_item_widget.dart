@@ -22,8 +22,6 @@ class ProductCarouselItem extends StatelessWidget {
 
     // Lấy dữ liệu đã được xử lý từ model
     String discountPercent = product.getDiscountPercent();
-    String formattedPrice = product.getFormattedPrice();
-    String formattedOriginalPrice = product.getFormattedOriginalPrice();
 
     final double itemWidth = 160.h; // Smallest width for mobile
     return InkWell(
@@ -97,8 +95,8 @@ class ProductCarouselItem extends StatelessWidget {
                       isDesktop: isDesktop), // tên sản phẩm
                   SizedBox(height: 3.h), // Reduced spacing
                   _ProductPrice(
-                    originalPrice: formattedOriginalPrice,
-                    discountPrice: formattedPrice,
+                    originalPrice: ProductModel.formatPrice(product.originalPrice),
+                    discountPrice: ProductModel.formatPrice(product.price),
                     discountPercent: discountPercent,
                     isDesktop: isDesktop,
                   ),
@@ -306,9 +304,9 @@ class _AddToCartButton extends StatelessWidget {
                 availableColors: colorOptions,
                 productName: product.name,
                 productImage: product.imageUrl,
-                productPrice: product.getFormattedPrice(),
+                productPrice: ProductModel.formatPrice(product.price),
                 productOriginalPrice: product.originalPrice > 0
-                    ? product.getFormattedOriginalPrice()
+                    ? ProductModel.formatPrice(product.originalPrice)
                     : "",
                 productStock: product.quantity,
                 productId: product.id,

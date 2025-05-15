@@ -346,6 +346,8 @@ class _SidebarState extends State<Sidebar> {
       // Sử dụng Theme để loại bỏ đường viền màu đen của ExpansionTile
       data: Theme.of(context).copyWith(
         dividerColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
         expansionTileTheme: ExpansionTileThemeData(
           backgroundColor: Colors.transparent,
           collapsedBackgroundColor: Colors.transparent,
@@ -356,13 +358,15 @@ class _SidebarState extends State<Sidebar> {
       ),
       child: ExpansionTile(
         onExpansionChanged: (isExpanded) {
-          appProvider.setCurrentScreen(1);
-          // Khi chọn menu chính "Sản phẩm", hiển thị tất cả sản phẩm
-          // Reset cả category và productId
-          appProvider.resetSelectedCategory();
-          appProvider.setCurrentProductId(''); // Reset ID sản phẩm để hiển thị danh sách thay vì chi tiết
-          if (Responsive.isMobile(context)) {
-            Navigator.pop(context);
+          if (isExpanded) {
+            appProvider.setCurrentScreen(1);
+            // Khi chọn menu chính "Sản phẩm", hiển thị tất cả sản phẩm
+            // Reset cả category và productId
+            appProvider.resetSelectedCategory();
+            appProvider.setCurrentProductId(''); // Reset ID sản phẩm để hiển thị danh sách thay vì chi tiết
+            if (Responsive.isMobile(context)) {
+              Navigator.pop(context);
+            }
           }
         },
         initiallyExpanded: isSelected,
@@ -488,55 +492,70 @@ class _SidebarState extends State<Sidebar> {
       builder: (context, snapshot) {
         final productCount = snapshot.data ?? 0;
         
-        return InkWell(
-          onTap: () {
-            // Đặt danh mục được chọn vào Provider
-            appProvider.setSelectedCategory(title);
-            // Giữ nguyên màn hình sản phẩm (index 2)
-            appProvider.setCurrentScreen(2);
-            // Nếu đang ở mobile thì đóng drawer
-            if (Responsive.isMobile(context)) {
-              Navigator.pop(context);
-            }
-          },
-          child: Row(
-            children: [
-              // Sử dụng SvgPicture.asset thay thế Container
-              SvgPicture.asset(
-                'icons/icon_line.svg',
-                fit: BoxFit.cover,
-                // Thay đổi màu của SVG tùy theo trạng thái active
-                colorFilter: ColorFilter.mode(
-                  isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
-                  BlendMode.srcIn,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                displayName ?? title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isActive ? themeColor : Colors.grey[600],
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                margin: const EdgeInsets.only(right: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEEEEE),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  productCount.toString(),
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey,
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              // Đặt danh mục được chọn vào Provider
+              appProvider.setSelectedCategory(title);
+              
+              // Kiểm tra nếu đang ở chế độ xem chi tiết sản phẩm
+              if (appProvider.currentProductId.isNotEmpty) {
+                // Trước tiên reset ID sản phẩm để không còn ở chế độ xem chi tiết nữa
+                appProvider.setCurrentProductId('');
+                // Reset trạng thái xem
+                appProvider.setCurrentScreen(2, isViewOnly: false);
+              } else {
+                // Giữ nguyên màn hình sản phẩm (index 2)
+                appProvider.setCurrentScreen(2);
+              }
+              
+              // Nếu đang ở mobile thì đóng drawer
+              if (Responsive.isMobile(context)) {
+                Navigator.pop(context);
+              }
+            },
+            splashColor: Colors.transparent,
+            highlightColor: themeColor.withOpacity(0.1),
+            child: Row(
+              children: [
+                // Sử dụng SvgPicture.asset thay thế Container
+                SvgPicture.asset(
+                  'icons/icon_line.svg',
+                  fit: BoxFit.cover,
+                  // Thay đổi màu của SVG tùy theo trạng thái active
+                  colorFilter: ColorFilter.mode(
+                    isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
+                    BlendMode.srcIn,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  displayName ?? title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEEEEE),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    productCount.toString(),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       }

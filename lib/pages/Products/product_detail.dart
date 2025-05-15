@@ -304,14 +304,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               Row(
                 children: [
                   Text(
-                    widget.product.getFormattedPrice(),
+                    ProductModel.formatPrice(widget.product.price),
                     style: CustomTextStyles.titleMediumGabaritoPrimaryBold,
                   ),
                   if (widget.product.originalPrice > 0)
                     Padding(
                       padding: EdgeInsets.only(left: 10.h),
                       child: Text(
-                        widget.product.getFormattedOriginalPrice(),
+                        ProductModel.formatPrice(widget.product.originalPrice),
                         style:
                             CustomTextStyles.titleSmallGabaritoGray900.copyWith(
                           decoration: TextDecoration.lineThrough,
@@ -415,9 +415,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 availableColors: colorOptions,
                 productName: widget.product.name,
                 productImage: widget.product.imageUrl,
-                productPrice: widget.product.getFormattedPrice(),
+                productPrice: ProductModel.formatPrice(widget.product.price),
                 productOriginalPrice: widget.product.originalPrice > 0
-                    ? widget.product.getFormattedOriginalPrice()
+                    ? ProductModel.formatPrice(widget.product.originalPrice)
                     : "",
                 productStock: widget.product.quantity,
                 productId: widget.product.id,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../model/category.dart';
 import '../../../core/app_provider.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../widgets/custom_image_view.dart';
 import 'package:provider/provider.dart';
 import '../../../controller/category_controller.dart';
@@ -15,6 +16,7 @@ TableRow buildCategoryTableRow(
     BuildContext context, int index, List<CategoryModel> categories) {
   final category = categories[index];
   final appProvider = Provider.of<AppProvider>(context, listen: false);
+  final isMobile = Responsive.isMobile(context);
 
   return TableRow(
     decoration: BoxDecoration(
@@ -28,7 +30,7 @@ TableRow buildCategoryTableRow(
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16),
           alignment: Alignment.center,
           child: SizedBox(
             width: 20,
@@ -48,16 +50,16 @@ TableRow buildCategoryTableRow(
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: isMobile ? 40 : 48,
+                height: isMobile ? 40 : 48,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: CustomImageView(
                     imagePath: category.imagePath.isNotEmpty 
                         ? category.imagePath
                         : 'assets/images/img_logo.png',
-                    height: 48,
-                    width: 48,
+                    height: isMobile ? 40 : 48,
+                    width: isMobile ? 40 : 48,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -70,17 +72,19 @@ TableRow buildCategoryTableRow(
                     Text(
                       category.id,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: isMobile ? 10 : 13,
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       category.categoryName,
-                      style: const TextStyle(
-                        fontSize: 13,
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 13,
                         fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -95,8 +99,8 @@ TableRow buildCategoryTableRow(
         child: Container(
           child: Text(
             category.ceatedAt.substring(0, 16),
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
               height: 1.4,
             ),
             textAlign: TextAlign.center,
@@ -115,7 +119,8 @@ TableRow buildCategoryTableRow(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.visibility_outlined, size: 20),                onPressed: () {
+                icon: const Icon(Icons.visibility_outlined, size: 20),
+                onPressed: () {
                   // Xem chi tiết danh mục
                   appProvider.setCurrentCategoryId(category.id);
                   appProvider.setCurrentScreen(4, isViewOnly: true);
@@ -127,8 +132,9 @@ TableRow buildCategoryTableRow(
                 splashRadius: 20,
                 tooltip: 'Xem danh mục',
               ),
-              const SizedBox(width: 8),
-              IconButton(                onPressed: () {
+              SizedBox(width: isMobile ? 4 : 8),
+              IconButton(
+                onPressed: () {
                   // Sửa danh mục
                   appProvider.setCurrentCategoryId(category.id);
                   appProvider.setCurrentScreen(4, isViewOnly: false);
@@ -141,7 +147,7 @@ TableRow buildCategoryTableRow(
                 splashRadius: 20,
                 tooltip: 'Sửa danh mục',
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: isMobile ? 4 : 8),
               IconButton(
                 icon: const Icon(Icons.delete_outlined, size: 20),
                 onPressed: () => deleteCategory(context, category.id),
@@ -157,6 +163,185 @@ TableRow buildCategoryTableRow(
         ),
       ),
     ],
+  );
+}
+
+/// Xây dựng mục danh mục dạng mobile
+/// 
+/// [context] Context hiện tại để lấy Theme
+/// [index] Chỉ số của danh mục trong danh sách
+/// [category] Danh mục cần hiển thị
+/// [isExpanded] Trạng thái mở rộng/thu gọn của item
+/// [onExpandToggle] Callback khi người dùng bấm vào nút mở rộng/thu gọn
+Widget buildMobileCategoryItem(
+    BuildContext context, 
+    int index, 
+    CategoryModel category,
+    {bool isExpanded = false, 
+    Function(int)? onExpandToggle}) {
+  
+  final appProvider = Provider.of<AppProvider>(context, listen: false);
+
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border(
+        bottom: BorderSide(color: Colors.grey.shade200),
+      ),
+    ),
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                child: Checkbox(
+                  value: false,
+                  onChanged: (value) {},
+                ),
+              ),            
+              Container(
+                width: 40,
+                height: 40,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: CustomImageView(
+                    imagePath: category.imagePath.isNotEmpty 
+                        ? category.imagePath 
+                        : 'assets/images/img_logo.png',
+                    height: 40,
+                    width: 40,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category.id,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    Text(
+                      category.categoryName,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  size: 20,
+                ),
+                onPressed: () {
+                  if (onExpandToggle != null) {
+                    onExpandToggle(index);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        if (isExpanded)
+          Container(
+            color: Colors.grey.shade50,
+            padding: const EdgeInsets.only(left: 76, bottom: 16, top: 8),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 80,
+                      child: Text(
+                        'Ngày tạo',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      category.ceatedAt.substring(0, 16),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 80,
+                      child: Text(
+                        'Hành động',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.visibility_outlined, size: 20),
+                          onPressed: () {
+                            // Xem chi tiết danh mục
+                            appProvider.setCurrentCategoryId(category.id);
+                            appProvider.setCurrentScreen(4, isViewOnly: true);
+                          },
+                          color: Colors.grey,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          tooltip: 'Xem danh mục',
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                          onPressed: () {
+                            // Sửa danh mục
+                            appProvider.setCurrentCategoryId(category.id);
+                            appProvider.setCurrentScreen(4, isViewOnly: false);
+                          },
+                          color: Colors.grey,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                          tooltip: 'Sửa danh mục',
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outlined, size: 20),
+                          onPressed: () => deleteCategory(context, category.id),
+                          color: Colors.red.shade300,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+      ],
+    ),
   );
 }
 
@@ -224,6 +409,26 @@ Future<void> deleteCategory(BuildContext context, String categoryId) async {
         content: Text('Lỗi khi xóa danh mục: $e'),
         backgroundColor: Colors.red,
       ),
-    );
-  }
+    );  }
+}
+
+/// Xây dựng bảng danh mục hoàn chỉnh với danh sách danh mục tùy chỉnh
+/// 
+/// [context] Context hiện tại để lấy Theme
+/// [categories] Danh sách các danh mục để hiển thị
+Table buildCategoryTable(BuildContext context, {List<CategoryModel>? categories}) {
+  final categoryList = categories ?? [];
+  
+  return Table(
+    columnWidths: const {
+      0: FixedColumnWidth(40), // Checkbox
+      1: FlexColumnWidth(3), // Danh mục
+      2: FlexColumnWidth(1), // Ngày tạo
+      3: FlexColumnWidth(1), // Hành động
+    },
+    children: List.generate(
+      categoryList.length,
+      (index) => buildCategoryTableRow(context, index, categoryList),
+    ),
+  );
 }
