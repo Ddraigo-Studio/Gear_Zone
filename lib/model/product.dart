@@ -166,6 +166,15 @@ class ProductModel {
     };
   }
 
+  // Utility method to format any price value
+  static String formatPrice(double price) {
+    // Định dạng số với dấu phân cách hàng nghìn là dấu chấm
+    String formatted = price.toStringAsFixed(0);
+    final RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    formatted = formatted.replaceAllMapped(reg, (Match match) => '${match[1]}.');
+    return "${formatted}đ";
+  }
+
   // Phương thức tính phần trăm giảm giá
   String getDiscountPercent() {
     if (originalPrice > 0 && price < originalPrice ) {
@@ -175,21 +184,6 @@ class ProductModel {
       return "${discount}%";
     }
   }
-  // Phương thức định dạng giá tiền
-  String getFormattedPrice() {
-    // Định dạng số với dấu phân cách hàng nghìn là dấu chấm
-    String formatted = price.toStringAsFixed(0);
-    final RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    formatted = formatted.replaceAllMapped(reg, (Match match) => '${match[1]}.');
-    return "$formatted" + "đ";
-  }
+  
 
-  // Phương thức định dạng giá gốc
-  String getFormattedOriginalPrice() {
-    // Định dạng số với dấu phân cách hàng nghìn là dấu chấm
-    String formatted = originalPrice.toStringAsFixed(0);
-    final RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    formatted = formatted.replaceAllMapped(reg, (Match match) => '${match[1]}.');
-    return "$formatted" + "đ";
-  }
 }

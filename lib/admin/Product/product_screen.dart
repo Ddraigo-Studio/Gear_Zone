@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/admin/Product/product_add_screen.dart';
 import 'package:gear_zone/controller/product_controller.dart';
 import 'package:gear_zone/model/product.dart';
 import 'package:provider/provider.dart';
 import 'Items/product_row_item.dart';
 import '../../../core/app_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/responsive.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -20,8 +19,9 @@ class _ProductScreenState extends State<ProductScreen> {
     // Lắng nghe thay đổi từ Provider để cập nhật giao diện khi danh mục thay đổi
     final appProvider = Provider.of<AppProvider>(context);
     final selectedCategory = appProvider.selectedCategory;
-    final productController = ProductController();
-
+    final productController = ProductController();    // Kiểm tra xem thiết bị hiện tại có phải là mobile hay không
+    final isMobile = Responsive.isMobile(context);
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12.0),
       child: Column(
@@ -116,87 +116,179 @@ class _ProductScreenState extends State<ProductScreen> {
                   offset: const Offset(0, 2),
                 ),
               ],
-            ),
-            child: Column(
+            ),            child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade300),
-                          color: Colors.grey.shade50,
-                        ),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Tìm kiếm ID, tên sản phẩm',
-                            prefixIcon: const Icon(Icons.search,
-                                color: Colors.grey, size: 20),
-                            border: InputBorder.none,
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 10),
-                            hintStyle: TextStyle(
-                                color: Colors.grey.shade400, fontSize: 14),
+                // Use a responsive layout for search and filters
+                isMobile
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Search field - full width on mobile
+                          Container(
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.grey.shade300),
+                              color: Colors.grey.shade50,
+                            ),
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Tìm kiếm ID, tên sản phẩm',
+                                prefixIcon: const Icon(Icons.search,
+                                    color: Colors.grey, size: 20),
+                                border: InputBorder.none,
+                                contentPadding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                hintStyle: TextStyle(
+                                    color: Colors.grey.shade400, fontSize: 14),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Color(0xFF7C3AED)),
-                      ),
-                      child: TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.filter_list,
-                            color: Color(0xFF7C3AED), size: 18),
-                        label: const Text(
-                          'Lọc',
-                          style:
-                              TextStyle(color: Color(0xFF7C3AED), fontSize: 14),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 12),
+                          // Action buttons in a row
+                          Row(
+                            children: [
+                              // Filter button
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Color(0xFF7C3AED)),
+                                  ),
+                                  child: TextButton.icon(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.filter_list,
+                                        color: Color(0xFF7C3AED), size: 18),
+                                    label: const Text(
+                                      'Lọc',
+                                      style: TextStyle(
+                                          color: Color(0xFF7C3AED), fontSize: 14),
+                                    ),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Add new product button
+                              Expanded(
+                                flex: 2,
+                                child: Container(
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(14),
+                                    color: const Color(0xFF7C3AED),
+                                  ),
+                                  child: TextButton.icon(
+                                    onPressed: () {
+                                      // Chuyển đến màn hình thêm sản phẩm
+                                      final appProvider =
+                                          Provider.of<AppProvider>(context, listen: false);
+                                      appProvider.setCurrentScreen(4);
+                                    },
+                                    icon: const Icon(Icons.add,
+                                        color: Colors.white, size: 18),
+                                    label: const Text(
+                                      'Sản phẩm mới',
+                                      style: TextStyle(color: Colors.white, fontSize: 14),
+                                    ),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: const Color(0xFF7C3AED),
-                      ),
-                      child: TextButton.icon(
-                        onPressed: () {
-                          // Thay đổi màn hình hiện tại sang ProductAddScreen (index 4)
-                          final appProvider =
-                              Provider.of<AppProvider>(context, listen: false);
-                          appProvider.setCurrentScreen(4);
-                        },
-                        icon: const Icon(Icons.add,
-                            color: Colors.white, size: 18),
-                        label: const Text(
-                          'Sản phẩm mới',
-                          style: TextStyle(color: Colors.white, fontSize: 14),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.grey.shade300),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Tìm kiếm ID, tên sản phẩm',
+                                  prefixIcon: const Icon(Icons.search,
+                                      color: Colors.grey, size: 20),
+                                  border: InputBorder.none,
+                                  contentPadding:
+                                      const EdgeInsets.symmetric(vertical: 10),
+                                  hintStyle: TextStyle(
+                                      color: Colors.grey.shade400, fontSize: 14),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 16),
+                          Container(
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Color(0xFF7C3AED)),
+                            ),
+                            child: TextButton.icon(
+                              onPressed: () {},
+                              icon: const Icon(Icons.filter_list,
+                                  color: Color(0xFF7C3AED), size: 18),
+                              label: const Text(
+                                'Lọc',
+                                style:
+                                    TextStyle(color: Color(0xFF7C3AED), fontSize: 14),
+                              ),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 32),
+                          Container(
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              color: const Color(0xFF7C3AED),
+                            ),
+                            child: TextButton.icon(
+                              onPressed: () {
+                                // Thay đổi màn hình hiện tại sang ProductAddScreen (index 4)
+                                final appProvider =
+                                    Provider.of<AppProvider>(context, listen: false);
+                                appProvider.setCurrentScreen(4);
+                              },
+                              icon: const Icon(Icons.add,
+                                  color: Colors.white, size: 18),
+                              label: const Text(
+                                'Sản phẩm mới',
+                                style: TextStyle(color: Colors.white, fontSize: 14),
+                              ),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 16),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -210,9 +302,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // Hiển thị dữ liệu sản phẩm từ Firestore
+                const SizedBox(height: 24),                // Hiển thị dữ liệu sản phẩm từ Firestore
                 StreamBuilder<List<ProductModel>>(
                   stream: selectedCategory.isEmpty
                       ? productController.getProducts()
@@ -256,9 +346,15 @@ class _ProductScreenState extends State<ProductScreen> {
                             ],
                           ),
                         ),
-                      );
+                      );                    }
+                    
+                    // Kiểm tra thiết bị di động và hiển thị giao diện phù hợp
+                    if (isMobile) {
+                      // Mobile view - danh sách dọc các sản phẩm với khả năng mở rộng
+                      return ProductListView();
                     }
 
+                    // Desktop view - bảng sản phẩm
                     return Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
