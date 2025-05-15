@@ -487,11 +487,6 @@ Widget buildMobileProductItem(
   );
 }
 
-/// Xây dựng bảng sản phẩm hoàn chỉnh với danh sách sản phẩm tùy chỉnh
-///
-/// [context] Context hiện tại để lấy Theme
-/// [products] Danh sách các sản phẩm để hiển thị, nếu không cung cấp sẽ sử dụng dữ liệu mẫu
-/// Widget hiển thị danh sách sản phẩm từ Firestore
 class ProductListView extends StatefulWidget {
   const ProductListView({super.key});
 

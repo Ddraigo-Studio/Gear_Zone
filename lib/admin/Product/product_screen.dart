@@ -6,6 +6,8 @@ import '../../../core/app_provider.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../widgets/admin_widgets/breadcrumb.dart';
 import '../../../widgets/pagination_widget.dart';
+import '../../controller/category_controller.dart';
+import '../../model/category.dart';
 import 'Items/product_row_item.dart' as product_items;
 
 class ProductScreen extends StatefulWidget {
@@ -28,26 +30,112 @@ class _ProductScreenState extends State<ProductScreen> {
   List<ProductModel> _products = [];
   bool _isLoading = true;
   String _errorMessage = '';
+  
+  // Phương thức xóa sản phẩm
+  Future<void> _deleteProduct(String productId) async {
+    // Hiển thị dialog xác nhận
+    bool confirmed = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Xác nhận xóa'),
+            content: const Text('Bạn có chắc chắn muốn xóa sản phẩm này không?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!confirmed) return;
+
+    // Hiển thị loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      bool success = await _productController.deleteProduct(productId);
+
+      // Đóng dialog loading
+      Navigator.pop(context);
+
+      if (success) {
+        // Tải lại danh sách sản phẩm sau khi xóa thành công
+        _loadProducts();
+        
+        // Hiển thị thông báo thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Xóa sản phẩm thành công'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Hiển thị thông báo thất bại
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Xóa sản phẩm thất bại'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Đóng dialog loading
+      Navigator.pop(context);
+
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi xóa sản phẩm: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _loadProducts();
   }
-
-  @override
+  // Lưu trữ danh mục đã chọn để theo dõi thay đổi
+  String _previousSelectedCategory = '';
+    @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final appProvider = Provider.of<AppProvider>(context);
+    
+    // Kiểm tra nếu cần tải lại danh sách sản phẩm
     if (appProvider.reloadProductList) {
       _loadProducts();
       appProvider.setReloadProductList(false);
     }
-  }
-
-  // Load sản phẩm với phân trang
+    
+    // Kiểm tra nếu danh mục được chọn thay đổi
+    final currentSelectedCategory = appProvider.selectedCategory;
+    if (_previousSelectedCategory != currentSelectedCategory) {
+      print('Danh mục đã thay đổi: "$_previousSelectedCategory" -> "$currentSelectedCategory"');
+      _previousSelectedCategory = currentSelectedCategory;
+      // Reset về trang đầu tiên và tải lại sản phẩm theo danh mục mới
+      setState(() => _currentPage = 1);
+      _loadProducts();
+    }
+  }  // Load sản phẩm với phân trang
   Future<void> _loadProducts() async {
-    setState(() => _isLoading = true);
+    // Đặt trạng thái đang tải
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
     
     try {
       final appProvider = Provider.of<AppProvider>(context, listen: false);
@@ -56,33 +144,64 @@ class _ProductScreenState extends State<ProductScreen> {
       Map<String, dynamic> result;
       
       if (selectedCategory.isEmpty) {
+        // Lấy tất cả sản phẩm nếu không có danh mục được chọn
         result = await _productController.getProductsPaginated(
           page: _currentPage, 
           limit: _itemsPerPage
         );
       } else {
+        // Lấy sản phẩm theo danh mục
         result = await _productController.getProductsByCategoryPaginated(
           selectedCategory,
           page: _currentPage, 
           limit: _itemsPerPage
-        );
+        );      }
+      
+      // Kiểm tra xem kết quả có dữ liệu hay không
+      if (!result.containsKey('products')) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Không nhận được dữ liệu hợp lệ từ server';
+        });
+        print('Lỗi: Kết quả trả về không hợp lệ');
+        return;
       }
       
+      final productsList = result['products'] as List<ProductModel>;
+      print('Đã nhận được dữ liệu: ${productsList.length} sản phẩm');
+      
+      // Cập nhật state với dữ liệu mới
       setState(() {
         _products = result['products'];
         _totalItems = result['total'];
-        _totalPages = result['totalPages'];
+        _totalPages = result['totalPages'] > 0 ? result['totalPages'] : 1;
         _currentPage = result['currentPage'];
         _hasNextPage = result['hasNextPage'];
         _hasPreviousPage = result['hasPreviousPage'];
         _isLoading = false;
         _errorMessage = '';
       });
+      
+      // In log để debug
+      print('Đã tải ${_products.length} sản phẩm');
+      print('Tổng số: $_totalItems, Trang: $_currentPage/$_totalPages');
+      
+      if (_products.isEmpty && _totalItems > 0 && _currentPage > 1) {
+        // Nếu không có sản phẩm nào được trả về nhưng có tổng số sản phẩm > 0
+        // và đang không ở trang đầu tiên, có thể trang hiện tại không tồn tại
+        // -> Quay lại trang đầu tiên
+        print('Không có sản phẩm ở trang $_currentPage, quay lại trang đầu tiên');
+        setState(() {
+          _currentPage = 1;
+        });
+        _loadProducts();
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
         _errorMessage = 'Lỗi khi tải dữ liệu: $e';
       });
+      print('Lỗi khi tải sản phẩm: $e');
     }
   }
 
@@ -174,8 +293,7 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           ),
         ),
-        
-        // Cột hành động
+          // Cột hành động
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           alignment: Alignment.center,
@@ -191,7 +309,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   appProvider.setCurrentProductId(product.id);
                   appProvider.setCurrentScreen(AppScreen.productDetail, isViewOnly: true);
                 },
-                icon: const Icon(Icons.visibility_outlined, size: 20),
+                icon: const Icon(Icons.visibility_outlined, size: 20, color: Colors.grey),
                 tooltip: 'Xem chi tiết',
               ),
               
@@ -204,8 +322,16 @@ class _ProductScreenState extends State<ProductScreen> {
                   appProvider.setCurrentProductId(product.id);
                   appProvider.setCurrentScreen(AppScreen.productDetail);
                 },
-                icon: const Icon(Icons.edit_outlined, size: 20),
+                icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.grey),
                 tooltip: 'Chỉnh sửa',
+              ),
+              
+              // Nút xóa sản phẩm
+              IconButton(
+                onPressed: () => _deleteProduct(product.id),
+                icon: const Icon(Icons.delete_outlined, size: 20, color: Colors.red),
+                tooltip: 'Xóa sản phẩm',
+                color: Colors.red.shade300,
               ),
             ],
           ),
@@ -448,18 +574,54 @@ class _ProductScreenState extends State<ProductScreen> {
                           ),
                         ],
                       ),
-                const SizedBox(height: 16),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildCategoryTab(context, 'LapTop (50)',
-                          isSelected: true),
-                      _buildCategoryTab(context, 'Máy tính bàn (26)'),
-                      _buildCategoryTab(context, 'Chuột (121)'),
-                      _buildCategoryTab(context, 'Linh kiện (21)'),
-                    ],
-                  ),
+                const SizedBox(height: 16),                // Danh mục có thể cuộn ngang
+                FutureBuilder<Map<String, int>>(
+                  // Tính toán số lượng sản phẩm theo từng danh mục
+                  future: _getCategoryCounts(),
+                  builder: (context, snapshot) {
+                    // Ẩn widget nếu đang tải hoặc có lỗi
+                    if (!snapshot.hasData) {
+                      return const SizedBox();
+                    }
+                    
+                    final categoryCounts = snapshot.data!;
+                    final appProvider = Provider.of<AppProvider>(context);
+                    
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          // Tab tất cả sản phẩm
+                          _buildCategoryTab(
+                            context, 
+                            'Tất cả (${_totalItems})', 
+                            isSelected: appProvider.selectedCategory.isEmpty,
+                            onTap: () {
+                              appProvider.resetSelectedCategory();
+                              setState(() => _currentPage = 1);
+                              _loadProducts();
+                            },
+                          ),                          // Tạo tab cho mỗi danh mục
+                          ...categoryCounts.entries.map((entry) {
+                            final category = entry.key;
+                            final count = entry.value;
+                            return _buildCategoryTab(
+                              context, 
+                              '$category ($count)', 
+                              isSelected: appProvider.selectedCategory == category,
+                              onTap: () {
+                                print('Chọn danh mục: $category');
+                                // Sử dụng đúng tên danh mục (không phải ID) để lọc sản phẩm
+                                appProvider.setSelectedCategory(category);
+                                setState(() => _currentPage = 1);
+                                _loadProducts();
+                              },
+                            );
+                          }).toList(),
+                        ],
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 
@@ -507,24 +669,48 @@ class _ProductScreenState extends State<ProductScreen> {
                             itemBuilder: (context, index) {
                               final product = _products[index];
                               return ListTile(
-                                leading: SizedBox(
-                                  width: 50,
-                                  height: 50,
-                                  child: product.imageUrl.isNotEmpty
-                                      ? Image.network(product.imageUrl, fit: BoxFit.cover)
-                                      : Container(
-                                          color: Colors.grey.shade200,
-                                          child: const Icon(Icons.image_not_supported),
-                                        ),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: SizedBox(
+                                    width: 50,
+                                    height: 50,
+                                    child: product.imageUrl.isNotEmpty
+                                        ? Image.network(
+                                            product.imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Container(
+                                                color: Colors.grey.shade200,
+                                                child: const Icon(Icons.image_not_supported),
+                                              );
+                                            },
+                                          )
+                                        : Container(
+                                            color: Colors.grey.shade200,
+                                            child: const Icon(Icons.image_not_supported),
+                                          ),
+                                  ),
                                 ),
                                 title: Text(
                                   product.name,
                                   style: const TextStyle(fontWeight: FontWeight.bold),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('${product.price.toStringAsFixed(0)} ₫'),
+                                    Text(
+                                      '${product.price.toStringAsFixed(0)} ₫',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade800,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                     Text(
                                       'SL: ${product.quantity}',
                                       style: TextStyle(color: Colors.grey.shade600),
@@ -550,10 +736,10 @@ class _ProductScreenState extends State<ProductScreen> {
                                         ),
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
                                     IconButton(
                                       icon: const Icon(Icons.more_vert),
                                       onPressed: () {
-                                        // Show action menu
                                         showModalBottomSheet(
                                           context: context,
                                           builder: (context) => Column(
@@ -564,6 +750,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                                 title: const Text('Xem chi tiết'),
                                                 onTap: () {
                                                   Navigator.pop(context);
+                                                  final appProvider = Provider.of<AppProvider>(context, listen: false);
                                                   appProvider.setCurrentProductId(product.id);
                                                   appProvider.setCurrentScreen(AppScreen.productDetail, isViewOnly: true);
                                                 },
@@ -573,8 +760,17 @@ class _ProductScreenState extends State<ProductScreen> {
                                                 title: const Text('Chỉnh sửa'),
                                                 onTap: () {
                                                   Navigator.pop(context);
+                                                  final appProvider = Provider.of<AppProvider>(context, listen: false);
                                                   appProvider.setCurrentProductId(product.id);
                                                   appProvider.setCurrentScreen(AppScreen.productDetail);
+                                                },
+                                              ),
+                                              ListTile(
+                                                leading: Icon(Icons.delete_outlined, color: Colors.red.shade300),
+                                                title: Text('Xóa sản phẩm', style: TextStyle(color: Colors.red.shade300)),
+                                                onTap: () {
+                                                  Navigator.pop(context);
+                                                  _deleteProduct(product.id);
                                                 },
                                               ),
                                             ],
@@ -759,9 +955,44 @@ class _ProductScreenState extends State<ProductScreen> {
         ],
       ),
     );
+  }  // Lấy số lượng sản phẩm theo từng danh mục
+  Future<Map<String, int>> _getCategoryCounts() async {
+    final Map<String, int> categoryCounts = {};
+    
+    try {
+      // Lấy danh sách tất cả các danh mục từ CategoryController
+      final categoryController = CategoryController();
+      final categories = await categoryController.getCategories().first;
+      
+      // Nếu không có danh mục nào, sử dụng danh sách cố định
+      if (categories.isEmpty) {
+        final List<String> defaultCategories = [
+          'Laptop', 'PC', 'Chuột', 'Bàn phím', 'Tai nghe', 'Màn hình', 'Laptop Gaming'
+        ];
+        
+        // Đếm số lượng sản phẩm cho mỗi danh mục mặc định
+        for (String category in defaultCategories) {
+          final count = await _productController.countProductsByCategory(category);
+          categoryCounts[category] = count;
+        }
+      } else {
+        // Đếm số lượng sản phẩm cho mỗi danh mục từ Firestore
+        for (CategoryModel category in categories) {
+          final count = await _productController.countProductsByCategory(category.categoryName);
+          categoryCounts[category.categoryName] = count;
+        }
+      }
+      
+      print('Đã tải số lượng sản phẩm theo danh mục: ${categoryCounts.length} danh mục');
+      return categoryCounts;
+    } catch (e) {
+      print('Lỗi khi lấy số lượng sản phẩm theo danh mục: $e');
+      return {};
+    }
   }
 
-  Widget _buildCategoryTab(BuildContext context, String title, {bool isSelected = false}) {
+  // Xây dựng tab danh mục
+  Widget _buildCategoryTab(BuildContext context, String title, {bool isSelected = false, VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
@@ -769,7 +1000,7 @@ class _ProductScreenState extends State<ProductScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: TextButton(
-        onPressed: () {},
+        onPressed: onTap,
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),

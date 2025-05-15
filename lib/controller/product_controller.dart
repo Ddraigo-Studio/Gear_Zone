@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gear_zone/model/product.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+import 'dart:async';
 
 class ProductController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -57,7 +58,7 @@ class ProductController {
         'hasPreviousPage': page > 1,
       };
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm phân trang: $e');
+      // print('Lỗi khi lấy sản phẩm phân trang: $e');
       return {
         'products': <ProductModel>[],
         'total': 0,
@@ -66,17 +67,141 @@ class ProductController {
         'hasNextPage': false,
         'hasPreviousPage': false,
       };
-    }
-  }
-    // Lấy danh sách sản phẩm theo danh mục có phân trang
+    }  }  
+  
+  // Lấy danh sách sản phẩm theo danh mục có phân trang  
   Future<Map<String, dynamic>> getProductsByCategoryPaginated(
       String category, {int page = 1, int limit = 20}) async {
+    // print('Đang lấy sản phẩm theo danh mục: "$category", trang: $page, limit: $limit');
+    
     try {
-      // Lấy tổng số sản phẩm của danh mục
+      if (category.isEmpty) {
+        // print('Danh mục trống, chuyển sang lấy tất cả sản phẩm');
+        return await getProductsPaginated(page: page, limit: limit);
+      }
+        // Kiểm tra trước nếu có sản phẩm với danh mục tương tự nhưng khác chữ hoa/thường
+      final allProductsSnap = await _productsCollection.get();      
+      final matchingDocs = allProductsSnap.docs.where((doc) {
+        final docCategory = (doc.data() as Map<String, dynamic>)['category']?.toString();
+        return docCategory != null && 
+               docCategory.toLowerCase() == category.toLowerCase();
+      }).toList();
+      
+      final int matchingCount = matchingDocs.length;
+      
+      if (matchingCount > 0) {
+        // print('Tìm thấy $matchingCount sản phẩm với danh mục tương tự: "$category"');
+          // Lấy tên danh mục chính xác từ sản phẩm đầu tiên tìm thấy
+        final String exactCategoryName = (matchingDocs.first.data() as Map<String, dynamic>)['category'] as String;
+        // print('Sử dụng tên danh mục chính xác: "$exactCategoryName"');
+        
+        // Sử dụng tên danh mục chính xác để truy vấn
+        final totalSnapshot = await _productsCollection
+            .where('category', isEqualTo: exactCategoryName)
+            .get();
+        final total = totalSnapshot.size;
+        
+        // print('Tổng số sản phẩm theo danh mục "$exactCategoryName": $total');
+          if (total == 0) {
+          // print('Không có sản phẩm nào thuộc danh mục: "$exactCategoryName" (lỗi không mong muốn)');
+          return {
+            'products': <ProductModel>[],
+            'total': 0,
+            'totalPages': 1,
+            'currentPage': 1,
+            'hasNextPage': false,
+            'hasPreviousPage': false,
+          };
+        }
+        
+        // Lấy dữ liệu sản phẩm theo trang - đối với Firestore, chúng ta cần thực hiện phân trang thủ công
+        // Sử dụng tên danh mục chính xác thay vì tên danh mục ban đầu
+        Query query = _productsCollection
+          .where('category', isEqualTo: exactCategoryName)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+          
+        // Nếu không phải trang đầu tiên, chúng ta cần lấy tài liệu chốt
+        if (page > 1) {
+          // Lấy tài liệu cuối cùng của trang trước
+          final lastDoc = await _productsCollection
+              .where('category', isEqualTo: exactCategoryName)
+              .orderBy('createdAt', descending: true)
+              .limit((page - 1) * limit)
+              .get()
+              .then((snap) => snap.docs.isNotEmpty ? snap.docs.last : null);
+              
+          if (lastDoc != null) {
+            query = query.startAfterDocument(lastDoc);
+            // print('Sử dụng document chốt để lấy trang tiếp theo');
+          } else {
+            // print('Không tìm thấy document chốt cho trang $page');
+          }
+        }
+        
+        // Attempt paginated query
+        try {
+          final QuerySnapshot querySnapshot = await query.get();
+          // Chuyển đổi dữ liệu thành danh sách sản phẩm
+          final List<ProductModel> products = querySnapshot.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            data['id'] = doc.id;
+            return ProductModel.fromMap(data);
+          }).toList();
+          
+          // Tính tổng số trang
+          final int totalPages = (total / limit).ceil();
+          
+
+          return {
+            'products': products,
+            'total': total,
+            'totalPages': totalPages,
+            'currentPage': page,
+            'hasNextPage': page < totalPages,
+            'hasPreviousPage': page > 1,
+          };
+        } on FirebaseException catch (e) {
+          if (e.code == 'failed-precondition') {
+            // Fallback: return first page of results without pagination
+            final List<ProductModel> fallbackProducts = matchingDocs
+                .map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id;
+                  return ProductModel.fromMap(data);
+                })
+                .toList();
+            final int totalPages = (fallbackProducts.length / limit).ceil();
+            return {
+              'products': fallbackProducts,
+              'total': fallbackProducts.length,
+              'totalPages': totalPages > 0 ? totalPages : 1,
+              'currentPage': 1,
+              'hasNextPage': false,
+              'hasPreviousPage': false,
+            };
+          }
+          rethrow;
+        }
+      }
+      
+      // Nếu không tìm thấy sản phẩm nào có danh mục tương tự, tiếp tục tìm kiếm theo cách thông thường
       final totalSnapshot = await _productsCollection
           .where('category', isEqualTo: category)
           .get();
       final total = totalSnapshot.size;
+      
+      
+      if (total == 0) {
+        return {
+          'products': <ProductModel>[],
+          'total': 0,
+          'totalPages': 1,
+          'currentPage': 1,
+          'hasNextPage': false,
+          'hasPreviousPage': false,
+        };
+      }
       
       // Lấy dữ liệu sản phẩm theo trang - đối với Firestore, chúng ta cần thực hiện phân trang thủ công
       // Vì Firestore không hỗ trợ offset trực tiếp, chúng ta sẽ dùng startAfter để lấy trang tiếp theo
@@ -97,10 +222,14 @@ class ProductController {
             
         if (lastDoc != null) {
           query = query.startAfterDocument(lastDoc);
+          // print('Sử dụng document chốt để lấy trang tiếp theo');
+        } else {
+          // print('Không tìm thấy document chốt cho trang $page');
         }
       }
       
       final QuerySnapshot querySnapshot = await query.get();
+      // print('Đã truy vấn được ${querySnapshot.docs.length} sản phẩm');
           
       // Chuyển đổi dữ liệu thành danh sách sản phẩm
       final List<ProductModel> products = querySnapshot.docs.map((doc) {
@@ -112,6 +241,9 @@ class ProductController {
       // Tính tổng số trang
       final int totalPages = (total / limit).ceil();
       
+      // print('Tổng số trang: $totalPages, Trang hiện tại: $page');
+      // print('Sản phẩm đã lấy: ${products.length}');
+      
       return {
         'products': products,
         'total': total,
@@ -119,9 +251,34 @@ class ProductController {
         'currentPage': page,
         'hasNextPage': page < totalPages,
         'hasPreviousPage': page > 1,
-      };
-    } catch (e) {
-      print('Lỗi khi lấy sản phẩm theo danh mục phân trang: $e');
+      };    } catch (e) {
+      // print('Lỗi khi lấy sản phẩm theo danh mục "$category" phân trang: $e');
+      // print('Stack trace: ${StackTrace.current}');
+        // Thử kiểm tra tên danh mục với cách viết hoa/thường khác nhau
+      try {
+        // print('Đang thử tìm kiếm sản phẩm với danh mục tương tự...');
+        final allProducts = await _productsCollection.get();
+        // Fixed: Handle nullable strings properly by converting to non-nullable strings
+        final List<String> categories = allProducts.docs
+            .map((doc) => (doc.data() as Map<String, dynamic>)['category']?.toString())
+            .where((cat) => cat != null) // Filter out nulls
+            .map((cat) => cat!) // Convert String? to String using non-null assertion
+            .toSet() // Remove duplicates
+            .toList();
+        
+        // print('Các danh mục có sẵn: ${categories.join(", ")}');
+        
+        final similarCategories = categories.where(
+          (cat) => cat.toLowerCase() == category.toLowerCase()
+        ).toList();
+        
+        if (similarCategories.isNotEmpty) {
+          // print('Tìm thấy danh mục có thể tương thích: ${similarCategories.join(", ")}');
+        }
+      } catch (innerError) {
+        // print('Lỗi khi kiểm tra danh mục tương tự: $innerError');
+      }
+      
       return {
         'products': <ProductModel>[],
         'total': 0,
@@ -132,7 +289,6 @@ class ProductController {
       };
     }
   }
-
   // Giữ các phương thức stream cho khả năng tương thích ngược
   Stream<List<ProductModel>> getProducts() {
     return _productsCollection
@@ -146,22 +302,123 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     });
-  }
-  
-  // Cập nhật phương thức lấy sản phẩm theo danh mục với giới hạn
+  }  // Cập nhật phương thức lấy sản phẩm theo danh mục với giới hạn
   Stream<List<ProductModel>> getProductsByCategory(String category) {
-    return _productsCollection
-        .where('category', isEqualTo: category)
-        .orderBy('createdAt', descending: true)
-        .limit(20) // Giới hạn 20 sản phẩm mặc định
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
-        return ProductModel.fromMap(data);
+    // print('Lấy stream sản phẩm theo danh mục: "$category"');
+    
+    if (category.isEmpty) {
+      // print('Danh mục trống, trả về danh sách rỗng');
+      return Stream.value(<ProductModel>[]);
+    }
+    
+    // Sử dụng StreamController để quản lý luồng dữ liệu - broadcast để nhiều người có thể lắng nghe
+    final controller = StreamController<List<ProductModel>>.broadcast();
+    
+    // Tìm các sản phẩm có danh mục khớp với yêu cầu (không phân biệt hoa/thường)
+    _productsCollection.get().then((allDocs) {
+      // print('Tổng số sản phẩm trong DB: ${allDocs.docs.length}');
+      // print('Đang tìm danh mục: "$category" (lowercase: "${category.toLowerCase()}")');
+      
+      // In ra tất cả các danh mục có trong DB để debug
+      final allCategories = allDocs.docs
+        .map((doc) => (doc.data() as Map<String, dynamic>)['category']?.toString() ?? "null")
+        .where((cat) => cat != "null")
+        .toSet()
+        .toList();
+      
+      // print('Các danh mục trong DB: ${allCategories.join(", ")}');
+
+      // In ra tên các sản phẩm và danh mục tương ứng để debug chi tiết
+      if (category.toLowerCase() == "loa") {
+        // print('🔍 DEBUG DANH MỤC LOA:');
+        for (var doc in allDocs.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final productCategory = data['category']?.toString() ?? "null";
+          final productName = data['name']?.toString() ?? "Không có tên";
+          
+          // print('🔍 Sản phẩm: "$productName" - Danh mục: "$productCategory" (lowercase: "${productCategory.toLowerCase()}")');
+        }
+      }
+      
+      // Trước tiên, thu thập tất cả các document có category phù hợp (không phân biệt hoa/thường)
+      final matchingDocs = allDocs.docs.where((doc) {
+        final docCategory = (doc.data() as Map<String, dynamic>)['category']?.toString();
+        final isMatch = docCategory != null && 
+              docCategory.toLowerCase() == category.toLowerCase();
+              
+        // In ra thông tin để debug
+        if (isMatch) {
+          // print('✅ Tìm thấy kết quả cho danh mục "$category": Document với category="$docCategory"');
+        }
+        
+        return isMatch;
       }).toList();
+      
+      // print('Tổng số document phù hợp: ${matchingDocs.length}');
+      
+      if (matchingDocs.isNotEmpty) {
+        // Nếu tìm thấy sản phẩm khớp với tên danh mục (không phân biệt hoa/thường)
+        final String exactCategoryName = (matchingDocs.first.data() as Map<String, dynamic>)['category'] as String;
+        // print('Sử dụng tên danh mục chính xác: "$exactCategoryName" từ cơ sở dữ liệu');
+        
+        // Tạo danh sách sản phẩm từ các document đã tìm thấy (trả về ngay lập tức)
+        final List<ProductModel> immediateProducts = matchingDocs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data['id'] = doc.id;
+          final product = ProductModel.fromMap(data);
+          // print('✅ Chuyển đổi document thành sản phẩm: "${product.name}" (ID: ${product.id})');
+          return product;
+        }).toList();
+        
+        // Thêm sản phẩm đã tìm thấy vào stream ngay lập tức
+        // print('Đã tìm thấy ${immediateProducts.length} sản phẩm cho danh mục "$exactCategoryName", thêm vào stream');
+        if (!controller.isClosed) {
+          controller.add(immediateProducts);
+        }
+        
+        // Tiếp tục lắng nghe thay đổi với danh mục chính xác
+        final subscription = _productsCollection
+            .where('category', isEqualTo: exactCategoryName)
+            .orderBy('createdAt', descending: true)
+            .snapshots()
+            .listen(
+              (snapshot) {
+                if (controller.isClosed) return;
+                
+                final products = snapshot.docs.map((doc) {
+                  Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id;
+                  return ProductModel.fromMap(data);
+                }).toList();
+                
+                // print('Stream cập nhật: ${products.length} sản phẩm cho danh mục "$exactCategoryName"');
+                controller.add(products);
+              },
+              onError: (error) {
+                if (controller.isClosed) return;
+                
+                // print('Lỗi khi lấy sản phẩm theo danh mục: $error');
+                controller.addError(error);
+              }
+            );
+        
+        // Đảm bảo subscription được hủy khi StreamController đóng
+        controller.onCancel = () {
+          // print('Đóng subscription cho danh mục "$exactCategoryName"');
+          subscription.cancel();
+        };
+      } else {
+        // Nếu không tìm thấy, trả về danh sách rỗng
+        // print('Không tìm thấy sản phẩm nào với danh mục phù hợp: "$category"');
+        controller.add(<ProductModel>[]);
+      }
+    }).catchError((error) {
+      // print('Lỗi khi tìm kiếm danh mục: $error');
+      controller.addError(error);
+      // Không đóng controller ở đây, để cho phép người dùng thực hiện các thao tác khác
     });
+    
+    return controller.stream;
   }
 
   // Lấy chi tiết một sản phẩm theo ID
@@ -175,7 +432,7 @@ class ProductController {
       }
       return null;
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm: $e');
+      // print('Lỗi khi lấy sản phẩm: $e');
       return null;
     }
   }
@@ -202,7 +459,7 @@ class ProductController {
       
       return productId;
     } catch (e) {
-      print('Lỗi khi thêm sản phẩm: $e');
+      // print('Lỗi khi thêm sản phẩm: $e');
       return null;
     }
   }
@@ -211,14 +468,14 @@ class ProductController {
   Future<bool> updateProduct(ProductModel product) async {
     try {
       if (product.id.isEmpty) {
-        print('Không thể cập nhật sản phẩm: ID không tồn tại');
+        // print('Không thể cập nhật sản phẩm: ID không tồn tại');
         return false;
       }
 
       await _productsCollection.doc(product.id).update(product.toMap());
       return true;
     } catch (e) {
-      print('Lỗi khi cập nhật sản phẩm: $e');
+      // print('Lỗi khi cập nhật sản phẩm: $e');
       return false;
     }
   }
@@ -245,7 +502,7 @@ class ProductController {
       await _productsCollection.doc(productId).delete();
       return true;
     } catch (e) {
-      print('Lỗi khi xóa sản phẩm: $e');
+      // print('Lỗi khi xóa sản phẩm: $e');
       return false;
     }
   }
@@ -269,7 +526,7 @@ class ProductController {
       
       return downloadUrl;
     } catch (e) {
-      print('Lỗi khi tải lên hình ảnh sản phẩm: $e');
+      // print('Lỗi khi tải lên hình ảnh sản phẩm: $e');
       return null;
     }
   }
@@ -337,7 +594,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm bán chạy: $e');
+      // print('Lỗi khi lấy sản phẩm bán chạy: $e');
       return [];
     }
   }
@@ -363,7 +620,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm laptop: $e');
+      // print('Lỗi khi lấy sản phẩm laptop: $e');
       return [];
     }
   }
@@ -382,7 +639,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm màn hình: $e');
+      // print('Lỗi khi lấy sản phẩm màn hình: $e');
       return [];
     }
   }
@@ -401,7 +658,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm bàn phím: $e');
+      // print('Lỗi khi lấy sản phẩm bàn phím: $e');
       return [];
     }
   }
@@ -420,7 +677,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm chuột: $e');
+      // print('Lỗi khi lấy sản phẩm chuột: $e');
       return [];
     }
   }
@@ -439,7 +696,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm tai nghe: $e');
+      // print('Lỗi khi lấy sản phẩm tai nghe: $e');
       return [];
     }  
   }
@@ -457,7 +714,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm PC: $e');
+      // print('Lỗi khi lấy sản phẩm PC: $e');
       return [];
     }  
   }
@@ -467,19 +724,38 @@ class ProductController {
       final QuerySnapshot snapshot = await _productsCollection.get();
       return snapshot.docs.length;
     } catch (e) {
-      print('Lỗi khi đếm tổng số sản phẩm: $e');
+      // print('Lỗi khi đếm tổng số sản phẩm: $e');
       return 0;
     }
   }
-  
-  // Đếm số sản phẩm theo danh mục  
+    // Đếm số sản phẩm theo danh mục  
   Future<int> countProductsByCategory(String categoryName) async {
     try {
+      // print('Đếm sản phẩm theo danh mục: "$categoryName" (lowercase: "${categoryName.toLowerCase()}")');
+        // Đầu tiên tìm chính xác trước
       final QuerySnapshot snapshot = 
           await _productsCollection.where('category', isEqualTo: categoryName).get();
-      return snapshot.docs.length;
+      
+      if (snapshot.docs.isNotEmpty) {
+        // print('✅ Đếm: Tìm thấy sản phẩm khớp với category="$categoryName"');
+        return snapshot.docs.length;
+      }
+      
+      // Nếu không tìm thấy, thử tìm không phân biệt chữ hoa/thường
+      final allDocsSnapshot = await _productsCollection.get();
+      final matchingDocs = allDocsSnapshot.docs.where((doc) {
+        final docCategory = (doc.data() as Map<String, dynamic>)['category']?.toString();
+        final isMatch = docCategory != null && 
+              docCategory.toLowerCase() == categoryName.toLowerCase();
+        if (isMatch) {
+          // print('✅ Đếm: Tìm thấy sản phẩm khớp với category="$docCategory" (case-insensitive)');
+        }
+        return isMatch;
+      }).toList();
+      
+      return matchingDocs.length;
     } catch (e) {
-      print('Lỗi khi đếm sản phẩm theo danh mục: $e');
+      // print('Lỗi khi đếm sản phẩm theo danh mục: $e');
       return 0;
     }
   }
@@ -498,7 +774,7 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     } catch (e) {
-      print('Lỗi khi lấy sản phẩm theo danh mục $categoryName: $e');
+      // print('Lỗi khi lấy sản phẩm theo danh mục $categoryName: $e');
       return [];
     }
   }
