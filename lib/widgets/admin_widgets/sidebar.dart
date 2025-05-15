@@ -434,7 +434,7 @@ class _SidebarState extends State<Sidebar> {
             child: Consumer<AppProvider>(
               builder: (context, appProvider, _) {
                 // Lấy danh mục đã chọn từ AppProvider để hiển thị trạng thái active
-                String selectedCategory = appProvider.selectedCategory.toLowerCase();
+                String selectedCategory = appProvider.selectedCategory;
                 
                 // Stream builder để hiển thị danh mục từ Firestore
                 return StreamBuilder<List<CategoryModel>>(
@@ -482,7 +482,7 @@ class _SidebarState extends State<Sidebar> {
                           context,
                           categoryName,
                           displayName: categoryName,
-                          isActive: selectedCategory == categoryName
+                          isActive: selectedCategory.toLowerCase() == categoryName.toLowerCase()
                         );
                       }).toList(),
                     );
@@ -511,18 +511,22 @@ class _SidebarState extends State<Sidebar> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              // Đặt danh mục được chọn vào Provider
+              // Log category selection for debugging
+              print('Chọn danh mục: "$title"');
+              
+              // Đặt danh mục được chọn vào Provider - sử dụng đúng tên danh mục 
+              // (không phải ID) để lọc sản phẩm
               appProvider.setSelectedCategory(title);
               
               // Kiểm tra nếu đang ở chế độ xem chi tiết sản phẩm
               if (appProvider.currentProductId.isNotEmpty) {
                 // Trước tiên reset ID sản phẩm để không còn ở chế độ xem chi tiết nữa
                 appProvider.setCurrentProductId('');
-                // Reset trạng thái xem
-                appProvider.setCurrentScreen(AppScreen.productDetail, isViewOnly: false);
+                // Reset trạng thái xem và chuyển đến danh sách sản phẩm
+                appProvider.setCurrentScreen(AppScreen.productList, isViewOnly: false);
               } else {
-                // Giữ nguyên màn hình sản phẩm
-                appProvider.setCurrentScreen(AppScreen.productDetail);
+                // Chuyển đến màn hình danh sách sản phẩm
+                appProvider.setCurrentScreen(AppScreen.productList);
               }
               
               // Nếu đang ở mobile thì đóng drawer

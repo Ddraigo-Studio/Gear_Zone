@@ -18,12 +18,16 @@ class AppProvider extends ChangeNotifier {
   String _currentProductId = ''; // ID sản phẩm hiện tại đang xem/sửa
   String _currentCategoryId = ''; // ID danh mục hiện tại đang xem/sửa
   String _selectedCategory = ''; // Danh mục sản phẩm được chọn (laptop, mouse, monitor, pc)
+  bool _reloadProductList = false; // Cờ để tải lại danh sách sản phẩm
+  bool _reloadCategoryList = false; // Cờ để tải lại danh sách danh mục
   
   AppScreen get currentScreen => _currentScreen;
   bool get isViewOnlyMode => _isViewOnlyMode;
   String get currentProductId => _currentProductId;
   String get currentCategoryId => _currentCategoryId;
   String get selectedCategory => _selectedCategory;
+  bool get reloadProductList => _reloadProductList;
+  bool get reloadCategoryList => _reloadCategoryList;
   
   void setCurrentScreen(AppScreen screen, {bool isViewOnly = false}) {
     _currentScreen = screen;
@@ -63,6 +67,18 @@ class AppProvider extends ChangeNotifier {
   
   void resetSelectedCategory() {
     _selectedCategory = '';
+    notifyListeners();
+  }
+  
+  // Phương thức để đặt cờ tải lại danh sách sản phẩm
+  void setReloadProductList(bool value) {
+    _reloadProductList = value;
+    notifyListeners();
+  }
+  
+  // Phương thức để đặt cờ tải lại danh sách danh mục
+  void setReloadCategoryList(bool value) {
+    _reloadCategoryList = value;
     notifyListeners();
   }
 }
