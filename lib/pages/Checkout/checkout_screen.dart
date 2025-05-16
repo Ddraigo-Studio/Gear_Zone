@@ -93,11 +93,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
     );
   }
+
   Widget _buildAddressSection(BuildContext context) {
     // Lấy thông tin người dùng từ AuthController
     final authController = Provider.of<AuthController>(context);
     final userModel = authController.userModel;
-    
+
     // Kiểm tra nếu người dùng chưa đăng nhập hoặc không có địa chỉ
     if (userModel == null || userModel.addressList.isEmpty) {
       return Container(
@@ -132,7 +133,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     size: 24.h,
                   ),
                   onPressed: () {
-                    Navigator.pushNamed(context, AppRoutes.addAddressScreen).then((_) {
+                    Navigator.pushNamed(context, AppRoutes.addAddressScreen)
+                        .then((_) {
                       // Refresh khi quay lại từ trang thêm địa chỉ
                       setState(() {});
                     });
@@ -144,14 +146,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       );
     }
-    
+
     // Lấy địa chỉ mặc định nếu có
-    final Map<String, dynamic>? defaultAddress = userModel.defaultAddressId != null
-        ? userModel.addressList.firstWhere(
-            (address) => address['id'] == userModel.defaultAddressId,
-            orElse: () => userModel.addressList.first)
-        : userModel.addressList.first;
-    
+    final Map<String, dynamic>? defaultAddress =
+        userModel.defaultAddressId != null
+            ? userModel.addressList.firstWhere(
+                (address) => address['id'] == userModel.defaultAddressId,
+                orElse: () => userModel.addressList.first)
+            : userModel.addressList.first;
+
     if (defaultAddress == null) {
       return Container(
         margin: EdgeInsets.all(16.h),
@@ -163,12 +166,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Text("Không tìm thấy địa chỉ"),
       );
     }
-    
+
     // Lấy thông tin từ địa chỉ mặc định
     final String name = defaultAddress['name'] ?? '';
     final String phoneNumber = defaultAddress['phoneNumber'] ?? '';
     final String fullAddress = defaultAddress['fullAddress'] ?? '';
-    
+
     return Container(
       margin: EdgeInsets.all(16.h),
       padding: EdgeInsets.all(16.h),
@@ -232,7 +235,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 onPressed: () {
                   // Điều hướng đến trang chọn địa chỉ
-                  Navigator.pushNamed(context, AppRoutes.listAddressScreen).then((_) {
+                  Navigator.pushNamed(context, AppRoutes.listAddressScreen)
+                      .then((_) {
                     // Refresh khi quay lại từ trang chọn địa chỉ
                     setState(() {});
                   });
@@ -337,62 +341,85 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildPaymentMethodSection(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.h),
-      padding: EdgeInsets.all(16.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.h),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Icon(
-                  Icons.payment_rounded,
-                  color: appTheme.deepPurpleA200,
-                  size: 24.h,
-                ),
-                SizedBox(width: 12.h),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Phương thức thanh toán",
-                        style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold
-                            .copyWith(
-                          color: appTheme.gray70001,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        "Chưa chọn phương thức thanh toán",
-                        style:
-                            CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    return Consumer<CheckoutController>(
+      builder: (context, controller, child) {
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: 16.h),
+          padding: EdgeInsets.all(16.h),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.h),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: appTheme.gray700,
-              size: 20.h,
-            ),
-            onPressed: () {
-              // Điều hướng đến trang chọn phương thức thanh toán
-            },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.payment_rounded,
+                      color: appTheme.deepPurpleA200,
+                      size: 24.h,
+                    ),
+                    SizedBox(width: 12.h),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Phương thức thanh toán",
+                            style: CustomTextStyles
+                                .titleMediumBaloo2Gray500SemiBold
+                                .copyWith(
+                              color: appTheme.gray70001,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4.h),
+                          Row(
+                            children: [
+                              if (controller.paymentIcon.isNotEmpty)
+                                CustomImageView(
+                                  imagePath: controller.paymentIcon,
+                                  height: 20.h,
+                                  width: 20.h,
+                                  margin: EdgeInsets.only(right: 8.h),
+                                ),
+                              Text(
+                                controller.paymentMethod.isNotEmpty
+                                    ? controller.paymentMethod
+                                    : "Chưa chọn phương thức thanh toán",
+                                style: CustomTextStyles
+                                    .titleMediumBaloo2Gray500SemiBold,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: appTheme.gray700,
+                  size: 20.h,
+                ),
+                onPressed: () {
+                  // Điều hướng đến trang chọn phương thức thanh toán
+                  Navigator.pushNamed(context, AppRoutes.methodCheckoutScreen)
+                      .then((_) {
+                    // Cập nhật giao diện khi quay lại từ trang chọn phương thức
+                    setState(() {});
+                  });
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -560,13 +587,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         height: 48.h,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: appTheme.deepPurpleA200,
+            backgroundColor: _checkoutController.paymentMethod.isEmpty
+                ? Colors.grey
+                : appTheme.deepPurpleA200,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24.h),
             ),
             padding: EdgeInsets.symmetric(vertical: 16.h),
           ),
-          onPressed: _isProcessing
+          onPressed: (_isProcessing ||
+                  _checkoutController.paymentMethod.isEmpty)
               ? null
               : () async {
                   setState(() {
