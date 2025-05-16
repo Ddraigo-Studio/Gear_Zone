@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gear_zone/core/app_export.dart';
@@ -14,34 +12,31 @@ class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
 
   @override
-  State<Sidebar> createState() => _SidebardState();
+  State<Sidebar> createState() => _SidebarState();
 }
 
-class _SidebardState extends State<Sidebar> {
+class _SidebarState extends State<Sidebar> {
   final CategoryController _categoryController = CategoryController();
-  bool _isProductsExpanded = false;
+  // Track if the product menu is expanded
+  bool isProductMenuExpanded = false;
   
   @override
   void initState() {
     super.initState();
-    // Kiểm tra xem có nên mở mục sản phẩm khi khởi tạo không
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final appProvider = Provider.of<AppProvider>(context, listen: false);
-      if (appProvider.currentScreen == AppScreen.productList ||
-          appProvider.currentScreen == AppScreen.productDetail ||
-          appProvider.currentScreen == AppScreen.productAdd ||
-          appProvider.selectedCategory.isNotEmpty) {
-        setState(() {
-          _isProductsExpanded = true;
-        });
-      }
-    });
+    // Always start with product menu collapsed
+    isProductMenuExpanded = false;
   }
   
   @override
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context);
     final isMobile = Responsive.isMobile(context);
+    
+    // Reset product menu expansion state when in mobile mode
+    // This ensures it's always collapsed when drawer is reopened
+    if (isMobile) {
+      isProductMenuExpanded = false;
+    }
 
     return Container(
       width: isMobile ? double.infinity : 250,
@@ -136,13 +131,27 @@ class _SidebardState extends State<Sidebar> {
                     },
                   ),
 
-                  _buildProductsMenu(context, appProvider),
+                  FutureBuilder<int>(
+                    future: ProductController().getTotalProductCount(),
+                    builder: (context, snapshot) {
+                      final productCount = snapshot.data?.toString() ?? "0";
+                      return _buildNestedMenuItem(
+                        context,
+                        icon: Icons.inventory_2_outlined,
+                        title: 'Sản phẩm',
+                        screen: AppScreen.productList,
+                        currentScreen: appProvider.currentScreen,
+                        detail: productCount,
+                        isProductMenu: true, // Mark this as the product menu
+                      );
+                    }
+                  ),
 
                   _buildMenuItem(
                     context,
                     icon: Icons.card_giftcard_rounded,
                     title: 'Voucher',
-                    screen: AppScreen.customerList, // Tạm thời dùng màn hình khách hàng, sau này có thể thay bằng voucher
+                    screen: AppScreen.voucherList,
                     currentScreen: appProvider.currentScreen,
                   ),
 
@@ -150,7 +159,7 @@ class _SidebardState extends State<Sidebar> {
                     context,
                     icon: Icons.receipt_outlined,
                     title: 'Đơn hàng',
-                    screen: AppScreen.dashboard, // Tạm thời dùng màn hình Dashboard vì chưa có màn hình đơn hàng
+                    screen: AppScreen.orderList,
                     currentScreen: appProvider.currentScreen,
                   ),
 
@@ -193,6 +202,7 @@ class _SidebardState extends State<Sidebar> {
                     screen: AppScreen.dashboard, // Tạm thời sử dụng dashboard vì chưa có màn hình hộp thoại
                     currentScreen: appProvider.currentScreen,
                   ),
+
                 ],
               ),
             ),
@@ -256,161 +266,6 @@ class _SidebardState extends State<Sidebar> {
           ),
         ],
       ),
-    );
-  }
-  
-  // Tạo menu sản phẩm riêng biệt với các tiểu mục
-  Widget _buildProductsMenu(BuildContext context, AppProvider appProvider) {
-    final isSelected = appProvider.currentScreen == AppScreen.productList ||
-                       appProvider.currentScreen == AppScreen.productDetail ||
-                       appProvider.currentScreen == AppScreen.productAdd;
-    final themeColor = Theme.of(context).primaryColor;
-    
-    return FutureBuilder<int>(
-      future: ProductController().getTotalProductCount(),
-      builder: (context, snapshot) {
-        final productCount = snapshot.data?.toString() ?? "0";
-        
-        return Column(
-          children: [
-            // Phần tiêu đề menu sản phẩm
-            InkWell(
-              onTap: () {
-                // Xử lý sự kiện khi nhấp vào tiêu đề menu sản phẩm
-                appProvider.setCurrentScreen(AppScreen.productList);
-                appProvider.resetSelectedCategory();
-                appProvider.setCurrentProductId('');
-                
-                if (Responsive.isMobile(context)) {
-                  Navigator.pop(context);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFF2F6FF) : Colors.transparent,
-                  border: Border(
-                    left: BorderSide(
-                      color: isSelected ? themeColor : Colors.transparent,
-                      width: 4,
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.inventory_2_outlined,
-                      size: 18,
-                      color: isSelected ? themeColor : Colors.grey[600],
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Sản phẩm',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isSelected ? themeColor : Colors.black87,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                    ),
-                    const Spacer(),
-                    // Số lượng sản phẩm
-                    Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEEEEE),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        productCount,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                    // Nút mở/đóng danh mục con
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          _isProductsExpanded = !_isProductsExpanded;
-                        });
-                      },
-                      child: Icon(
-                        _isProductsExpanded ? Icons.expand_less : Icons.expand_more,
-                        size: 18,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            // Phần danh sách các danh mục sản phẩm
-            if (_isProductsExpanded)
-              Padding(
-                padding: const EdgeInsets.only(left: 24.0),
-                child: Consumer<AppProvider>(
-                  builder: (context, appProvider, _) {
-                    String selectedCategory = appProvider.selectedCategory;
-                    
-                    return StreamBuilder<List<CategoryModel>>(
-                      stream: _categoryController.getCategories(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Center(
-                              child: SizedBox(
-                                width: 20, 
-                                height: 20, 
-                                child: CircularProgressIndicator(strokeWidth: 2)
-                              ),
-                            ),
-                          );
-                        }
-                        
-                        if (snapshot.hasError) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Lỗi: ${snapshot.error}',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          );
-                        }
-                        
-                        final categories = snapshot.data ?? [];
-                        
-                        if (categories.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text('Không có danh mục nào'),
-                          );
-                        }
-                        
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: categories.map((category) {
-                            final categoryName = category.categoryName;
-                            
-                            return _buildCategoryItem(
-                              context,
-                              categoryName,
-                              displayName: categoryName,
-                              isActive: selectedCategory.toLowerCase() == categoryName.toLowerCase()
-                            );
-                          }).toList(),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-          ],
-        );
-      }
     );
   }
 
@@ -495,8 +350,179 @@ class _SidebardState extends State<Sidebar> {
       ),
     );
   }
-  
-  Widget _buildCategoryItem(BuildContext context, String title, {String? displayName, bool isActive = false}) {
+
+  Widget _buildNestedMenuItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    AppScreen? screen,
+    int? index,
+    required dynamic currentScreen,
+    String? detail,
+    bool isProductMenu = false, // New parameter to identify the product menu item
+  }) {
+    final isSelected = screen != null
+        ? screen == currentScreen
+        : index == currentScreen;
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final themeColor = Theme.of(context).primaryColor;
+    
+    // If this is the product menu, we'll use the state variable to control expansion
+    
+    return Theme(
+      // Sử dụng Theme để loại bỏ đường viền màu đen của ExpansionTile
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        expansionTileTheme: ExpansionTileThemeData(
+          backgroundColor: Colors.transparent,
+          collapsedBackgroundColor: Colors.transparent,
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: Colors.transparent)
+          ),
+        ),
+      ),
+      child: ExpansionTile(
+        onExpansionChanged: (isExpanded) {
+          if (isProductMenu) {
+            // Update the product menu expansion state
+            setState(() {
+              isProductMenuExpanded = isExpanded;
+            });
+          }
+          
+          if (isExpanded) {
+            if (screen != null) {
+              appProvider.setCurrentScreen(AppScreen.productList);
+            } else if (index != null) {
+              // Legacy support
+              appProvider.setCurrentScreenByIndex(1);
+            }
+            // Khi chọn menu chính "Sản phẩm", hiển thị tất cả sản phẩm
+            // Reset cả category và productId
+            appProvider.resetSelectedCategory();
+            appProvider.setCurrentProductId(''); // Reset ID sản phẩm để hiển thị danh sách thay vì chi tiết
+            // Chỉ đóng sidebar khi người dùng bấm lần đầu tiên, không phải khi bấm để mở rộng/thu gọn
+            // Trong trường hợp này, không cần đóng drawer khi mở rộng menu
+          }
+        },
+        // Use the state variable for product menu
+        // For other menu items, always keep collapsed by default
+        initiallyExpanded: isProductMenu ? isProductMenuExpanded : false,
+        tilePadding: EdgeInsets.symmetric(horizontal: 16.h,),
+        leading: Icon(
+          icon, 
+          size: 18, 
+          color: isSelected ? themeColor : Colors.grey[600],
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            color: isSelected ? themeColor : Colors.black87,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (detail != null)
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEEEEE),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  detail,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            Icon(
+              Icons.expand_more,
+              size: 18,
+              color: Colors.grey[600],
+            ),
+          ],
+        ),
+        iconColor: themeColor,
+        collapsedIconColor: Colors.grey[600],
+        children: [
+          // Load danh mục từ Firestore
+          Padding(
+            padding: const EdgeInsets.only(left: 24.0),
+            child: Consumer<AppProvider>(
+              builder: (context, appProvider, _) {
+                // Lấy danh mục đã chọn từ AppProvider để hiển thị trạng thái active
+                String selectedCategory = appProvider.selectedCategory;
+                
+                // Stream builder để hiển thị danh mục từ Firestore
+                return StreamBuilder<List<CategoryModel>>(
+                  stream: _categoryController.getCategories(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Center(
+                          child: SizedBox(
+                            width: 20, 
+                            height: 20, 
+                            child: CircularProgressIndicator(strokeWidth: 2)
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    if (snapshot.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Lỗi: ${snapshot.error}',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      );
+                    }
+                    
+                    final categories = snapshot.data ?? [];
+                    
+                    if (categories.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('Không có danh mục nào'),
+                      );
+                    }
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: categories.map((category) {
+                        // Chỉ sử dụng categoryName, không cần categoryId
+                        final categoryName = category.categoryName;
+                        
+                        return _buildNestedSubMenuItem(
+                          context,
+                          categoryName,
+                          displayName: categoryName,
+                          isActive: selectedCategory.toLowerCase() == categoryName.toLowerCase()
+                        );
+                      }).toList(),
+                    );
+                  },
+                );
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNestedSubMenuItem(BuildContext context, String title, {String? displayName, bool isActive = false}) {
+    // Màu tím chủ đạo của ứng dụng khi active
     final themeColor = Theme.of(context).primaryColor;
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     final productController = ProductController();
@@ -513,16 +539,22 @@ class _SidebardState extends State<Sidebar> {
               // Log category selection for debugging
               print('Chọn danh mục: "$title"');
               
-              // Đặt danh mục được chọn vào Provider
+              // Đặt danh mục được chọn vào Provider - sử dụng đúng tên danh mục 
+              // (không phải ID) để lọc sản phẩm
               appProvider.setSelectedCategory(title);
               
+              // Kiểm tra nếu đang ở chế độ xem chi tiết sản phẩm
               if (appProvider.currentProductId.isNotEmpty) {
+                // Trước tiên reset ID sản phẩm để không còn ở chế độ xem chi tiết nữa
                 appProvider.setCurrentProductId('');
+                // Reset trạng thái xem và chuyển đến danh sách sản phẩm
                 appProvider.setCurrentScreen(AppScreen.productList, isViewOnly: false);
               } else {
+                // Chuyển đến màn hình danh sách sản phẩm
                 appProvider.setCurrentScreen(AppScreen.productList);
               }
               
+              // Nếu đang ở mobile thì đóng drawer
               if (Responsive.isMobile(context)) {
                 Navigator.pop(context);
               }
@@ -531,9 +563,11 @@ class _SidebardState extends State<Sidebar> {
             highlightColor: themeColor.withOpacity(0.1),
             child: Row(
               children: [
+                // Sử dụng SvgPicture.asset thay thế Container
                 SvgPicture.asset(
                   'icons/icon_line.svg',
                   fit: BoxFit.cover,
+                  // Thay đổi màu của SVG tùy theo trạng thái active
                   colorFilter: ColorFilter.mode(
                     isActive ? themeColor : Colors.deepPurple[400] ?? Colors.grey, 
                     BlendMode.srcIn,
@@ -572,4 +606,3 @@ class _SidebardState extends State<Sidebar> {
     );
   }
 }
-

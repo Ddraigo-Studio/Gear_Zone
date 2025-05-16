@@ -1,423 +1,586 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/core/utils/responsive.dart';
-import 'package:gear_zone/controller/customer_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:gear_zone/core/app_provider.dart';
+import 'package:gear_zone/controller/user_controller.dart';
 import 'package:gear_zone/model/user.dart';
-import '../../widgets/pagination_widget.dart';
+import 'package:gear_zone/core/utils/responsive.dart';
+import 'package:intl/intl.dart';
 
 class CustomerScreen extends StatefulWidget {
   const CustomerScreen({super.key});
 
   @override
-  State<CustomerScreen> createState() => _CustomerScreenState();
+  _CustomerScreenState createState() => _CustomerScreenState();
 }
 
 class _CustomerScreenState extends State<CustomerScreen> {
-  final CustomerController _customerController = CustomerController();
-  
-  // Thông tin phân trang
-  int _currentPage = 1;
-  int _totalPages = 1;
-  bool _hasNextPage = false;
-  bool _hasPreviousPage = false;
-  int _totalItems = 0;
-  final int _itemsPerPage = 20;
-  List<UserModel> _customers = [];
-  bool _isLoading = true;
-  String _errorMessage = '';
+  final UserController _userController = UserController();
+  bool _isLoading = false;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadCustomers();
-  }
-
-  // Load khách hàng với phân trang
-  Future<void> _loadCustomers() async {
-    setState(() => _isLoading = true);
-    
-    try {
-      final result = await _customerController.getCustomersPaginated(
-        page: _currentPage, 
-        limit: _itemsPerPage
-      );
-      
-      setState(() {
-        _customers = result['customers'];
-        _totalItems = result['total'];
-        _totalPages = result['totalPages'];
-        _currentPage = result['currentPage'];
-        _hasNextPage = result['hasNextPage'];
-        _hasPreviousPage = result['hasPreviousPage'];
-        _isLoading = false;
-        _errorMessage = '';
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Lỗi khi tải khách hàng: $e';
-      });
-    }
-  }
-
-  // Xử lý khi thay đổi trang
-  void _handlePageChanged(int page) {
-    setState(() {
-      _currentPage = page;
+    // Kiểm tra xem có cần tải lại danh sách không
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appProvider = Provider.of<AppProvider>(context, listen: false);
+      if (appProvider.reloadCustomerList) {
+        appProvider.setReloadCustomerList(false);
+      }
     });
-    _loadCustomers();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final appProvider = Provider.of<AppProvider>(context);
     final isMobile = Responsive.isMobile(context);
-    
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Page title
-          const Text(
-            'Khách hàng',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Padding(
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header and search bar
+            _buildHeader(context),
+            const SizedBox(height: 16),
+            
+            // Filters and actions
+            _buildFilters(context),
+            const SizedBox(height: 16),
+
+            // Customers list
+            Expanded(
+              child: _buildCustomersList(context),
             ),
-          ),
-          
-          // Breadcrumb
-          Row(
-            children: [
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Bảng điều khiển',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Khách hàng',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          
-          // Filter and add customer
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.filter_list),
-                  label: const Text('Lọc'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.add),
-                  label: const Text('Thêm khách hàng'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          // Customers table
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Hiển thị dữ liệu khách hàng
-                _isLoading 
-                  ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  : _errorMessage.isNotEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Text('Lỗi: $_errorMessage'),
-                        ),
-                      )
-                    : _customers.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              children: [
-                                const Icon(Icons.person_off_outlined,
-                                    size: 48, color: Colors.grey),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Không có khách hàng nào',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            if (!isMobile)
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 24,
-                                      child: Checkbox(
-                                        value: false,
-                                        onChanged: (value) {},
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Tên khách hàng',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Liên hệ',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                        'Địa chỉ',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 100,
-                                      child: Text(
-                                        'Hành động',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade700,
-                                          fontSize: 16,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            
-                            // Table rows - sử dụng dữ liệu thực từ Firestore
-                            ...List.generate(
-                              _customers.length,
-                              (index) => isMobile
-                                  ? _buildMobileCustomerItem(context, _customers[index])
-                                  : _buildDesktopCustomerRow(context, _customers[index]),
-                            ),
-                          ],
-                        ),
-                
-                // Phân trang
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Tổng: $_totalItems khách hàng | Hiển thị ${_customers.length} mục',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const Spacer(),
-                      
-                      // Widget phân trang
-                      PaginationWidget(
-                        currentPage: _currentPage,
-                        totalPages: _totalPages,
-                        hasNextPage: _hasNextPage,
-                        hasPreviousPage: _hasPreviousPage,
-                        onPageChanged: _handlePageChanged,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-  
-  // Custom widgets to display customer data
-  Widget _buildDesktopCustomerRow(BuildContext context, UserModel customer) {
-    final defaultAddress = customer.addressList.isNotEmpty 
-        ? customer.addressList.firstWhere(
-            (addr) => addr['id'] == customer.defaultAddressId,
-            orElse: () => customer.addressList.first)
-        : {'street': 'N/A', 'city': 'N/A', 'state': 'N/A', 'zipCode': 'N/A'};
-    
-    final addressText = '${defaultAddress['street']}, ${defaultAddress['city']}, ${defaultAddress['state']} ${defaultAddress['zipCode']}';
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
+
+  Widget _buildHeader(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Danh sách khách hàng',
+                style: TextStyle(
+                  fontSize: isMobile ? 20 : 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              FutureBuilder<int>(
+                future: _userController.getUsersCount(),
+                builder: (context, snapshot) {
+                  final count = snapshot.data ?? 0;
+                  return Text(
+                    '$count người dùng',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: isMobile ? 12 : 14,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Row(
-        children: [
+        if (!isMobile) ...[
+          const SizedBox(width: 16),
           SizedBox(
-            width: 24,
-            child: Checkbox(
-              value: false,
-              onChanged: (value) {},
+            width: 300,
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm khách hàng...',
+                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  customer.uid,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-                Text(
-                  customer.name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildFilters(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isMobile)
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Tìm kiếm khách hàng...',
+              prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
             ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
           ),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  customer.email,
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  customer.phoneNumber,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 3,
+      ],
+    );
+  }
+
+  Widget _buildCustomersList(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+
+    return StreamBuilder<List<UserModel>>(
+      stream: _searchQuery.isEmpty
+          ? _userController.getUsers()
+          : _userController.searchUsers(_searchQuery),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(
             child: Text(
-              addressText,
-              style: const TextStyle(fontSize: 14),
+              'Đã có lỗi xảy ra: ${snapshot.error}',
+              style: TextStyle(color: Colors.red),
+            ),
+          );
+        }
+
+        final users = snapshot.data ?? [];
+
+        if (users.isEmpty) {
+          return const Center(
+            child: Text(
+              'Không có người dùng nào',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        }
+
+        return isMobile
+            ? _buildMobileCustomersList(users, appProvider)
+            : _buildDesktopCustomersList(users, appProvider);
+      },
+    );
+  }
+
+  Widget _buildMobileCustomersList(List<UserModel> users, AppProvider appProvider) {
+    return ListView.builder(
+      itemCount: users.length,
+      itemBuilder: (context, index) {
+        final user = users[index];
+        final isBanned = user.isBanned ?? false;
+        
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () {
+              appProvider.setCurrentCustomerId(user.uid);
+              appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: true);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Avatar
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: user.photoURL != null && user.photoURL!.isNotEmpty 
+                        ? NetworkImage(user.photoURL!) 
+                        : null,
+                    child: user.photoURL == null || user.photoURL!.isEmpty 
+                        ? const Icon(Icons.person, color: Colors.grey) 
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  
+                  // User info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                user.name,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: isBanned ? Colors.grey : Colors.black,
+                                ),
+                              ),
+                            ),
+                            if (isBanned)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.red, width: 1),
+                                ),
+                                child: Text(
+                                  'Đã cấm',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.email,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            decoration: isBanned ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.phoneNumber,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            decoration: isBanned ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Ngày đăng ký: ${DateFormat('dd/MM/yyyy').format(user.createdAt)}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => _showBanUserDialog(context, user),
+                              child: Text(
+                                isBanned ? 'Bỏ cấm' : 'Cấm',
+                                style: TextStyle(
+                                  color: isBanned ? Colors.orange : Colors.red,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                appProvider.setCurrentCustomerId(user.uid);
+                                appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: false);
+                              },
+                              child: const Text('Sửa'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          SizedBox(
-            width: 120, // Increased from 100 to 120 to accommodate the buttons
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopCustomersList(List<UserModel> users, AppProvider appProvider) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Table header
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Row(
-              mainAxisSize: MainAxisSize.min, // Set to min to avoid expansion
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.visibility_outlined, size: 18), // Reduced size
-                  onPressed: () {},
-                  color: Colors.grey,
-                  padding: const EdgeInsets.all(4), // Reduced padding
-                  constraints: const BoxConstraints(), // Remove default constraints
-                  visualDensity: VisualDensity.compact, // More compact
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Avatar',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 18), // Reduced size
-                  onPressed: () {},
-                  color: Colors.grey,
-                  padding: const EdgeInsets.all(4), // Reduced padding
-                  constraints: const BoxConstraints(), // Remove default constraints
-                  visualDensity: VisualDensity.compact, // More compact
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Tên',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outlined, size: 18), // Reduced size
-                  onPressed: () {},
-                  color: Colors.grey,
-                  padding: const EdgeInsets.all(4), // Reduced padding
-                  constraints: const BoxConstraints(), // Remove default constraints
-                  visualDensity: VisualDensity.compact, // More compact
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Email',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Số điện thoại',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Ngày đăng ký',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Vai trò',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Trạng thái',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                const Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Thao tác',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
+            ),
+          ),
+
+          // Table divider
+          Divider(height: 1, color: Colors.grey[300]),
+
+          // Table data
+          Expanded(
+            child: ListView.separated(
+              itemCount: users.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                color: Colors.grey[300],
+              ),
+              itemBuilder: (context, index) {
+                final user = users[index];
+                final isBanned = user.isBanned ?? false;
+                
+                return InkWell(
+                  onTap: () {
+                    appProvider.setCurrentCustomerId(user.uid);
+                    appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: true);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        // Avatar
+                        Expanded(
+                          flex: 1,
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.grey[200],
+                            backgroundImage: user.photoURL != null && user.photoURL!.isNotEmpty 
+                                ? NetworkImage(user.photoURL!) 
+                                : null,
+                            child: user.photoURL == null || user.photoURL!.isEmpty 
+                                ? const Icon(Icons.person, color: Colors.grey) 
+                                : null,
+                          ),
+                        ),
+                        
+                        // Name
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            user.name,
+                            style: TextStyle(
+                              decoration: isBanned ? TextDecoration.lineThrough : null,
+                              color: isBanned ? Colors.grey : Colors.black,
+                            ),
+                          ),
+                        ),
+                        
+                        // Email
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            user.email,
+                            style: TextStyle(
+                              decoration: isBanned ? TextDecoration.lineThrough : null,
+                              color: isBanned ? Colors.grey : Colors.grey[800],
+                            ),
+                          ),
+                        ),
+                        
+                        // Phone
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            user.phoneNumber,
+                            style: TextStyle(
+                              decoration: isBanned ? TextDecoration.lineThrough : null,
+                              color: isBanned ? Colors.grey : Colors.grey[800],
+                            ),
+                          ),
+                        ),
+                        
+                        // Registration date
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            DateFormat('dd/MM/yyyy').format(user.createdAt),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        
+                        // Role
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            user.role?.toUpperCase() ?? 'USER',
+                            style: TextStyle(
+                              color: user.role?.toLowerCase() == 'admin' ? Colors.deepPurple : Colors.grey[700],
+                              fontWeight: user.role?.toLowerCase() == 'admin' ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        
+                        // Status
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isBanned ? Colors.red[50] : Colors.green[50],
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isBanned ? Colors.red : Colors.green,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              isBanned ? 'Đã cấm' : 'Hoạt động',
+                              style: TextStyle(
+                                color: isBanned ? Colors.red : Colors.green,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        // Actions
+                        Expanded(
+                          flex: 1,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 18),
+                                onPressed: () {
+                                  appProvider.setCurrentCustomerId(user.uid);
+                                  appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: false);
+                                },
+                                tooltip: 'Chỉnh sửa',
+                                splashRadius: 20,
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  isBanned ? Icons.check_circle_outline : Icons.block,
+                                  size: 18,
+                                  color: isBanned ? Colors.orange : Colors.red,
+                                ),
+                                onPressed: () => _showBanUserDialog(context, user),
+                                tooltip: isBanned ? 'Bỏ cấm' : 'Cấm người dùng',
+                                splashRadius: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -425,157 +588,63 @@ class _CustomerScreenState extends State<CustomerScreen> {
     );
   }
 
-  Widget _buildMobileCustomerItem(BuildContext context, UserModel customer) {
-    final defaultAddress = customer.addressList.isNotEmpty 
-        ? customer.addressList.firstWhere(
-            (addr) => addr['id'] == customer.defaultAddressId,
-            orElse: () => customer.addressList.first)
-        : {'street': 'N/A', 'city': 'N/A', 'state': 'N/A', 'zipCode': 'N/A'};
+  void _showBanUserDialog(BuildContext context, UserModel user) {
+    final isBanned = user.isBanned ?? false;
     
-    final addressText = '${defaultAddress['street']}, ${defaultAddress['city']}, ${defaultAddress['state']} ${defaultAddress['zipCode']}';
-    
-    // Thật ra nên dùng state để quản lý trạng thái mở rộng, hiện giờ để đơn giản cài mặc định đóng
-    const bool isExpanded = false;
-    
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isBanned ? 'Bỏ cấm người dùng' : 'Cấm người dùng'),
+        content: Text(
+          isBanned
+              ? 'Bạn có chắc chắn muốn bỏ cấm người dùng ${user.name} không?'
+              : 'Bạn có chắc chắn muốn cấm người dùng ${user.name} không? Họ sẽ không thể đăng nhập vào hệ thống.',
         ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 24,
-                child: Checkbox(
-                  value: false,
-                  onChanged: (value) {},
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      customer.uid,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                    Text(
-                      customer.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 20,
-                ),
-                onPressed: () {
-                  // Nên cập nhật state ở đây để mở rộng item
-                },
-              ),
-            ],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
           ),
-          if (isExpanded)
-            Padding(
-              padding: const EdgeInsets.only(left: 48, bottom: 16),
-              child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        width: 80,
-                        child: Text(
-                          'Liên hệ',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              customer.email,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            Text(
-                              customer.phoneNumber,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              setState(() {
+                _isLoading = true;
+              });
+              
+              try {
+                await _userController.banUser(user.uid, !isBanned);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(isBanned 
+                        ? 'Đã bỏ cấm người dùng ${user.name}'
+                        : 'Đã cấm người dùng ${user.name}'),
+                    behavior: SnackBarBehavior.floating,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        width: 80,
-                        child: Text(
-                          'Địa chỉ',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          addressText,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Lỗi: $e'),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.red,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const SizedBox(width: 80),
-                      IconButton(
-                        icon: const Icon(Icons.visibility_outlined, size: 18),
-                        onPressed: () {},
-                        color: Colors.grey,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        onPressed: () {},
-                        color: Colors.grey,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outlined, size: 18),
-                        onPressed: () {},
-                        color: Colors.grey,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
-                ],
+                );
+              } finally {
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              }
+            },
+            child: Text(
+              isBanned ? 'Bỏ cấm' : 'Cấm',
+              style: TextStyle(
+                color: isBanned ? Colors.orange : Colors.red,
               ),
             ),
+          ),
         ],
       ),
     );

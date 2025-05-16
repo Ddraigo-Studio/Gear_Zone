@@ -9,7 +9,13 @@ enum AppScreen {
   categoryDetail,    // 4: Chi tiết danh mục
   categoryAdd,       // 5: Thêm danh mục mới
   customerList,      // 6: Danh sách khách hàng
-  productAdd,        // 7: Thêm sản phẩm mới
+  customerDetail,    // 7: Chi tiết khách hàng 
+  productAdd,        // 8: Thêm sản phẩm mới
+  voucherList,       // 9: Danh sách phiếu giảm giá
+  voucherDetail,     // 10: Chi tiết phiếu giảm giá
+  voucherAdd,        // 11: Thêm phiếu giảm giá mới
+  orderList,         // 12: Danh sách đơn hàng
+  orderDetail,       // 13: Chi tiết đơn hàng
 }
 
 class AppProvider extends ChangeNotifier {
@@ -17,17 +23,29 @@ class AppProvider extends ChangeNotifier {
   bool _isViewOnlyMode = false; // Theo dõi chế độ xem hay sửa
   String _currentProductId = ''; // ID sản phẩm hiện tại đang xem/sửa
   String _currentCategoryId = ''; // ID danh mục hiện tại đang xem/sửa
+  String _currentCustomerId = ''; // ID khách hàng hiện tại đang xem/sửa
+  String _currentVoucherId = ''; // ID phiếu giảm giá hiện tại đang xem/sửa
+  String _currentOrderId = ''; // ID đơn hàng hiện tại đang xem/sửa
   String _selectedCategory = ''; // Danh mục sản phẩm được chọn (laptop, mouse, monitor, pc)
   bool _reloadProductList = false; // Cờ để tải lại danh sách sản phẩm
   bool _reloadCategoryList = false; // Cờ để tải lại danh sách danh mục
+  bool _reloadCustomerList = false; // Cờ để tải lại danh sách khách hàng
+  bool _reloadVoucherList = false; // Cờ để tải lại danh sách phiếu giảm giá
+  bool _reloadOrderList = false; // Cờ để tải lại danh sách đơn hàng
   
   AppScreen get currentScreen => _currentScreen;
   bool get isViewOnlyMode => _isViewOnlyMode;
   String get currentProductId => _currentProductId;
   String get currentCategoryId => _currentCategoryId;
+  String get currentCustomerId => _currentCustomerId;
+  String get currentVoucherId => _currentVoucherId;
+  String get currentOrderId => _currentOrderId;
   String get selectedCategory => _selectedCategory;
   bool get reloadProductList => _reloadProductList;
   bool get reloadCategoryList => _reloadCategoryList;
+  bool get reloadCustomerList => _reloadCustomerList;
+  bool get reloadVoucherList => _reloadVoucherList;
+  bool get reloadOrderList => _reloadOrderList;
   
   void setCurrentScreen(AppScreen screen, {bool isViewOnly = false}) {
     _currentScreen = screen;
@@ -65,6 +83,21 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
   
+  void setCurrentCustomerId(String customerId) {
+    _currentCustomerId = customerId;
+    notifyListeners();
+  }
+  
+  void setCurrentVoucherId(String voucherId) {
+    _currentVoucherId = voucherId;
+    notifyListeners();
+  }
+  
+  void setCurrentOrderId(String orderId) {
+    _currentOrderId = orderId;
+    notifyListeners();
+  }
+  
   void resetSelectedCategory() {
     _selectedCategory = '';
     notifyListeners();
@@ -79,6 +112,24 @@ class AppProvider extends ChangeNotifier {
   // Phương thức để đặt cờ tải lại danh sách danh mục
   void setReloadCategoryList(bool value) {
     _reloadCategoryList = value;
+    notifyListeners();
+  }
+  
+  // Phương thức để đặt cờ tải lại danh sách khách hàng
+  void setReloadCustomerList(bool value) {
+    _reloadCustomerList = value;
+    notifyListeners();
+  }
+  
+  // Phương thức để đặt cờ tải lại danh sách phiếu giảm giá
+  void setReloadVoucherList(bool value) {
+    _reloadVoucherList = value;
+    notifyListeners();
+  }
+  
+  // Phương thức để đặt cờ tải lại danh sách đơn hàng
+  void setReloadOrderList(bool value) {
+    _reloadOrderList = value;
     notifyListeners();
   }
 }
