@@ -48,6 +48,7 @@ import '../admin/Dashboard/dashboard_screen.dart';
 import '../admin/Product/product_screen.dart';
 import '../admin/Product/product_add_screen.dart';
 import '../admin/Customer/customer_screen.dart';
+import '../pages/Profile/edit_address_screen.dart';
 import '../admin/admin_screen.dart';
 
 class AppRoutes {
@@ -81,6 +82,7 @@ class AppRoutes {
   static const String editProfileScreen = '/edit_profile_screen';
   static const String listAddressScreen = '/list_address_screen';
   static const String addAddressScreen = '/add_address_screen';
+  static const String editAddressScreen = '/edit_address_screen';
   static const String listFavoriteScreen = '/list_favorite_screen';
   static const String appNavigationScreen = '/app_navigation_screen';
   static const String initialRoute = '/initialRoute';
@@ -129,6 +131,13 @@ class AppRoutes {
       return AddAddressScreen(
         fromRegistration: args?['fromRegistration'] ?? false,
         registrationData: args,
+      );
+    },
+    editAddressScreen: (context) {
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      return EditAddressScreen(
+        address: args['address'],
       );
     },
     initialRoute: (context) => SignUpScreen(),

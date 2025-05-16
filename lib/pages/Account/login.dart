@@ -16,7 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   // Brand color
   final Color brandColor = Color(0xFF894FC8);
-  
+
   // Form key for validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -52,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+
   // Phương thức đăng nhập người dùng
   Future<void> _loginUser(BuildContext context) async {
     // Kiểm tra xác thực form
@@ -59,10 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
       // Form không hợp lệ
       return;
     }
-    
+
     final authController = Provider.of<AuthController>(context, listen: false);
     final cartController = Provider.of<CartController>(context, listen: false);
-    
+
     // Gọi controller để xử lý đăng nhập
     final success = await authController.signInWithEmailAndPassword(
       email: _emailController.text.trim(),
@@ -70,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       cartController: cartController,
       context: context,
     );
-    
+
     if (success) {
       // Hiển thị thông báo thành công nếu có
       if (authController.successMessage != null) {
@@ -82,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       }
-      
+
       // Chuyển đến trang chủ (phương thức từ controller)
       authController.navigateToHomeScreen(context);
     }
@@ -191,23 +192,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 Expanded(
                   flex: 2,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 70.h, vertical: 30.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20.h),
-                        bottomLeft: Radius.circular(20.h),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 15,
-                          offset: Offset(0, 5),
-                          spreadRadius: 0,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 70.h, vertical: 30.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20.h),
+                          bottomLeft: Radius.circular(20.h),
                         ),
-                      ],
-                    ),
-                    child: _buildLoginForm(context)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 15,
+                            offset: Offset(0, 5),
+                            spreadRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: _buildLoginForm(context)),
                 ),
                 Expanded(
                   flex: 1,
@@ -314,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // Widget chung để xây dựng form đăng nhập cho cả desktop và mobile
   Widget _buildLoginForm(BuildContext context) {
     final authController = Provider.of<AuthController>(context);
-    
+
     return Form(
       key: _formKey,
       child: Column(
@@ -331,7 +333,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           SizedBox(height: 30.h),
-          
           _buildTextField(
             label: "Email",
             hint: "Nhập email",
@@ -342,7 +343,8 @@ class _LoginScreenState extends State<LoginScreen> {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập email';
               }
-              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                  .hasMatch(value)) {
                 return 'Email không hợp lệ';
               }
               return null;
@@ -380,9 +382,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-          SizedBox(height: 10.h),          Align(
+          SizedBox(height: 10.h),
+          Align(
             alignment: Alignment.centerRight,
-            child: GestureDetector(              
+            child: GestureDetector(
               onTap: () {
                 Navigator.pushNamed(context, AppRoutes.forgotPassword);
               },
@@ -396,9 +399,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
-          
-            
           SizedBox(height: 35.h),
           Container(
             width: double.infinity,
@@ -415,9 +415,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             child: ElevatedButton(
-              onPressed: authController.isLoading 
-                ? null 
-                : () => _loginUser(context),
+              onPressed:
+                  authController.isLoading ? null : () => _loginUser(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: brandColor,
                 elevation: 0,
@@ -426,18 +425,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               child: authController.isLoading
-                ? CircularProgressIndicator(color: Colors.white)
-                : Text(
-                  "Đăng nhập",
-                  style: TextStyle(
-                    fontSize: 18.h,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
+                  ? CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                      "Đăng nhập",
+                      style: TextStyle(
+                        fontSize: 18.h,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
             ),
-          ),          
+          ),
           SizedBox(height: 30.h),
           Row(
             children: [
@@ -464,13 +463,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
-          SizedBox(height: 16.h),          
-          
+          SizedBox(height: 16.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildSocialButton(                
-                icon: "assets/images/ic_google.png", 
+              _buildSocialButton(
+                icon: "assets/images/ic_google.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -482,8 +480,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               SizedBox(width: 16.h),
-              _buildSocialButton(                
-                icon: "assets/images/ic_facebook.png", 
+              _buildSocialButton(
+                icon: "assets/images/ic_facebook.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -495,8 +493,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               SizedBox(width: 20.h),
-              _buildSocialButton(                
-                icon: "assets/images/ic_apple.png", 
+              _buildSocialButton(
+                icon: "assets/images/ic_apple.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -520,7 +518,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              child: GestureDetector(                
+              child: GestureDetector(
                 onTap: () {
                   Navigator.pushReplacementNamed(context, AppRoutes.signup);
                 },
@@ -551,6 +549,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
   Widget _buildSocialButton({
     required String icon,
     required VoidCallback onPressed,
@@ -565,7 +564,7 @@ class _LoginScreenState extends State<LoginScreen> {
           border: Border.all(color: Colors.grey.shade300),
         ),
         child: Image.asset(
-          icon, 
+          icon,
           height: 30.h,
           width: 30.h,
         ),

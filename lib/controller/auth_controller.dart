@@ -251,6 +251,10 @@ class AuthController with ChangeNotifier {
     required String district,
     required String ward,
     required String street,
+    String? name,
+    String? phoneNumber,
+    String? title,
+    bool isDefault = true,
   }) async {
     try {
       User? user = _auth.currentUser;
@@ -261,6 +265,11 @@ class AuthController with ChangeNotifier {
       // Tạo ID duy nhất cho địa chỉ mới
       final String addressId = DateTime.now().millisecondsSinceEpoch.toString();
 
+      // Lấy tên và số điện thoại từ model nếu không được cung cấp
+      String userName = name ?? _userModel?.name ?? "";
+      String userPhone = phoneNumber ?? _userModel?.phoneNumber ?? "";
+      String addressTitle = title ?? "Địa chỉ";
+
       // Tạo dữ liệu địa chỉ mới
       Map<String, dynamic> newAddress = {
         'id': addressId,
@@ -269,7 +278,10 @@ class AuthController with ChangeNotifier {
         'ward': ward,
         'street': street,
         'fullAddress': '$street, $ward, $district, $province',
-        'isDefault': true,
+        'name': userName,
+        'phoneNumber': userPhone,
+        'title': addressTitle,
+        'isDefault': isDefault,
         'createdAt': DateTime.now().toIso8601String(),
       };
 
@@ -374,6 +386,7 @@ class AuthController with ChangeNotifier {
     Navigator.pushNamedAndRemoveUntil(
         context, AppRoutes.homeScreen, (route) => false);
   }
+
   // Phương thức để đổi mật khẩu
   Future<bool> changePassword(
       String currentPassword, String newPassword) async {
@@ -399,9 +412,9 @@ class AuthController with ChangeNotifier {
         );
 
         await _firebaseUser!.reauthenticateWithCredential(credential);
-      }// Đổi mật khẩu
+      } // Đổi mật khẩu
       await _firebaseUser!.updatePassword(newPassword);
-      
+
       // Cập nhật trạng thái đổi mật khẩu
       if (_userModel != null) {
         final updatedUserModel = _userModel!.copyWith(hasChangedPassword: true);
@@ -437,12 +450,13 @@ class AuthController with ChangeNotifier {
       _setLoading(false);
     }
   }
+
   // Kiểm tra xem người dùng có đang sử dụng mật khẩu tự động không
   bool isUsingGeneratedPassword() {
     if (_userModel == null) return false;
     return !_userModel!.hasChangedPassword;
   }
-  
+
   // Phương thức gửi email khôi phục mật khẩu
   Future<bool> sendPasswordResetEmail({
     required String email,
@@ -452,7 +466,8 @@ class AuthController with ChangeNotifier {
 
     try {
       await _auth.sendPasswordResetEmail(email: email);
-      _setSuccessMessage("Đã gửi email khôi phục mật khẩu thành công! Vui lòng kiểm tra hộp thư của bạn.");
+      _setSuccessMessage(
+          "Đã gửi email khôi phục mật khẩu thành công! Vui lòng kiểm tra hộp thư của bạn.");
       return true;
     } on FirebaseAuthException catch (e) {
       String errorMessage;
@@ -470,6 +485,156 @@ class AuthController with ChangeNotifier {
       return false;
     } catch (e) {
       _setError("Đã xảy ra lỗi không xác định: $e");
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Phương thức cập nhật địa chỉ
+  Future<bool> updateUserAddress({
+    required String addressId,
+    required String province,
+    required String district,
+    required String ward,
+    required String street,
+    String? title,
+    String? name,
+    String? phoneNumber,
+    bool? setAsDefault,
+  }) async {
+    _setLoading(true);
+    _clearMessages();
+
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) {
+        _setError('Không tìm thấy người dùng hiện tại');
+        return false;
+      }
+
+      if (_userModel == null) {
+        _setError('Không tìm thấy thông tin người dùng');
+        return false;
+      }
+
+      // Tìm địa chỉ cần cập nhật trong danh sách
+      int addressIndex = _userModel!.addressList
+          .indexWhere((address) => address['id'] == addressId);
+
+      if (addressIndex == -1) {
+        _setError('Không tìm thấy địa chỉ cần cập nhật');
+        return false;
+      }
+
+      // Clone danh sách địa chỉ hiện tại
+      List<Map<String, dynamic>> updatedAddressList =
+          List<Map<String, dynamic>>.from(_userModel!.addressList);
+
+      // Cập nhật địa chỉ
+      updatedAddressList[addressIndex] = {
+        'id': addressId,
+        'province': province,
+        'district': district,
+        'ward': ward,
+        'street': street,
+        'fullAddress': '$street, $ward, $district, $province',
+        'title':
+            title ?? updatedAddressList[addressIndex]['title'] ?? 'Địa chỉ',
+        'name': name ?? updatedAddressList[addressIndex]['name'] ?? '',
+        'phoneNumber': phoneNumber ??
+            updatedAddressList[addressIndex]['phoneNumber'] ??
+            '',
+        'isDefault': updatedAddressList[addressIndex]['isDefault'] ?? false,
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+
+      // Cập nhật địa chỉ mặc định nếu được yêu cầu
+      String? newDefaultAddressId = _userModel!.defaultAddressId;
+      if (setAsDefault == true) {
+        newDefaultAddressId = addressId;
+      }
+
+      // Cập nhật userModel
+      _userModel = _userModel!.copyWith(
+        addressList: updatedAddressList,
+        defaultAddressId: newDefaultAddressId,
+      );
+
+      // Lưu vào Firestore
+      await _firestore.collection('users').doc(user.uid).update({
+        'addressList': updatedAddressList,
+        'defaultAddressId': newDefaultAddressId,
+      });
+
+      _setSuccessMessage('Cập nhật địa chỉ thành công');
+      return true;
+    } catch (e) {
+      _setError('Lỗi khi cập nhật địa chỉ: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Phương thức xóa địa chỉ
+  Future<bool> deleteUserAddress({
+    required String addressId,
+  }) async {
+    _setLoading(true);
+    _clearMessages();
+
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) {
+        _setError('Không tìm thấy người dùng hiện tại');
+        return false;
+      }
+
+      if (_userModel == null) {
+        _setError('Không tìm thấy thông tin người dùng');
+        return false;
+      }
+
+      // Tìm địa chỉ cần xóa trong danh sách
+      int addressIndex = _userModel!.addressList
+          .indexWhere((address) => address['id'] == addressId);
+
+      if (addressIndex == -1) {
+        _setError('Không tìm thấy địa chỉ cần xóa');
+        return false;
+      }
+
+      // Clone danh sách địa chỉ hiện tại và xóa địa chỉ
+      List<Map<String, dynamic>> updatedAddressList =
+          List<Map<String, dynamic>>.from(_userModel!.addressList);
+      updatedAddressList.removeAt(addressIndex);
+
+      // Kiểm tra nếu địa chỉ bị xóa là địa chỉ mặc định
+      String? newDefaultAddressId = _userModel!.defaultAddressId;
+      if (addressId == _userModel!.defaultAddressId) {
+        // Nếu còn địa chỉ khác, đặt địa chỉ đầu tiên là mặc định
+        newDefaultAddressId = updatedAddressList.isNotEmpty
+            ? updatedAddressList.first['id']
+            : null;
+      }
+
+      // Cập nhật userModel
+      _userModel = _userModel!.copyWith(
+        addressList: updatedAddressList,
+        defaultAddressId: newDefaultAddressId,
+      );
+
+      // Lưu vào Firestore
+      await _firestore.collection('users').doc(user.uid).update({
+        'addressList': updatedAddressList,
+        'defaultAddressId': newDefaultAddressId,
+      });
+
+      _setSuccessMessage('Xóa địa chỉ thành công');
+      return true;
+    } catch (e) {
+      _setError('Lỗi khi xóa địa chỉ: $e');
       return false;
     } finally {
       _setLoading(false);

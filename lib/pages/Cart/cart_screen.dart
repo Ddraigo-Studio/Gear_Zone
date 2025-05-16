@@ -68,54 +68,153 @@ class CartScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ListView.separated(
-              padding: EdgeInsets.zero,
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              separatorBuilder: (context, index) {
-                return SizedBox(height: 16.h);
-              },
-              itemCount: cartController.items.length,
-              itemBuilder: (context, index) {
-                final item = cartController.items[index];
-                return CartItem(
-                  productName: item.productName,
-                  imagePath: item.imagePath,
-                  color: item.color,
-                  quantity: item.quantity,
-                  discountedPrice: item.discountedPrice,
-                  originalPrice: item.originalPrice,
-                  isSelected: item.isSelected,
-                  onQuantityChanged: (quantity) {
-                    cartController.updateQuantity(
-                      item.productId,
-                      item.color,
-                      quantity,
-                    );
-                  },
-                  onDelete: () {
-                    cartController.removeItem(item.productId, item.color);
-                  },
-                  onSelectionChanged: (selected) {
-                    cartController.toggleItemSelection(
-                        item.productId, item.color, selected);
-                  },
-                );
-              },
-            )
+            if (cartController.items.isEmpty)
+              _buildEmptyCartState(context)
+            else
+              ListView.separated(
+                padding: EdgeInsets.zero,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                separatorBuilder: (context, index) {
+                  return SizedBox(height: 16.h);
+                },
+                itemCount: cartController.items.length,
+                itemBuilder: (context, index) {
+                  final item = cartController.items[index];
+                  return CartItem(
+                    productName: item.productName,
+                    imagePath: item.imagePath,
+                    color: item.color,
+                    quantity: item.quantity,
+                    discountedPrice: item.discountedPrice,
+                    originalPrice: item.originalPrice,
+                    isSelected: item.isSelected,
+                    onQuantityChanged: (quantity) {
+                      cartController.updateQuantity(
+                        item.productId,
+                        item.color,
+                        quantity,
+                      );
+                    },
+                    onDelete: () {
+                      cartController.removeItem(item.productId, item.color);
+                    },
+                    onSelectionChanged: (selected) {
+                      cartController.toggleItemSelection(
+                          item.productId, item.color, selected);
+                    },
+                  );
+                },
+              )
           ],
         ),
       ),
     );
   }
 
+  Widget _buildEmptyCartState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(height: 60.h),
+          // Animated or decorative shopping cart icon
+          Container(
+            height: 120.h,
+            width: 120.h,
+            decoration: BoxDecoration(
+              color: appTheme.deepPurpleA200.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.shopping_cart_outlined,
+              size: 70.h,
+              color: appTheme.deepPurpleA200,
+            ),
+          ),
+          SizedBox(height: 24.h),
+          Text(
+            "Giỏ hàng của bạn đang trống",
+            style: TextStyle(
+              fontSize: 20.h,
+              fontWeight: FontWeight.bold,
+              color: appTheme.gray900,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40.h),
+            child: Text(
+              "Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15.h,
+                color: appTheme.gray600,
+                height: 1.5,
+              ),
+            ),
+          ),
+          SizedBox(height: 32.h),
+          Container(
+            height: 50.h,
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: appTheme.deepPurpleA200.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              icon: Icon(
+                Icons.shopping_bag_outlined,
+                color: Colors.white,
+                size: 24.h,
+              ),
+              label: Text(
+                "Mua sắm ngay",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.h,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: appTheme.deepPurpleA200,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24.h),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 32.h, vertical: 16.h),
+                elevation:
+                    0, // Remove default elevation since we're using custom shadow
+              ),
+              onPressed: () {
+                Navigator.pop(
+                    context); // Return to previous screen to continue shopping
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   Widget _buildPaymentInfoSection(BuildContext context) {
     final cartController = Provider.of<CartController>(context);
     final selectedPrice = cartController.selectedItemsPrice;
-    final shippingFee = 8000.0;
-    final tax = 10000.0;
-    final discount = 8000.0;
-    final totalPrice = selectedPrice + shippingFee + tax - discount;
+      // Cập nhật giá trị theo yêu cầu
+    final shippingFee = 30000.0;  // Phí vận chuyển cố định 30,000
+    final taxRate = 0.02;  // Thuế 2% trên giá sản phẩm
+    final tax = selectedPrice * taxRate;  // Tính thuế dựa trên giá sản phẩm đã chọn
+    
+    final totalPrice = selectedPrice + shippingFee + tax;
+
+    // Không hiển thị thông tin thanh toán nếu không có sản phẩm nào được chọn
+    if (cartController.selectedItemCount == 0) {
+      return SizedBox.shrink();
+    }
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -125,25 +224,35 @@ class CartScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: appTheme.deepPurple1003f, // Màu tím nhạt
         borderRadius: BorderRadius.circular(12.h),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 5.h),
+          _buildSummaryRow(
+            title: "Tổng tiền sản phẩm",
+            price: ProductModel.formatPrice(selectedPrice),
+          ),
+          SizedBox(height: 10.h),
           _buildSummaryRow(
             title: "Phí vận chuyển",
             price: ProductModel.formatPrice(shippingFee),
           ),
-          SizedBox(height: 10.h),
-          _buildSummaryRow(
-            title: "Thuế",
+          SizedBox(height: 10.h),          _buildSummaryRow(
+            title: "Thuế (2%)",
             price: ProductModel.formatPrice(tax),
           ),
           SizedBox(height: 10.h),
           Divider(color: appTheme.gray300),
           SizedBox(height: 10.h),
           _buildSummaryRow(
-            title: "Tổng",
+            title: "Tổng thanh toán",
             price: ProductModel.formatPrice(totalPrice),
             isTotal: true,
           ),
@@ -214,11 +323,11 @@ class CartScreen extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildSummaryRow({
     required String title,
     required String price,
     bool isTotal = false,
+    bool isDiscount = false,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -229,18 +338,25 @@ class CartScreen extends StatelessWidget {
               ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
                   color: appTheme.red400,
                 )
-              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
-                  color: appTheme.gray70001,
-                ),
+              : isDiscount
+                  ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                      color: appTheme.green600,
+                    )
+                  : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                      color: appTheme.gray70001,
+                    ),
         ),
         Text(
           price,
           style: isTotal
               ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold
                   .copyWith(color: appTheme.red400)
-              : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
-                  color: appTheme.gray900,
-                ),
+              : isDiscount
+                  ? CustomTextStyles.titleMediumBaloo2Gray500SemiBold
+                      .copyWith(color: appTheme.green600)
+                  : CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                      color: appTheme.gray900,
+                    ),
         ),
       ],
     );
