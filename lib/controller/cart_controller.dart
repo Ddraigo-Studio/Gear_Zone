@@ -37,18 +37,23 @@ class CartController extends ChangeNotifier {
 
   // Lấy tổng giá gốc (trước giảm giá)
   double get subtotalPrice {
-    return items.fold(0, (sum, item) => sum + (item.originalPrice * item.quantity));
+    return items.fold(
+        0, (sum, item) => sum + (item.originalPrice * item.quantity));
   }
 
   // Lấy tổng số tiền giảm giá
   double get totalDiscount {
-    return items.fold(0, (sum, item) => 
-      sum + ((item.originalPrice - item.discountedPrice) * item.quantity));
+    return items.fold(
+        0,
+        (sum, item) =>
+            sum +
+            ((item.originalPrice - item.discountedPrice) * item.quantity));
   }
 
   // Lấy tổng giá cuối cùng (sau giảm giá)
   double get totalPrice {
-    return items.fold(0, (sum, item) => sum + (item.discountedPrice * item.quantity));
+    return items.fold(
+        0, (sum, item) => sum + (item.discountedPrice * item.quantity));
   }
 
   // Lấy tổng giá của các sản phẩm đã chọn
@@ -77,16 +82,16 @@ class CartController extends ChangeNotifier {
   // Chuyển đổi trạng thái chọn của một sản phẩm
   void toggleItemSelection(String productId, String color, bool isSelected) {
     if (_cartModel == null) return;
-    
-    final index = _cartModel!.items.indexWhere(
-      (i) => i.productId == productId && i.color == color
-    );
-    
+
+    final index = _cartModel!.items
+        .indexWhere((i) => i.productId == productId && i.color == color);
+
     if (index >= 0) {
-      final updatedItem = _cartModel!.items[index].copyWith(isSelected: isSelected);
+      final updatedItem =
+          _cartModel!.items[index].copyWith(isSelected: isSelected);
       final updatedItems = List<CartItem>.from(_cartModel!.items);
       updatedItems[index] = updatedItem;
-      
+
       _cartModel = _cartModel!.copyWith(items: updatedItems);
       notifyListeners();
     }
@@ -95,58 +100,63 @@ class CartController extends ChangeNotifier {
   // Chọn tất cả sản phẩm
   void selectAllItems(bool isSelected) {
     if (_cartModel == null) return;
-    
-    final updatedItems = _cartModel!.items.map((item) => 
-      item.copyWith(isSelected: isSelected)).toList();
-    
+
+    final updatedItems = _cartModel!.items
+        .map((item) => item.copyWith(isSelected: isSelected))
+        .toList();
+
     _cartModel = _cartModel!.copyWith(items: updatedItems);
     notifyListeners();
-  }
-  // Thêm sản phẩm vào giỏ hàng
+  } // Thêm sản phẩm vào giỏ hàng
+
   Future<void> addItem(CartItem item) async {
     if (_cartModel == null) {
       initCart(item.userId);
     }
-    
+
+    // Đảm bảo sản phẩm mới được tự động chọn
+    item = item.copyWith(isSelected: true);
+
     final existingIndex = _cartModel!.items.indexWhere(
-      (i) => i.productId == item.productId && i.color == item.color
-    );
-    
+        (i) => i.productId == item.productId && i.color == item.color);
+
     List<CartItem> updatedItems = List<CartItem>.from(_cartModel!.items);
-    
+
     if (existingIndex >= 0) {
       // Cập nhật số lượng nếu sản phẩm đã tồn tại
       final existingItem = _cartModel!.items[existingIndex];
       updatedItems[existingIndex] = existingItem.copyWith(
-        quantity: existingItem.quantity + item.quantity
-      );
+          quantity: existingItem.quantity + item.quantity,
+          isSelected: true // Đảm bảo sản phẩm được chọn khi cập nhật số lượng
+          );
     } else {
       // Thêm sản phẩm mới
       updatedItems.add(item);
     }
-    
+
     _cartModel = _cartModel!.copyWith(items: updatedItems);
     notifyListeners();
-    
+
     // Tự động lưu các thay đổi
     await _saveCartChanges();
   }
 
   // Cập nhật số lượng sản phẩm
-  Future<void> updateQuantity(String productId, String color, int quantity) async {
+  Future<void> updateQuantity(
+      String productId, String color, int quantity) async {
     if (_cartModel == null) return;
-    
-    final index = _cartModel!.items.indexWhere(
-      (i) => i.productId == productId && i.color == color
-    );
-    
+
+    final index = _cartModel!.items
+        .indexWhere((i) => i.productId == productId && i.color == color);
+
     if (index >= 0) {
       List<CartItem> updatedItems = List<CartItem>.from(_cartModel!.items);
-      updatedItems[index] = _cartModel!.items[index].copyWith(quantity: quantity);
-      
+      updatedItems[index] =
+          _cartModel!.items[index].copyWith(quantity: quantity);
+
       _cartModel = _cartModel!.copyWith(items: updatedItems);
       notifyListeners();
-      
+
       // Tự động lưu các thay đổi
       await _saveCartChanges();
     }
@@ -155,14 +165,14 @@ class CartController extends ChangeNotifier {
   // Xóa sản phẩm khỏi giỏ hàng
   Future<void> removeItem(String productId, String color) async {
     if (_cartModel == null) return;
-    
-    final updatedItems = _cartModel!.items.where(
-      (i) => !(i.productId == productId && i.color == color)
-    ).toList();
-    
+
+    final updatedItems = _cartModel!.items
+        .where((i) => !(i.productId == productId && i.color == color))
+        .toList();
+
     _cartModel = _cartModel!.copyWith(items: updatedItems);
     notifyListeners();
-    
+
     // Tự động lưu các thay đổi
     await _saveCartChanges();
   }
@@ -170,14 +180,13 @@ class CartController extends ChangeNotifier {
   // Xóa các sản phẩm đã chọn
   Future<void> removeSelectedItems() async {
     if (_cartModel == null) return;
-    
-    final updatedItems = _cartModel!.items.where(
-      (item) => !item.isSelected
-    ).toList();
-    
+
+    final updatedItems =
+        _cartModel!.items.where((item) => !item.isSelected).toList();
+
     _cartModel = _cartModel!.copyWith(items: updatedItems);
     notifyListeners();
-    
+
     // Tự động lưu các thay đổi
     await _saveCartChanges();
   }
@@ -185,16 +194,17 @@ class CartController extends ChangeNotifier {
   // Phương thức nội bộ để tự động lưu các thay đổi giỏ hàng
   Future<void> _saveCartChanges() async {
     if (_cartModel == null) return;
-    
+
     // Nếu có userId (đã đăng nhập), lưu vào Firestore
     if (_cartModel!.userId != null && _cartModel!.userId!.isNotEmpty) {
       await saveCartToFirestore();
-    } 
+    }
     // Nếu không có userId (khách vãng lai), lưu vào local storage
     else {
       await saveCartToLocalStorage();
     }
   }
+
   // Xóa toàn bộ giỏ hàng
   void clearCart() {
     if (_cartModel != null) {
@@ -205,7 +215,7 @@ class CartController extends ChangeNotifier {
 
   // Hằng số cho key lưu trữ local
   static const String _guestCartKey = 'guest_cart';
-  
+
   // Lưu giỏ hàng vào local storage (dành cho khách)
   Future<bool> saveCartToLocalStorage() async {
     try {
@@ -213,10 +223,10 @@ class CartController extends ChangeNotifier {
         print('Cannot save cart to local storage: cart is null');
         return false;
       }
-      
+
       final prefs = await SharedPreferences.getInstance();
       final cartJson = jsonEncode(_cartModel!.toMap());
-      
+
       await prefs.setString(_guestCartKey, cartJson);
       print('Cart saved to local storage');
       return true;
@@ -225,21 +235,31 @@ class CartController extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Tải giỏ hàng từ local storage (dành cho khách)
   Future<bool> loadCartFromLocalStorage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cartJson = prefs.getString(_guestCartKey);
-      
+
       if (cartJson != null && cartJson.isNotEmpty) {
         final cartData = jsonDecode(cartJson) as Map<String, dynamic>;
         _cartModel = CartModel.fromMap(cartData);
+
+        // Đánh dấu tất cả các mục đều được chọn khi tải từ local storage
+        if (_cartModel != null && _cartModel!.items.isNotEmpty) {
+          List<CartItem> selectedItems = _cartModel!.items
+              .map((item) => item.copyWith(isSelected: true))
+              .toList();
+
+          _cartModel = _cartModel!.copyWith(items: selectedItems);
+        }
+
         notifyListeners();
         print('Cart loaded from local storage');
         return true;
       }
-      
+
       print('No cart found in local storage');
       return false;
     } catch (e) {
@@ -247,7 +267,7 @@ class CartController extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Xóa giỏ hàng trong local storage
   Future<bool> clearLocalCart() async {
     try {
@@ -260,6 +280,7 @@ class CartController extends ChangeNotifier {
       return false;
     }
   }
+
   // Lưu giỏ hàng vào Firestore
   Future<bool> saveCartToFirestore() async {
     try {
@@ -268,48 +289,62 @@ class CartController extends ChangeNotifier {
         print('Cannot save cart: cart is null');
         return false;
       }
-      
+
       // Đảm bảo rằng userId tồn tại
       if (_cartModel!.userId == null || _cartModel!.userId!.isEmpty) {
         print('Cannot save cart: userId is null or empty');
         return false;
       }
-      
+
       // Lấy tham chiếu đến collection 'carts' trong Firestore
       final firestore = FirebaseFirestore.instance;
       final cartRef = firestore.collection('carts').doc(_cartModel!.userId);
-      
+
       // Lưu cart dưới dạng map
       await cartRef.set(_cartModel!.toMap(), SetOptions(merge: true));
-      
-      print('Cart saved to Firestore successfully for user: ${_cartModel!.userId}');
+
+      print(
+          'Cart saved to Firestore successfully for user: ${_cartModel!.userId}');
       return true;
     } catch (e) {
       print('Error saving cart to Firestore: $e');
       return false;
     }
-  }  // Tải giỏ hàng từ Firestore
+  } // Tải giỏ hàng từ Firestore
+
   Future<void> loadCartFromFirestore(String userId) async {
     try {
       // Lấy tham chiếu đến document của giỏ hàng trong Firestore
       final firestore = FirebaseFirestore.instance;
       final cartDoc = await firestore.collection('carts').doc(userId).get();
-      
+
       if (cartDoc.exists && cartDoc.data() != null) {
         // Tạo CartModel từ dữ liệu Firestore
         _cartModel = CartModel.fromFirestore(cartDoc);
+
+        // Đánh dấu tất cả các mục đều được chọn khi tải từ Firestore
+        if (_cartModel != null && _cartModel!.items.isNotEmpty) {
+          List<CartItem> selectedItems = _cartModel!.items
+              .map((item) => item.copyWith(isSelected: true))
+              .toList();
+
+          _cartModel = _cartModel!.copyWith(items: selectedItems);
+        }
+
         notifyListeners();
         print('Cart loaded from Firestore for user: $userId');
       } else {
         // Nếu giỏ hàng không tồn tại, tạo giỏ hàng mới
         await createCartForNewUser(userId);
-        print('Cart not found in Firestore, created new cart for user: $userId');
+        print(
+            'Cart not found in Firestore, created new cart for user: $userId');
       }
     } catch (e) {
       print('Error loading cart from Firestore: $e');
     }
   }
-    // Hợp nhất giỏ hàng local với giỏ hàng trên Firestore khi người dùng đăng nhập
+
+  // Hợp nhất giỏ hàng local với giỏ hàng trên Firestore khi người dùng đăng nhập
   Future<bool> mergeGuestCartWithUserCart(String userId) async {
     try {
       // 1. Trước tiên, tải giỏ hàng local
@@ -322,11 +357,11 @@ class CartController extends ChangeNotifier {
 
       // 2. Lưu các item từ giỏ hàng local
       final localItems = List<CartItem>.from(_cartModel!.items);
-      
+
       // 3. Tải giỏ hàng của người dùng từ Firestore
       final firestore = FirebaseFirestore.instance;
       final cartDoc = await firestore.collection('carts').doc(userId).get();
-      
+
       CartModel userCart;
       if (cartDoc.exists && cartDoc.data() != null) {
         // Nếu người dùng đã có giỏ hàng trên Firestore
@@ -335,43 +370,42 @@ class CartController extends ChangeNotifier {
         // Tạo giỏ hàng mới nếu chưa có
         userCart = CartModel(userId: userId, items: []);
       }
-      
+
       // 4. Cập nhật _cartModel bằng giỏ hàng người dùng
       _cartModel = userCart;
-      
       // 5. Thêm từng item từ giỏ hàng local vào giỏ hàng người dùng
       for (final item in localItems) {
-        // Cập nhật userId cho mỗi item
-        final userItem = item.copyWith(userId: userId);
-        
+        // Cập nhật userId cho mỗi item và đảm bảo nó được chọn
+        final userItem = item.copyWith(userId: userId, isSelected: true);
+
         // Sử dụng phương thức addItem hiện có để thêm sản phẩm
         // nhưng chặn việc tự động lưu để tránh gọi Firestore nhiều lần
-        final existingIndex = _cartModel!.items.indexWhere(
-          (i) => i.productId == userItem.productId && i.color == userItem.color
-        );
-        
+        final existingIndex = _cartModel!.items.indexWhere((i) =>
+            i.productId == userItem.productId && i.color == userItem.color);
+
         List<CartItem> updatedItems = List<CartItem>.from(_cartModel!.items);
-        
+
         if (existingIndex >= 0) {
           // Cập nhật số lượng nếu sản phẩm đã tồn tại
           final existingItem = _cartModel!.items[existingIndex];
           updatedItems[existingIndex] = existingItem.copyWith(
-            quantity: existingItem.quantity + userItem.quantity
-          );
+              quantity: existingItem.quantity + userItem.quantity,
+              isSelected: true // Đảm bảo sản phẩm được chọn
+              );
         } else {
           // Thêm sản phẩm mới
           updatedItems.add(userItem);
         }
-        
+
         _cartModel = _cartModel!.copyWith(items: updatedItems);
       }
-      
+
       // 6. Lưu giỏ hàng đã hợp nhất lên Firestore
       await saveCartToFirestore();
-      
+
       // 7. Xóa giỏ hàng local
       await clearLocalCart();
-      
+
       notifyListeners();
       print('Successfully merged guest cart with user cart');
       return true;
@@ -380,7 +414,7 @@ class CartController extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Xử lý khi người dùng đăng nhập
   Future<bool> handleUserLogin(String userId) async {
     try {
@@ -392,20 +426,23 @@ class CartController extends ChangeNotifier {
       return false;
     }
   }
-    // Xử lý khi người dùng đăng xuất
+
+  // Xử lý khi người dùng đăng xuất
   Future<bool> handleUserLogout() async {
     try {
       // Lưu giỏ hàng hiện tại vào Firestore trước khi đăng xuất
-      if (_cartModel != null && _cartModel!.userId != null && _cartModel!.userId!.isNotEmpty) {
+      if (_cartModel != null &&
+          _cartModel!.userId != null &&
+          _cartModel!.userId!.isNotEmpty) {
         await saveCartToFirestore();
       }
-      
+
       // Khởi tạo giỏ hàng trống cho khách
       initCart(null);
-      
+
       // Tải giỏ hàng local nếu có
       await loadCartFromLocalStorage();
-      
+
       print('Successfully handled user logout');
       return true;
     } catch (e) {
@@ -413,16 +450,16 @@ class CartController extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Tạo giỏ hàng mới khi người dùng đăng ký tài khoản thành công
   Future<bool> createCartForNewUser(String userId) async {
     try {
       // Khởi tạo một giỏ hàng trống cho người dùng mới
       _cartModel = CartModel(userId: userId, items: []);
-      
+
       // Lưu giỏ hàng vào Firestore
       final success = await saveCartToFirestore();
-      
+
       notifyListeners();
       return success;
     } catch (e) {
