@@ -284,6 +284,7 @@ class _CategoryAddScreenState extends State<CategoryAddScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
+                
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(

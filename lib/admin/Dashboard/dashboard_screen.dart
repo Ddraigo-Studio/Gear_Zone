@@ -11,11 +11,6 @@ class DashboardScreen extends StatelessWidget {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
     return Scaffold(
-      appBar: isMobile ? AppBar(
-        title: const Text('Bảng điều khiển'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ) : null,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
