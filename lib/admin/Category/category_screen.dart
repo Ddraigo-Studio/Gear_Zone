@@ -327,10 +327,43 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               ],
                             ),
                           ),
-                        )
-                      : isMobile
-                        // Mobile view - danh sách dọc các danh mục
-                        ? CategoryListView(categories: _categories)
+                        )                      : isMobile
+                        // Mobile view - danh sách dọc các danh mục với phân trang
+                        ? Column(
+                            children: [
+                              // Hiển thị danh sách danh mục
+                              CategoryListView(categories: _categories),
+                              
+                              // Phân trang cho mobile view
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                child: Column(
+                                  children: [
+                                    // Hiển thị thông tin số lượng
+                                    Text(
+                                      'Tổng: $_totalItems danh mục | Trang $_currentPage/$_totalPages',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    
+                                    // Widget phân trang cho mobile
+                                    PaginationWidget(
+                                      currentPage: _currentPage,
+                                      totalPages: _totalPages,
+                                      hasNextPage: _hasNextPage,
+                                      hasPreviousPage: _hasPreviousPage,
+                                      onPageChanged: _handlePageChanged,
+                                      isMobile: true,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
                         // Desktop view - bảng danh mục
                         : Container(
                             decoration: BoxDecoration(

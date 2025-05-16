@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../model/category.dart';
+import 'product_controller.dart';
 
 class CategoryController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -132,7 +133,6 @@ class CategoryController {
       return null;
     }
   }
-
   // Cập nhật danh mục
   Future<bool> updateCategory(CategoryModel category) async {
     try {
@@ -140,7 +140,37 @@ class CategoryController {
         print('Không thể cập nhật danh mục: ID không tồn tại');
         return false;
       }
-
+      
+      // Lấy danh mục cũ để kiểm tra tên đã thay đổi chưa
+      final oldCategoryDoc = await _categoriesCollection.doc(category.id).get();
+      final oldCategoryData = oldCategoryDoc.data() as Map<String, dynamic>?;
+      
+      if (oldCategoryData != null) {
+        final oldCategoryName = oldCategoryData['categoryName'] as String;
+        
+        // Nếu tên danh mục đã thay đổi, cập nhật các sản phẩm
+        if (oldCategoryName != category.categoryName) {
+          print('Tên danh mục đã thay đổi từ "$oldCategoryName" thành "${category.categoryName}"');
+          
+          // Cập nhật danh mục trước
+          await _categoriesCollection.doc(category.id).update(category.toMap());
+          
+          // Sau đó cập nhật tất cả sản phẩm thuộc danh mục này
+          final productController = ProductController();
+          final productsUpdated = await productController.updateProductsCategory(
+            oldCategoryName, 
+            category.categoryName
+          );
+          
+          if (!productsUpdated) {
+            print('Cập nhật danh mục thành công nhưng cập nhật sản phẩm thất bại');
+          }
+          
+          return true;
+        }
+      }
+      
+      // Nếu tên không thay đổi hoặc không tìm thấy danh mục cũ
       await _categoriesCollection.doc(category.id).update(category.toMap());
       return true;
     } catch (e) {

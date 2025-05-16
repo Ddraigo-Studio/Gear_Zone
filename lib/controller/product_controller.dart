@@ -781,4 +781,36 @@ class ProductController {
 
   // Biến static để cache dữ liệu mẫu cho trường hợp không có kết nối đến Firebase
   static List<ProductModel> sampleProducts = [];
+
+  // Cập nhật tên danh mục cho tất cả sản phẩm thuộc danh mục đó
+  Future<bool> updateProductsCategory(String oldCategoryName, String newCategoryName) async {
+    try {
+      // Lấy tất cả sản phẩm thuộc danh mục cũ
+      final querySnapshot = await _productsCollection
+          .where('category', isEqualTo: oldCategoryName)
+          .get();
+      
+      if (querySnapshot.docs.isEmpty) {
+        print('Không có sản phẩm nào thuộc danh mục: $oldCategoryName');
+        return true; // Không có sản phẩm nào cần cập nhật
+      }
+      
+      // Tạo batch để cập nhật hàng loạt
+      final batch = _firestore.batch();
+      
+      // Cập nhật tất cả sản phẩm
+      for (var doc in querySnapshot.docs) {
+        batch.update(doc.reference, {'category': newCategoryName});
+      }
+      
+      // Thực hiện cập nhật hàng loạt
+      await batch.commit();
+      
+      print('Đã cập nhật ${querySnapshot.docs.length} sản phẩm từ "$oldCategoryName" thành "$newCategoryName"');
+      return true;
+    } catch (e) {
+      print('Lỗi khi cập nhật danh mục sản phẩm: $e');
+      return false;
+    }
+  }
 }

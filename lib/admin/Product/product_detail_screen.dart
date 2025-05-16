@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 import 'package:gear_zone/controller/product_controller.dart';
 import 'package:gear_zone/controller/image_handling_controller.dart';
+import 'package:gear_zone/controller/category_controller.dart';
+import 'package:gear_zone/core/utils/size_utils.dart';
+import 'package:gear_zone/model/category.dart';
 import 'package:gear_zone/model/product.dart';
 import 'package:gear_zone/core/app_provider.dart';
 import 'package:provider/provider.dart';
@@ -36,10 +39,13 @@ class ProductDetailState extends State<ProductDetail> {
   final TextEditingController _quantityController = TextEditingController();
 
   String? _selectedCategory;
+  List<CategoryModel> _categories = [];
+  CategoryModel? _currentSelectedCategory;
   String? _selectedStatus;
   
   // Image handling controller
   final ImageHandlingController _imageController = ImageHandlingController();
+  final CategoryController _categoryController = CategoryController();
 
   // Helper method to create decoration for form fields with different styling for fields that have content
   InputDecoration _getInputDecoration({
@@ -184,6 +190,43 @@ class ProductDetailState extends State<ProductDetail> {
   // Khởi tạo controller
   final ProductController _productController = ProductController();
 
+  Future<void> _loadCategories() async {
+    try {
+      final categoriesData = await _categoryController.getCategoriesPaginated();
+      if (mounted) {
+        setState(() {
+          _categories = categoriesData['categories'] as List<CategoryModel>;
+          _syncCurrentSelectedCategory(); // Attempt to sync after categories load
+        });
+      }
+    } catch (e) {
+      print('Error loading categories in ProductDetailScreen: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi tải danh mục: $e')),
+        );
+      }
+    }
+  }
+
+  void _syncCurrentSelectedCategory() {
+    if (_selectedCategory != null && _categories.isNotEmpty) {
+      final foundCategory = _categories.firstWhere(
+        (cat) => cat.categoryName == _selectedCategory,
+        orElse: () => _categories.first, // Fallback to the first category if not found
+      );
+      if (_currentSelectedCategory?.id != foundCategory.id) {
+         setState(() {
+            _currentSelectedCategory = foundCategory;
+         });
+      }
+    } else if (_categories.isNotEmpty && _currentSelectedCategory == null) {
+      // If no specific category is selected yet, but categories are loaded,
+      // and if not in viewOnly mode, you might want to default to the first one.
+      // Or, ensure _selectedCategory is set if _currentSelectedCategory is set.
+    }
+  }
+
   // Phương thức xử lý khi nhấn nút lưu
   void _saveForm(BuildContext context) async {
     // If in view-only mode, don't allow saving
@@ -301,9 +344,7 @@ class ProductDetailState extends State<ProductDetail> {
       }
 
       // Đóng dialog loading
-      Navigator.pop(context);
-
-      if (productId != null) {
+      Navigator.pop(context);      if (productId != null) {
         // Nếu thành công
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -311,6 +352,10 @@ class ProductDetailState extends State<ProductDetail> {
             backgroundColor: Colors.green,
           ),
         );
+
+        // Đặt cờ để tải lại danh sách sản phẩm khi trở về ProductScreen
+        final appProvider = Provider.of<AppProvider>(context, listen: false);
+        appProvider.setReloadProductList(true);
 
         // Cập nhật ID vào controller nếu đó là sản phẩm mới
         if (_idController.text.isEmpty) {
@@ -344,6 +389,7 @@ class ProductDetailState extends State<ProductDetail> {
     // Delay to ensure Provider is ready after widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProductData();
+      _loadCategories();
     });
   }
   
@@ -376,7 +422,8 @@ class ProductDetailState extends State<ProductDetail> {
           _priceController.text = product.price.toString();
           _originalPriceController.text = product.originalPrice.toString();
           _discountController.text = product.discount.toString();
-          _quantityController.text = product.quantity;          _selectedCategory = product.category;
+          _quantityController.text = product.quantity;
+          _selectedCategory = product.category;
           _selectedStatus = product.inStock ? 'available' : 'out_of_stock';
           
           // Initialize the image controller with product data
@@ -384,9 +431,10 @@ class ProductDetailState extends State<ProductDetail> {
 
           // Add a small delay to ensure state updates before updating styling
           Future.delayed(const Duration(milliseconds: 100), () {
-            setState(() {
-              // This will trigger a rebuild with updated hasValue parameters
-            });
+            if(mounted) {
+              setState(() {
+              });
+            }
           });
         });
       } else {
@@ -729,8 +777,7 @@ class ProductDetailState extends State<ProductDetail> {
                   OutlinedButton(
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 16.h),
                       foregroundColor: Colors.grey[700],
                       side: BorderSide(color: Colors.grey[300]!),
                       shape: RoundedRectangleBorder(
@@ -738,7 +785,7 @@ class ProductDetailState extends State<ProductDetail> {
                       ),
                     ),
                     child: const Text(
-                      'Discard Changes',
+                      'Hủy',
                       style: TextStyle(fontSize: 13),
                     ),
                   ),
@@ -748,8 +795,7 @@ class ProductDetailState extends State<ProductDetail> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF7E3FF2),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 16.h),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -990,88 +1036,41 @@ class ProductDetailState extends State<ProductDetail> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
-                      hint: Text('Chọn mục sản phẩm',
-                          style: TextStyle(
-                              fontSize: 13, color: Colors.grey.shade400)),
-                      isExpanded: true,
-                      icon: const Icon(Icons.arrow_drop_down, size: 20),
+                    DropdownButtonFormField<CategoryModel>(
                       decoration: _getInputDecoration(
-                        hintText: '',
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        hasValue: _selectedCategory != null,
+                        hintText: 'Chọn danh mục',
+                        hasValue: _currentSelectedCategory != null,
                         enabled: !widget.isViewOnly,
                       ),
-                      items: [
-                        DropdownMenuItem(
-                          value: 'laptop',
-                          child: Text(
-                            'Laptop',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _selectedCategory == 'laptop'
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'desktop',
-                          child: Text(
-                            'Máy tính bàn',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _selectedCategory == 'desktop'
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'components',
-                          child: Text(
-                            'Linh kiện',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _selectedCategory == 'components'
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'accessories',
-                          child: Text(
-                            'Phụ kiện',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _selectedCategory == 'accessories'
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ],
+                      value: _currentSelectedCategory,
+                      items: _categories.map((CategoryModel category) {
+                        return DropdownMenuItem<CategoryModel>(
+                          value: category,
+                          child: Text(category.categoryName ?? 'N/A', style: TextStyle(fontSize: 13)),
+                        );
+                      }).toList(),
                       onChanged: widget.isViewOnly
                           ? null
-                          : (value) {
+                          : (CategoryModel? newValue) {
                               setState(() {
-                                _selectedCategory = value;
+                                _currentSelectedCategory = newValue;
+                                _selectedCategory = newValue?.categoryName;
                               });
                             },
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null && !widget.isViewOnly) {
                           return 'Vui lòng chọn danh mục sản phẩm';
                         }
                         return null;
                       },
+                      isExpanded: true,
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
 
+              // Product status
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1085,74 +1084,38 @@ class ProductDetailState extends State<ProductDetail> {
                     ),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
-                      hint: Text('Chọn trạng thái',
-                          style: TextStyle(
-                              fontSize: 13, color: Colors.grey.shade400)),
-                      isExpanded: true,
-                      icon: const Icon(Icons.arrow_drop_down, size: 20),
-                      decoration: _getInputDecoration(
-                        hintText: '',
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        hasValue: _selectedStatus != null,
-                        enabled: !widget.isViewOnly,
-                      ),
-                      items: [
+                      decoration: _getInputDecoration(hintText: 'Chọn trạng thái', hasValue: _selectedStatus != null, enabled: !widget.isViewOnly),
+                      value: _selectedStatus,
+                      items: const [
                         DropdownMenuItem(
                           value: 'available',
-                          child: Text(
-                            'Có sẵn',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _selectedStatus == 'available'
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
+                          child: Text('Có sẵn', style: TextStyle(fontSize: 13)),
                         ),
                         DropdownMenuItem(
                           value: 'out_of_stock',
-                          child: Text(
-                            'Hết hàng',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _selectedStatus == 'out_of_stock'
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
+                          child: Text('Hết hàng', style: TextStyle(fontSize: 13)),
                         ),
                         DropdownMenuItem(
                           value: 'discontinued',
-                          child: Text(
-                            'Ngừng kinh doanh',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _selectedStatus == 'discontinued'
-                                  ? FontWeight.w500
-                                  : FontWeight.normal,
-                            ),
-                          ),
+                          child: Text('Ngừng kinh doanh', style: TextStyle(fontSize: 13)),
                         ),
                       ],
-                      onChanged: widget.isViewOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                _selectedStatus = value;
-                              });
-                            },
+                      onChanged: widget.isViewOnly ? null : (String? newValue) {
+                        setState(() {
+                          _selectedStatus = newValue;
+                        });
+                      },
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null && !widget.isViewOnly) {
                           return 'Vui lòng chọn trạng thái sản phẩm';
                         }
                         return null;
                       },
+                      isExpanded: true,
                     ),
                   ],
                 ),
               ),
-              // Price
             ],
           ),
           const SizedBox(height: 12),
@@ -1242,11 +1205,10 @@ class ProductDetailState extends State<ProductDetail> {
           ),
           const SizedBox(height: 12),
 
-          // Quantity and Status in row
+          // Discount percentage
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Discount percentage
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
