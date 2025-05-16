@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/responsive.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../../controller/auth_controller.dart';
-import 'package:provider/provider.dart';
-import '../../controller/cart_controller.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -20,34 +19,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // Form key for validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  // Focus nodes
   final FocusNode _emailFocus = FocusNode();
-  final FocusNode _passwordFocus = FocusNode();
-  final FocusNode _confirmPasswordFocus = FocusNode();
-  final FocusNode _nameFocus = FocusNode(); // Thêm cho tên hiển thị
-  final FocusNode _phoneFocus = FocusNode(); // Thêm cho số điện thoại
+  final FocusNode _nameFocus = FocusNode();
 
   // Controllers for text fields
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final TextEditingController _nameController =
-      TextEditingController(); // Thêm controller tên
-  final TextEditingController _phoneController =
-      TextEditingController(); // Thêm controller SĐT
+  final TextEditingController _nameController = TextEditingController();
 
-  // Password visibility state
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   @override
   void initState() {
     super.initState();
-
     _emailFocus.addListener(_handleFocusChange);
-    _passwordFocus.addListener(_handleFocusChange);
-    _confirmPasswordFocus.addListener(_handleFocusChange);
     _nameFocus.addListener(_handleFocusChange);
-    _phoneFocus.addListener(_handleFocusChange);
   }
 
   void _handleFocusChange() {
@@ -59,15 +43,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void dispose() {
     _emailFocus.dispose();
-    _passwordFocus.dispose();
-    _confirmPasswordFocus.dispose();
     _nameFocus.dispose();
-    _phoneFocus.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _nameController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
@@ -76,10 +54,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required String hint,
     required IconData icon,
     required FocusNode focusNode,
-    TextEditingController? controller,
-    bool isPassword = false,
-    bool? obscureText,
-    VoidCallback? onTogglePasswordVisibility,
+    required TextEditingController controller,
     String? Function(String?)? validator,
   }) {
     bool isFocused = focusNode.hasFocus;
@@ -104,7 +79,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: CustomTextFormField(
             controller: controller,
             focusNode: focusNode,
-            obscureText: isPassword ? (obscureText ?? true) : false,
             fillColor: Colors.white,
             filled: true,
             hintText: hint,
@@ -117,19 +91,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 size: 22,
               ),
             ),
-            suffix: isPassword
-                ? GestureDetector(
-                    onTap: onTogglePasswordVisibility,
-                    child: Container(
-                      margin: EdgeInsets.only(right: 10.h),
-                      child: Icon(
-                        obscureText! ? Icons.visibility_off : Icons.visibility,
-                        color: obscureText ? Colors.grey.shade400 : brandColor,
-                        size: 22,
-                      ),
-                    ),
-                  )
-                : null,
             borderDecoration: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
@@ -147,52 +108,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       ],
     );
-  }  // Phương thức đăng ký người dùng
-  Future<void> _registerUser(BuildContext context) async {
-    // Kiểm tra xác thực form
-    if (!_formKey.currentState!.validate()) {
-      // Form không hợp lệ
-      return;
-    }
-    
-    final authController = Provider.of<AuthController>(context, listen: false);
-    final cartController = Provider.of<CartController>(context, listen: false);
-    
-    // Gọi controller để xử lý đăng ký
-    final success = await authController.registerWithEmailAndPassword(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-      name: _nameController.text.trim(),
-      phoneNumber: _phoneController.text.trim(),
-      cartController: cartController,
-      context: context,
-    );
-    
-    if (success) {
-      // Hiển thị thông báo thành công nếu có
-      if (authController.successMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authController.successMessage!),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-        // Chuyển đến màn hình thêm địa chỉ thay vì trang chủ
-      Navigator.pushNamedAndRemoveUntil(
+  }
+
+  void _proceedToAddress(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      Navigator.pushNamed(
         context,
         AppRoutes.addAddressScreen,
-        (route) => false,
-        arguments: {'fromRegistration': true},
+        arguments: {
+          'fromRegistration': true,
+          'email': _emailController.text.trim(),
+          'name': _nameController.text.trim(),
+        },
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authController = Provider.of<AuthController>(context);
+
     if (Responsive.isDesktop(context)) {
-      // Layout desktop - 2 cột
       return Scaffold(
         backgroundColor: Colors.white,
         body: Container(
@@ -212,30 +148,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Row(
               children: [
                 Expanded(
-                  flex: 2,                  
+                  flex: 2,
                   child: Container(
-                      
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20.h),
-                          bottomLeft: Radius.circular(20.h),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 15,
-                            offset: Offset(0, 5),
-                            spreadRadius: 0,
-                          ),
-                        ],
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20.h),
+                        bottomLeft: Radius.circular(20.h),
                       ),
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 70.h, vertical: 30.h),
-                        physics: BouncingScrollPhysics(),
-                        child: _buildSignupForm(context),
-                      )),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 15,
+                          offset: Offset(0, 5),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(horizontal: 70.h, vertical: 30.h),
+                      physics: BouncingScrollPhysics(),
+                      child: _buildSignupForm(context),
+                    ),
+                  ),
                 ),
                 Expanded(
                   flex: 1,
@@ -268,12 +203,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       );
     } else {
-      // Layout mobile
       return Scaffold(
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            // Phần background
             Container(
               height: MediaQuery.of(context).size.height,
               width: double.infinity,
@@ -284,7 +217,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
             ),
-            // Phần logo
             Positioned(
               top: MediaQuery.of(context).size.height * 0.13,
               left: 0,
@@ -304,7 +236,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
             ),
-            // Phần form đăng ký
             Positioned(
               top: MediaQuery.of(context).size.height * 0.32,
               left: 0,
@@ -339,7 +270,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // Widget chung để xây dựng form đăng ký cho cả desktop và mobile
   Widget _buildSignupForm(BuildContext context) {
     final authController = Provider.of<AuthController>(context);
 
@@ -374,23 +304,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           SizedBox(height: 16.h),
           _buildTextField(
-            label: "Số điện thoại",
-            hint: "Nhập số điện thoại",
-            icon: Icons.phone_android_outlined,
-            controller: _phoneController,
-            focusNode: _phoneFocus,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập số điện thoại';
-              }
-              if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-                return 'Số điện thoại không hợp lệ';
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: 16.h),
-          _buildTextField(
             label: "Email",
             hint: "Nhập email",
             icon: Icons.email_outlined,
@@ -400,72 +313,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập email';
               }
-              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                  .hasMatch(value)) {
+              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                 return 'Email không hợp lệ';
               }
               return null;
             },
           ),
-          SizedBox(height: 16.h),
-          _buildTextField(
-            label: "Mật khẩu",
-            hint: "Nhập mật khẩu",
-            icon: Icons.lock_outline,
-            controller: _passwordController,
-            focusNode: _passwordFocus,
-            isPassword: true,
-            obscureText: _obscurePassword,
-            onTogglePasswordVisibility: () {
-              setState(() {
-                _obscurePassword = !_obscurePassword;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập mật khẩu';
-              }
-              if (value.length < 6) {
-                return 'Mật khẩu phải có ít nhất 6 ký tự';
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: 16.h),
-          _buildTextField(
-            label: "Xác nhận lại",
-            hint: "Nhập lại mật khẩu",
-            icon: Icons.lock_outline,
-            controller: _confirmPasswordController,
-            focusNode: _confirmPasswordFocus,
-            isPassword: true,
-            obscureText: _obscureConfirmPassword,
-            onTogglePasswordVisibility: () {
-              setState(() {
-                _obscureConfirmPassword = !_obscureConfirmPassword;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng xác nhận mật khẩu';
-              }
-              if (value != _passwordController.text) {
-                return 'Mật khẩu xác nhận không khớp';
-              }
-              return null;
-            },
-          ),
-          if (authController.error != null)
-            Padding(
-              padding: EdgeInsets.only(top: 16.h),
-              child: Text(
-                authController.error!,
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 14.h,
-                ),
-              ),
-            ),
           SizedBox(height: 35.h),
           Container(
             width: double.infinity,
@@ -484,7 +337,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: ElevatedButton(
               onPressed: authController.isLoading
                   ? null
-                  : () => _registerUser(context),
+                  : () => _proceedToAddress(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: brandColor,
                 elevation: 0,
@@ -495,7 +348,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: authController.isLoading
                   ? CircularProgressIndicator(color: Colors.white)
                   : Text(
-                      "Đăng ký",
+                      "Tiếp theo",
                       style: TextStyle(
                         fontSize: 18.h,
                         color: Colors.white,
@@ -504,37 +357,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
             ),
-          ),          SizedBox(height: 30.h),
+          ),
+          SizedBox(height: 30.h),
           Center(
             child: GestureDetector(
-              onTap: () {                // Hủy màn hình hiện tại và chuyển qua màn hình đăng nhập
+              onTap: () {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   AppRoutes.login,
                   (route) => false,
                 );
               },
-              child: Container(
-                child: RichText(
-                  text: TextSpan(
-                    text: "Đã có tài khoản? ",
-                    style: TextStyle(
-                      color: Color(0xFF666666),
-                      fontSize: 15.h,
-                    ),
-                    children: [
-                      TextSpan(
-                        mouseCursor: SystemMouseCursors.click,
-                        text: "Đăng nhập ngay",
-                        style: TextStyle(
-                          color: brandColor,
-                          fontSize: 15.h,
-                          fontWeight: FontWeight.bold,
-                          decorationColor: brandColor,
-                        ),
-                      ),
-                    ],
+              child: RichText(
+                text: TextSpan(
+                  text: "Đã có tài khoản? ",
+                  style: TextStyle(
+                    color: Color(0xFF666666),
+                    fontSize: 15.h,
                   ),
+                  children: [
+                    TextSpan(
+                      text: "Đăng nhập ngay",
+                      style: TextStyle(
+                        color: brandColor,
+                        fontSize: 15.h,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

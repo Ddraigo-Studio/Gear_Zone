@@ -31,8 +31,8 @@ import '../pages/Products/category_products_page.dart';
 
 // Profile
 import '../pages/Profile/edit_profile_screen.dart';
-import '../pages/Profile/list_address_screen.dart'; 
-import '../pages/Profile/add_address_screen.dart'; 
+import '../pages/Profile/list_address_screen.dart';
+import '../pages/Profile/add_address_screen.dart';
 
 // Search Product
 import '../pages/Search_Product/search_result_screen.dart';
@@ -59,7 +59,7 @@ class AppRoutes {
   static const String plashScreen = '/plash_screen';
   static const String notificationEmptyScreen = '/notification_empty_screen';
   static const String notificationsScreen = '/notifications_screen';
-  static const String ordersHistoryScreen = '/orders_history_screen';  
+  static const String ordersHistoryScreen = '/orders_history_screen';
   static const String ordersHistoryEmptyScreen = '/orders_history_empty_screen';
   static const String ordersDetailScreen = '/order_detail_screen';
   static const String categoriesScreen = '/category_screen';
@@ -94,42 +94,47 @@ class AppRoutes {
   static Map<String, WidgetBuilder> routes = {
     login: (context) => LoginScreen(),
     signup: (context) => SignUpScreen(),
-    homeScreen: (context) => HomeScreen(),    
-    homeInitialPage: (context) => HomeInitialPage(), 
+    homeScreen: (context) => HomeScreen(),
+    homeInitialPage: (context) => HomeInitialPage(),
     plashScreen: (context) => PlashScreenScreen(),
     categoriesScreen: (context) => CategoriesScreen(),
     categoryProductsPage: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
       return CategoryProductsPage(
         categoryId: args?['categoryId'] ?? '',
       );
     },
     productDetail: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
       return ProductDetailScreen(
         product: args?['product'],
       );
     },
     myCartScreen: (context) => CartScreen(),
-    checkoutScreen: (context) => CheckoutScreen(), 
+    checkoutScreen: (context) => CheckoutScreen(),
     methodCheckoutScreen: (context) => PaymentMethodScreen(),
-    ordersDetailScreen: (context) => OrdersDetailScreen(), 
-    // orderPlacedScreen: (context) => PaymentSuccess(), 
+    ordersDetailScreen: (context) => OrdersDetailScreen(),
+    // orderPlacedScreen: (context) => PaymentSuccess(),
     // voucherDetailScreen: (context) => VoucherDetailScreen(),
-    settingsScreen: (context) => SettingsScreen(),    editProfileScreen: (context) => EditProfileScreen(), 
-    listAddressScreen: (context) => ListAddressScreen(), 
+    settingsScreen: (context) => SettingsScreen(),
+    editProfileScreen: (context) => EditProfileScreen(),
+    listAddressScreen: (context) => ListAddressScreen(),
     addAddressScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
       return AddAddressScreen(
         fromRegistration: args?['fromRegistration'] ?? false,
+        registrationData: args,
       );
     },
-    initialRoute: (context) => AdminScreen(),
+    initialRoute: (context) => SignUpScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),
     adminDashboard: (context) => const DashboardScreen(),
-    adminProducts: (context) => const ProductScreen(), 
+    adminProducts: (context) => const ProductScreen(),
     adminProductDetail: (context) => const ProductDetail(),
     adminProductAdd: (context) => const ProductAddScreen(),
     adminCustomers: (context) => const CustomerScreen(),

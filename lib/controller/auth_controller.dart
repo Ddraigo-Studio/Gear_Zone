@@ -18,7 +18,7 @@ class AuthController with ChangeNotifier {
   // Firebase Auth instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   // User state
   User? _firebaseUser;
   UserModel? _userModel;
@@ -61,7 +61,8 @@ class AuthController with ChangeNotifier {
 
     try {
       // Tạo tài khoản trong Firebase Auth
-      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -93,20 +94,22 @@ class AuthController with ChangeNotifier {
 
       // Đặt thông báo thành công
       _setSuccessMessage("Đăng ký thành công!");
-      
+
       notifyListeners();
       return true;
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
         case 'email-already-in-use':
-          errorMessage = "Email này đã được sử dụng. Vui lòng sử dụng email khác.";
+          errorMessage =
+              "Email này đã được sử dụng. Vui lòng sử dụng email khác.";
           break;
         case 'invalid-email':
           errorMessage = "Email không hợp lệ.";
           break;
         case 'operation-not-allowed':
-          errorMessage = "Đăng ký với email và mật khẩu hiện không được cho phép.";
+          errorMessage =
+              "Đăng ký với email và mật khẩu hiện không được cho phép.";
           break;
         case 'weak-password':
           errorMessage = "Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn.";
@@ -135,7 +138,8 @@ class AuthController with ChangeNotifier {
     _clearMessages();
 
     try {
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -146,13 +150,13 @@ class AuthController with ChangeNotifier {
       }
 
       await _fetchUserData(userCredential.user!.uid);
-      
+
       // Xử lý giỏ hàng sau khi đăng nhập thành công
       await cartController.handleUserLogin(userCredential.user!.uid);
-      
+
       // Đặt thông báo thành công
       _setSuccessMessage("Đăng nhập thành công!");
-      
+
       return true;
     } on FirebaseAuthException catch (e) {
       String errorMessage;
@@ -202,7 +206,8 @@ class AuthController with ChangeNotifier {
   // Lấy thông tin người dùng từ Firestore
   Future<void> _fetchUserData(String uid) async {
     try {
-      final DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      final DocumentSnapshot doc =
+          await _firestore.collection('users').doc(uid).get();
 
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
@@ -232,12 +237,75 @@ class AuthController with ChangeNotifier {
   Future<void> _saveUserToFirestore(UserModel user) async {
     try {
       await _firestore.collection('users').doc(user.uid).set(
-        user.toMap(),
-        SetOptions(merge: true),
-      );
+            user.toMap(),
+            SetOptions(merge: true),
+          );
     } catch (e) {
       print("Lỗi khi lưu dữ liệu người dùng: $e");
       _setError("Không thể lưu thông tin người dùng: $e");
+    }
+  }
+
+  Future<void> saveUserAddress({
+    required String province,
+    required String district,
+    required String ward,
+    required String street,
+  }) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('Không tìm thấy người dùng hiện tại');
+      }
+
+      // Tạo ID duy nhất cho địa chỉ mới
+      final String addressId = DateTime.now().millisecondsSinceEpoch.toString();
+
+      // Tạo dữ liệu địa chỉ mới
+      Map<String, dynamic> newAddress = {
+        'id': addressId,
+        'province': province,
+        'district': district,
+        'ward': ward,
+        'street': street,
+        'fullAddress': '$street, $ward, $district, $province',
+        'isDefault': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      };
+
+      // Nếu đã có userModel, thêm địa chỉ vào danh sách hiện có
+      if (_userModel != null) {
+        List<Map<String, dynamic>> updatedAddressList =
+            List.from(_userModel!.addressList);
+        updatedAddressList.add(newAddress);
+
+        // Cập nhật userModel với địa chỉ mới
+        _userModel = _userModel!.copyWith(
+          addressList: updatedAddressList,
+          defaultAddressId: addressId, // Đặt làm địa chỉ mặc định
+        );
+
+        // Lưu vào Firestore
+        await _firestore.collection('users').doc(user.uid).update({
+          'addressList': updatedAddressList,
+          'defaultAddressId': addressId,
+        });
+      } else {
+        // Nếu chưa có userModel, tạo document địa chỉ riêng
+        await _firestore.collection('users').doc(user.uid).update({
+          'addressList': FieldValue.arrayUnion([newAddress]),
+          'defaultAddressId': addressId,
+        });
+
+        // Cập nhật dữ liệu người dùng
+        await _fetchUserData(user.uid);
+      }
+
+      print('Đã lưu địa chỉ thành công: $province, $district, $ward, $street');
+      notifyListeners();
+    } catch (e) {
+      print('Lỗi khi lưu địa chỉ: $e');
+      throw Exception('Lỗi khi lưu địa chỉ: $e');
     }
   }
 
@@ -288,50 +356,49 @@ class AuthController with ChangeNotifier {
     _successMessage = null;
     notifyListeners();
   }
-  
+
   // Đặt thông báo lỗi
   void _setError(String message) {
     _error = message;
     notifyListeners();
   }
-  
+
   // Đặt thông báo thành công
   void _setSuccessMessage(String message) {
     _successMessage = message;
     notifyListeners();
   }
-    // Phương thức để xử lý chuyển hướng sau khi đăng nhập/đăng ký thành công
+
+  // Phương thức để xử lý chuyển hướng sau khi đăng nhập/đăng ký thành công
   void navigateToHomeScreen(BuildContext context) {
     Navigator.pushNamedAndRemoveUntil(
-      context, 
-      AppRoutes.homeScreen, 
-      (route) => false
-    );
+        context, AppRoutes.homeScreen, (route) => false);
   }
-  
+
   // Phương thức để đổi mật khẩu
-  Future<bool> changePassword(String currentPassword, String newPassword) async {
+  Future<bool> changePassword(
+      String currentPassword, String newPassword) async {
     _setLoading(true);
     _clearMessages();
-    
+
     try {
       // Kiểm tra xem người dùng đã đăng nhập chưa
       if (_firebaseUser == null || _firebaseUser!.email == null) {
         _setError("Người dùng chưa đăng nhập hoặc không có email");
         return false;
       }
-      
+
       // Tái xác thực người dùng với mật khẩu hiện tại
       AuthCredential credential = EmailAuthProvider.credential(
         email: _firebaseUser!.email!,
         password: currentPassword,
       );
-      
+
       await _firebaseUser!.reauthenticateWithCredential(credential);
-      
+
       // Đổi mật khẩu
       await _firebaseUser!.updatePassword(newPassword);
-      
+
       _setSuccessMessage("Đổi mật khẩu thành công!");
       return true;
     } on FirebaseAuthException catch (e) {
@@ -341,10 +408,12 @@ class AuthController with ChangeNotifier {
           errorMessage = "Mật khẩu hiện tại không chính xác";
           break;
         case 'weak-password':
-          errorMessage = "Mật khẩu mới quá yếu. Vui lòng chọn mật khẩu mạnh hơn";
+          errorMessage =
+              "Mật khẩu mới quá yếu. Vui lòng chọn mật khẩu mạnh hơn";
           break;
         case 'requires-recent-login':
-          errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đổi mật khẩu";
+          errorMessage =
+              "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để đổi mật khẩu";
           break;
         default:
           errorMessage = "Lỗi đổi mật khẩu: ${e.message}";
