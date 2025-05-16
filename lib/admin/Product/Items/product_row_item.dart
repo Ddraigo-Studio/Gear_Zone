@@ -5,12 +5,14 @@ import '../../../core/utils/responsive.dart'; // Import Responsive
 import 'package:provider/provider.dart'; // Import Provider
 import '../../../controller/product_controller.dart'; // Import ProductController
 import '../../../widgets/custom_image_view.dart'; // Import CustomImageView
+import 'package:intl/intl.dart'; // Import intl cho định dạng ngày giờ
 
 TableRow buildProductTableRow(
     BuildContext context, int index, List<ProductModel> products) {
   final product = products[index % products.length];
   final isAvailable = product.status == 'Có sẵn' || product.inStock;
   final appProvider = Provider.of<AppProvider>(context, listen: false);
+  final isMobile = Responsive.isMobile(context); // Added isMobile
 
   return TableRow(
     decoration: BoxDecoration(
@@ -24,7 +26,7 @@ TableRow buildProductTableRow(
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16), // Responsive padding
           alignment: Alignment.center,
           child: SizedBox(
             width: 20,
@@ -40,12 +42,12 @@ TableRow buildProductTableRow(
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16, horizontal: 8), // Responsive padding
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: isMobile ? 40 : 48, // Responsive width
+                height: isMobile ? 40 : 48, // Responsive height
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: CustomImageView(
@@ -53,31 +55,35 @@ TableRow buildProductTableRow(
                     imagePath: product.imageUrl.isNotEmpty
                         ? product.imageUrl
                         : 'assets/images/img_logo.png',
-                    height: 48,
-                    width: 48,
+                    height: isMobile ? 40 : 48, // Responsive height
+                    width: isMobile ? 40 : 48, // Responsive width
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: isMobile ? 8 : 16), // Responsive spacing
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
                   children: [
                     Text(
                       product.id,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: isMobile ? 10 : 13, // Responsive font size
                         color: Theme.of(context).primaryColor,
                       ),
+                      overflow: TextOverflow.ellipsis, // Prevent overflow
                     ),
                     const SizedBox(height: 4),
                     Text(
                       product.name,
-                      style: const TextStyle(
-                        fontSize: 13,
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 13, // Responsive font size
                         fontWeight: FontWeight.w500,
                       ),
+                      maxLines: isMobile ? 2 : 1, // Allow more lines on mobile
+                      overflow: TextOverflow.ellipsis, // Prevent overflow
                     ),
                   ],
                 ),
@@ -90,12 +96,12 @@ TableRow buildProductTableRow(
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16), // Responsive padding
           alignment: Alignment.center,
           child: Text(
             ProductModel.formatPrice(product.price),
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: isMobile ? 9 : 13, // Responsive font size
             ),
           ),
         ),
@@ -104,12 +110,12 @@ TableRow buildProductTableRow(
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16), // Responsive padding
           alignment: Alignment.center,
           child: Text(
-            product.quantity,
-            style: const TextStyle(
-              fontSize: 13,
+            product.quantity.toString(), // Ensure quantity is a string
+            style: TextStyle(
+              fontSize: isMobile ? 9 : 13, // Responsive font size
             ),
           ),
         ),
@@ -118,25 +124,34 @@ TableRow buildProductTableRow(
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          child: Text(
-            product.createdAt?.toString().substring(0, 16) ?? 'N/A',
-            style: const TextStyle(
-              fontSize: 13, // Tăng kích thước font
-              height: 1.4, // Thêm line height để dòng cách nhau
-            ),
-            textAlign: TextAlign.center,
-          ),
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16), // Responsive padding
+          alignment: Alignment.center,
+          child: product.createdAt != null
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    DateFormat('dd/MM/yyyy').format(product.createdAt!),
+                    style: TextStyle(fontSize: isMobile ? 9 : 13),
+                  ),
+                  Text(
+                    DateFormat('HH:mm:ss').format(product.createdAt!),
+                    style: TextStyle(fontSize: isMobile ? 9 : 13, color: Colors.grey),
+                  ),
+                ],
+              )
+            : const Text('N/A'),
         ),
       ),
       // Trạng thái
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16), // Tăng padding
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16), // Responsive padding
           alignment: Alignment.center,
           child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 6), // Tăng padding của badge
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: isMobile ? 4 : 6), // Responsive padding
             decoration: BoxDecoration(
               color: isAvailable ? Colors.green.shade100 : Colors.red.shade100,
               borderRadius: BorderRadius.circular(12),
@@ -144,9 +159,9 @@ TableRow buildProductTableRow(
             child: Text(
               product.status,
               style: TextStyle(
-                fontSize: 13, // Tăng kích thước font
-                fontWeight: FontWeight.w500, // Làm đậm hơn
-                color: isAvailable ? Colors.green : Colors.red,
+                fontSize: isMobile ? 10 : 13, // Responsive font size
+                fontWeight: FontWeight.w500, 
+                color: isAvailable ? Colors.green.shade700 : Colors.red.shade700, // Darker text for better contrast
               ),
               textAlign: TextAlign.center,
             ),
@@ -157,58 +172,56 @@ TableRow buildProductTableRow(
       TableCell(
         verticalAlignment: TableCellVerticalAlignment.middle,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16), // Tăng padding
+          padding: EdgeInsets.symmetric(vertical: isMobile ? 0 : 16), // Reduced vertical padding on mobile for actions
           alignment: Alignment.center,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
+            mainAxisSize: MainAxisSize.min, // Use min to prevent overflow if space is tight
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.visibility_outlined,
-                    size: 20), // Tăng kích thước icon
+                icon: Icon(Icons.visibility_outlined, size: isMobile ? 18 : 20), // Responsive icon size
                 onPressed: () {
                   // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
                   appProvider.setCurrentProductId(product.id);
                   // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
                   appProvider.setCurrentScreen(AppScreen.productDetail,
-                      isViewOnly: true); // Index 2 là ProductDetail
+                      isViewOnly: true);
                 },
                 color: Colors.grey,
-                padding: const EdgeInsets.all(4), // Thêm padding
+                padding: EdgeInsets.all(isMobile ? 2 : 4), // Responsive padding
                 constraints: const BoxConstraints(),
                 visualDensity: VisualDensity.compact,
                 splashRadius: 20,
                 tooltip: 'Xem sản phẩm',
               ),
-              const SizedBox(width: 8), // Thêm khoảng cách giữa các icon
+              SizedBox(width: isMobile ? 2 : 8), // Responsive spacing
               IconButton(
+                icon: Icon(Icons.edit_outlined, size: isMobile ? 18 : 20), // Responsive icon size
                 onPressed: () {
                   // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
                   appProvider.setCurrentScreen(AppScreen.productDetail,
-                      isViewOnly: false); // Index 2 là ProductDetail
+                      isViewOnly: false);
                   // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
                   appProvider.setCurrentProductId(product.id);
                 },
-                icon: const Icon(Icons.edit_outlined,
-                    size: 20), // Tăng kích thước icon
                 color: Colors.grey,
-                padding: const EdgeInsets.all(4), // Thêm padding
+                padding: EdgeInsets.all(isMobile ? 2 : 4), // Responsive padding
                 constraints: const BoxConstraints(),
                 visualDensity: VisualDensity.compact,
                 splashRadius: 20,
                 tooltip: 'Sửa sản phẩm',
               ),
-              const SizedBox(width: 8), // Thêm khoảng cách giữa các icon
+              SizedBox(width: isMobile ? 2 : 8), // Responsive spacing
               IconButton(
-                icon: const Icon(Icons.delete_outlined,
-                    size: 20), // Tăng kích thước icon
+                icon: Icon(Icons.delete_outlined, size: isMobile ? 18 : 20), // Responsive icon size
                 onPressed: () => deleteProduct(context, product.id),
-                color: Colors.grey,
-                padding: const EdgeInsets.all(4), // Thêm padding
+                color: Colors.red.shade300,
+                padding: EdgeInsets.all(isMobile ? 2 : 4), // Responsive padding
                 constraints: const BoxConstraints(),
                 visualDensity: VisualDensity.compact,
                 splashRadius: 20,
+                tooltip: 'Xóa sản phẩm', // Added tooltip
               ),
             ],
           ),
@@ -225,22 +238,16 @@ Widget buildMobileProductItem(
   final appProvider = Provider.of<AppProvider>(context, listen: false);
 
   return Container(
-    margin: const EdgeInsets.only(bottom: 8.0),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(8),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 5,
-          offset: const Offset(0, 2),
-        ),
-      ],
+      border: Border(
+        bottom: BorderSide(color: Colors.grey.shade200),
+      ),
     ),
     child: Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
           child: Row(
             children: [
               SizedBox(
@@ -249,23 +256,20 @@ Widget buildMobileProductItem(
                   value: false,
                   onChanged: (value) {},
                 ),
-              ),
+              ),            
               Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
+                width: 40,
+                height: 40,
+                margin: const EdgeInsets.symmetric(vertical: 8),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(4),
                   child: CustomImageView(
                     key: ValueKey('product_mobile_${product.id}'),
-                    imagePath: product.imageUrl.isNotEmpty
-                        ? product.imageUrl
+                    imagePath: product.imageUrl.isNotEmpty 
+                        ? product.imageUrl 
                         : 'assets/images/img_logo.png',
-                    height: 48,
-                    width: 48,
+                    height: 40,
+                    width: 40,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -278,14 +282,14 @@ Widget buildMobileProductItem(
                     Text(
                       product.id,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
                     Text(
                       product.name,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                       maxLines: 2,
@@ -294,37 +298,29 @@ Widget buildMobileProductItem(
                   ],
                 ),
               ),
-              InkWell(
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    size: 20,
-                    color: Colors.grey.shade600,
-                  ),
+              IconButton(
+                icon: Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  size: 20,
                 ),
-                onTap: () {
+                onPressed: () {
                   if (onExpandToggle != null) {
                     onExpandToggle(index);
                   }
                 },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                splashRadius: 24,
               ),
             ],
           ),
-        ), // Sử dụng AnimatedCrossFade để tạo hiệu ứng mở rộng mượt mà
-        AnimatedCrossFade(
-          duration: const Duration(milliseconds: 300),
-          crossFadeState:
-              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-          firstChild: const SizedBox(height: 0),
-          secondChild: Container(
-            width: double.infinity,
+        ),
+        if (isExpanded)
+          Container(
             color: Colors.grey.shade50,
-            padding:
-                const EdgeInsets.only(left: 76, right: 16, bottom: 16, top: 8),
+            padding: const EdgeInsets.only(left: 76, right: 16, bottom: 16, top: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -360,7 +356,7 @@ Widget buildMobileProductItem(
                       ),
                     ),
                     Text(
-                      product.quantity,
+                      product.quantity.toString(),
                       style: const TextStyle(fontSize: 14),
                     ),
                   ],
@@ -378,9 +374,21 @@ Widget buildMobileProductItem(
                         ),
                       ),
                     ),
-                    Text(
-                      product.createdAt?.toString().substring(0, 16) ?? 'N/A',
-                      style: const TextStyle(fontSize: 14),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (product.createdAt != null) ...[
+                          Text(
+                            DateFormat('dd/MM/yyyy').format(product.createdAt!),
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            DateFormat('HH:mm:ss').format(product.createdAt!),
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ] else
+                          const Text('N/A', style: TextStyle(fontSize: 14)),
+                      ],
                     ),
                   ],
                 ),
@@ -441,7 +449,7 @@ Widget buildMobileProductItem(
                             appProvider.setCurrentProductId(product.id);
                             // Chuyển đến màn hình chi tiết sản phẩm ở chế độ xem
                             appProvider.setCurrentScreen(AppScreen.productDetail,
-                                isViewOnly: true); // Index 2 là ProductDetail
+                                isViewOnly: true);
                           },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
@@ -454,10 +462,9 @@ Widget buildMobileProductItem(
                           icon: const Icon(Icons.edit_outlined, size: 20),
                           onPressed: () {
                             // Chuyển đến màn hình chi tiết sản phẩm ở chế độ sửa
-                            appProvider.setCurrentScreen(AppScreen.productDetail,
-                                isViewOnly: false); // Index 2 là ProductDetail
-                            // Lưu ID sản phẩm hiện tại vào Provider để có thể truy xuất trong màn hình chi tiết
                             appProvider.setCurrentProductId(product.id);
+                            appProvider.setCurrentScreen(AppScreen.productDetail,
+                                isViewOnly: false);
                           },
                           color: Colors.grey,
                           padding: EdgeInsets.zero,
@@ -473,6 +480,7 @@ Widget buildMobileProductItem(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           visualDensity: VisualDensity.compact,
+                          tooltip: 'Xóa sản phẩm',
                         ),
                       ],
                     ),
@@ -481,14 +489,18 @@ Widget buildMobileProductItem(
               ],
             ),
           ),
-        ),
       ],
     ),
   );
 }
 
 class ProductListView extends StatefulWidget {
-  const ProductListView({super.key});
+  final List<ProductModel>? products; // Thêm tham số để truyền danh sách sản phẩm từ bên ngoài
+
+  const ProductListView({
+    super.key,
+    this.products,
+  });
 
   @override
   State<ProductListView> createState() => _ProductListViewState();
@@ -499,20 +511,28 @@ class _ProductListViewState extends State<ProductListView> {
   bool _isLoading = true;
   List<ProductModel> _products = [];
   String _errorMessage = '';
-  @override
+    @override
   void initState() {
     super.initState();
-    _loadProducts();
+    // Nếu đã truyền danh sách sản phẩm từ bên ngoài thì dùng nó, không cần load lại
+    if (widget.products != null) {
+      _products = widget.products!;
+      _isLoading = false;
+    } else {
+      _loadProducts();
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Lấy danh mục được chọn từ Provider
-    final appProvider = Provider.of<AppProvider>(context);
-
-    // Load lại sản phẩm khi danh mục thay đổi
-    _loadProducts(appProvider.selectedCategory);
+    // Chỉ load lại sản phẩm khi không có danh sách được truyền vào từ bên ngoài
+    if (widget.products == null) {
+      // Lấy danh mục được chọn từ Provider
+      final appProvider = Provider.of<AppProvider>(context);
+      // Load lại sản phẩm khi danh mục thay đổi
+      _loadProducts(appProvider.selectedCategory);
+    }
   }
 
   void _loadProducts([String category = '']) {
@@ -548,8 +568,9 @@ class _ProductListViewState extends State<ProductListView> {
         });
       },
     );
-  } // Theo dõi các mục đã được mở rộng
-
+  } 
+  
+  // Theo dõi các mục đã được mở rộng
   Set<int> _expandedItems = {};
 
   // Xử lý mở rộng/thu gọn cho mục mobile
@@ -562,13 +583,18 @@ class _ProductListViewState extends State<ProductListView> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     // Lấy thông tin về danh mục từ Provider
     final appProvider = Provider.of<AppProvider>(context);
     final selectedCategory = appProvider.selectedCategory;
     final isMobile = Responsive.isMobile(context);
+
+    // Nếu có danh sách sản phẩm được truyền vào từ bên ngoài, cập nhật lại
+    if (widget.products != null && widget.products != _products) {
+      _products = widget.products!;
+      _isLoading = false;
+    }
 
     if (_isLoading) {
       return const Center(
@@ -625,16 +651,29 @@ class _ProductListViewState extends State<ProductListView> {
 
     // Hiển thị sản phẩm theo chế độ xem
     return isMobile
-        ? ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _products.length,
-            itemBuilder: (context, index) => buildMobileProductItem(
-              context,
-              index,
-              _products[index],
-              isExpanded: _expandedItems.contains(index),
-              onExpandToggle: _toggleExpanded,
+        ? Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _products.length,
+              itemBuilder: (context, index) => buildMobileProductItem(
+                context,
+                index,
+                _products[index],
+                isExpanded: _expandedItems.contains(index),
+                onExpandToggle: _toggleExpanded,
+              ),
             ),
           )
         : buildProductTable(context, products: _products);

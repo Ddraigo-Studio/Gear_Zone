@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gear_zone/controller/product_controller.dart';
 import 'package:gear_zone/model/product.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart'; // Added import
+
 import '../../../core/app_provider.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../widgets/admin_widgets/breadcrumb.dart';
@@ -216,6 +218,8 @@ class _ProductScreenState extends State<ProductScreen> {
   // Xây dựng TableRow cho sản phẩm
   TableRow buildProductTableRow(BuildContext context, int index, List<ProductModel> products) {
     final product = products[index];
+    final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+
     return TableRow(
       decoration: BoxDecoration(
         color: index % 2 == 0 ? Colors.white : const Color(0xffFAFAFA),
@@ -239,7 +243,7 @@ class _ProductScreenState extends State<ProductScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           child: Text(
-            '${product.price.toStringAsFixed(0)} ₫',
+            currencyFormatter.format(product.price), // Updated price formatting
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
@@ -252,7 +256,7 @@ class _ProductScreenState extends State<ProductScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           child: Text(
-            product.quantity,
+            product.quantity.toString(), // Ensure quantity is string
             style: const TextStyle(fontSize: 14),
             textAlign: TextAlign.center,
           ),
@@ -261,13 +265,29 @@ class _ProductScreenState extends State<ProductScreen> {
         // Cột ngày tạo
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10.0),
-          child: Text(
-            product.createdAt != null
-                ? '${product.createdAt!.day}/${product.createdAt!.month}/${product.createdAt!.year}'
-                : 'N/A',
-            style: const TextStyle(fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
+          alignment: Alignment.center, // Center the Column
+          child: product.createdAt != null
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      DateFormat('dd/MM/yyyy').format(product.createdAt!),
+                      style: const TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      DateFormat('HH:mm:ss').format(product.createdAt!),
+                      style: const TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )
+              : const Text(
+                  'N/A',
+                  style: TextStyle(fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
         ),
         
         // Cột trạng thái
@@ -302,6 +322,9 @@ class _ProductScreenState extends State<ProductScreen> {
             children: [
               // Nút xem chi tiết
               IconButton(
+                padding: EdgeInsets.all(4),
+                constraints: BoxConstraints(),
+                visualDensity: VisualDensity.compact,
                 onPressed: () {
                   // Chuyển đến màn hình chi tiết sản phẩm
                   final appProvider =
@@ -315,6 +338,9 @@ class _ProductScreenState extends State<ProductScreen> {
               
               // Nút chỉnh sửa
               IconButton(
+                padding: EdgeInsets.all(4),
+                constraints: BoxConstraints(),
+                visualDensity: VisualDensity.compact,
                 onPressed: () {
                   // Chuyển đến màn hình chỉnh sửa sản phẩm
                   final appProvider =
@@ -328,10 +354,12 @@ class _ProductScreenState extends State<ProductScreen> {
               
               // Nút xóa sản phẩm
               IconButton(
+                padding: EdgeInsets.all(4),
+                constraints: BoxConstraints(),
+                visualDensity: VisualDensity.compact,
                 onPressed: () => _deleteProduct(product.id),
                 icon: const Icon(Icons.delete_outlined, size: 20, color: Colors.red),
                 tooltip: 'Xóa sản phẩm',
-                color: Colors.red.shade300,
               ),
             ],
           ),
@@ -639,8 +667,8 @@ class _ProductScreenState extends State<ProductScreen> {
                           padding: const EdgeInsets.all(20.0),
                           child: Text('Lỗi: $_errorMessage'),
                         ),
-                      )
-                    : _products.isEmpty
+                      )                    
+                      : _products.isEmpty
                       ? Center(
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
@@ -658,130 +686,42 @@ class _ProductScreenState extends State<ProductScreen> {
                               ],
                             ),
                           ),
-                        )
-                      : isMobile
-                        // Mobile view - danh sách dọc các sản phẩm
-                        ? ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _products.length,
-                            separatorBuilder: (context, index) => const Divider(),
-                            itemBuilder: (context, index) {
-                              final product = _products[index];
-                              return ListTile(
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 8.0,
-                                ),
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: SizedBox(
-                                    width: 50,
-                                    height: 50,
-                                    child: product.imageUrl.isNotEmpty
-                                        ? Image.network(
-                                            product.imageUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return Container(
-                                                color: Colors.grey.shade200,
-                                                child: const Icon(Icons.image_not_supported),
-                                              );
-                                            },
-                                          )
-                                        : Container(
-                                            color: Colors.grey.shade200,
-                                            child: const Icon(Icons.image_not_supported),
-                                          ),
-                                  ),
-                                ),
-                                title: Text(
-                                  product.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                        )                      : isMobile                        // Mobile view với ProductListView và phân trang
+                        ? Column(
+                            children: [
+                              // Sử dụng ProductListView từ product_items cho UI đẹp hơn
+                              // Truyền danh sách sản phẩm đã được phân trang
+                              product_items.ProductListView(products: _products),
+                              
+                              // Phân trang cho mobile view
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                child: Column(
                                   children: [
+                                    // Hiển thị thông tin số lượng
                                     Text(
-                                      '${product.price.toStringAsFixed(0)} ₫',
+                                      'Tổng: $_totalItems sản phẩm | Trang $_currentPage/$_totalPages',
                                       style: TextStyle(
-                                        color: Colors.grey.shade800,
-                                        fontWeight: FontWeight.w500,
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
                                       ),
+                                      textAlign: TextAlign.center,
                                     ),
-                                    Text(
-                                      'SL: ${product.quantity}',
-                                      style: TextStyle(color: Colors.grey.shade600),
+                                    const SizedBox(height: 8),
+                                    
+                                    // Widget phân trang cho mobile
+                                    PaginationWidget(
+                                      currentPage: _currentPage,
+                                      totalPages: _totalPages,
+                                      hasNextPage: _hasNextPage,
+                                      hasPreviousPage: _hasPreviousPage,
+                                      onPageChanged: _handlePageChanged,
+                                      isMobile: true,
                                     ),
                                   ],
                                 ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: product.inStock
-                                            ? Colors.green.shade50
-                                            : Colors.red.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        product.inStock ? 'Còn hàng' : 'Hết hàng',
-                                        style: TextStyle(
-                                          color: product.inStock ? Colors.green : Colors.red,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(Icons.more_vert),
-                                      onPressed: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          builder: (context) => Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              ListTile(
-                                                leading: const Icon(Icons.visibility_outlined),
-                                                title: const Text('Xem chi tiết'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  final appProvider = Provider.of<AppProvider>(context, listen: false);
-                                                  appProvider.setCurrentProductId(product.id);
-                                                  appProvider.setCurrentScreen(AppScreen.productDetail, isViewOnly: true);
-                                                },
-                                              ),
-                                              ListTile(
-                                                leading: const Icon(Icons.edit_outlined),
-                                                title: const Text('Chỉnh sửa'),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  final appProvider = Provider.of<AppProvider>(context, listen: false);
-                                                  appProvider.setCurrentProductId(product.id);
-                                                  appProvider.setCurrentScreen(AppScreen.productDetail);
-                                                },
-                                              ),
-                                              ListTile(
-                                                leading: Icon(Icons.delete_outlined, color: Colors.red.shade300),
-                                                title: Text('Xóa sản phẩm', style: TextStyle(color: Colors.red.shade300)),
-                                                onTap: () {
-                                                  Navigator.pop(context);
-                                                  _deleteProduct(product.id);
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                              ),
+                            ],
                           )
                         // Desktop view - bảng sản phẩm
                         : Container(
