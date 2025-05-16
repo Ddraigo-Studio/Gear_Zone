@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../admin/Product/product_detail_screen.dart';
 import '../pages/Account/login.dart';
 import '../pages/Account/signup.dart';
+import '../pages/Account/forgot_password.dart';
 
 // Cart
 import '../pages/Cart/cart_screen.dart';
@@ -54,6 +55,7 @@ class AppRoutes {
   static const String addressNewScreen = '/address_new_screen';
   static const String login = '/login';
   static const String signup = '/signup';
+  static const String forgotPassword = '/forgot_password';
   static const String homeScreen = '/home_screen';
   static const String homeInitialPage = '/home_initial_page';
   static const String plashScreen = '/plash_screen';
@@ -90,10 +92,10 @@ class AppRoutes {
   static const String adminProductDetail = '/admin/Product/product_detail';
   static const String adminProductAdd = '/admin/Product/product_add_screen';
   static const String adminCustomers = '/admin/Customer/customers';
-
   static Map<String, WidgetBuilder> routes = {
     login: (context) => LoginScreen(),
     signup: (context) => SignUpScreen(),
+    forgotPassword: (context) => ForgotPasswordScreen(),
     homeScreen: (context) => HomeScreen(),
     homeInitialPage: (context) => HomeInitialPage(),
     plashScreen: (context) => PlashScreenScreen(),

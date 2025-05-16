@@ -437,10 +437,42 @@ class AuthController with ChangeNotifier {
       _setLoading(false);
     }
   }
-
   // Kiểm tra xem người dùng có đang sử dụng mật khẩu tự động không
   bool isUsingGeneratedPassword() {
     if (_userModel == null) return false;
     return !_userModel!.hasChangedPassword;
+  }
+  
+  // Phương thức gửi email khôi phục mật khẩu
+  Future<bool> sendPasswordResetEmail({
+    required String email,
+  }) async {
+    _setLoading(true);
+    _clearMessages();
+
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      _setSuccessMessage("Đã gửi email khôi phục mật khẩu thành công! Vui lòng kiểm tra hộp thư của bạn.");
+      return true;
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = "Không tìm thấy tài khoản với email này.";
+          break;
+        case 'invalid-email':
+          errorMessage = "Email không hợp lệ.";
+          break;
+        default:
+          errorMessage = "Lỗi gửi email khôi phục: ${e.message}";
+      }
+      _setError(errorMessage);
+      return false;
+    } catch (e) {
+      _setError("Đã xảy ra lỗi không xác định: $e");
+      return false;
+    } finally {
+      _setLoading(false);
+    }
   }
 }
