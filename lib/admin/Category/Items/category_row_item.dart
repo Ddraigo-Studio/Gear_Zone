@@ -394,9 +394,10 @@ Future<void> deleteCategory(BuildContext context, String categoryId) async {
       ),
     );
 
-    
-    // Đảm bảo quay lại màn hình danh sách danh mục sau khi xóa
+      // Đảm bảo quay lại màn hình danh sách danh mục sau khi xóa
     if (success) {
+      // Đặt cờ tải lại danh sách thành true trước khi chuyển màn hình
+      appProvider.setReloadCategoryList(true);
       appProvider.setCurrentScreen(AppScreen.categoryList);
     }
   } catch (e) {

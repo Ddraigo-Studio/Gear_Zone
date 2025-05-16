@@ -4,6 +4,9 @@ import 'package:gear_zone/core/utils/responsive.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:gear_zone/controller/product_controller.dart';
 import 'package:gear_zone/controller/image_handling_controller.dart';
+import 'package:gear_zone/controller/price_calculator.dart';
+import 'package:gear_zone/controller/category_controller.dart';
+import 'package:gear_zone/model/category.dart';
 import 'package:gear_zone/model/product.dart';
 
 class ProductAddScreen extends StatefulWidget {
@@ -25,11 +28,19 @@ class ProductAddState extends State<ProductAddScreen> {
       TextEditingController();
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
+  // Flags to prevent feedback loops during auto-calculation
+  bool _isCalculatingPrice = false;
+  bool _isCalculatingDiscount = false;
+
   String? _selectedCategory;
+  List<CategoryModel> _categories = [];
+  CategoryModel? _currentSelectedCategory;
   String? _selectedStatus;
   
   // Image handling controller
   final ImageHandlingController _imageController = ImageHandlingController();
+  final ProductController _productController = ProductController();
+  final CategoryController _categoryController = CategoryController();
 
   String? _validatePrice(String? value) {
     if (value == null || value.isEmpty) {
@@ -40,6 +51,26 @@ class ProductAddState extends State<ProductAddScreen> {
     }
     if (double.parse(value) < 0) {
       return 'Giá không thể là số âm';
+    }
+    return null;
+  }
+
+  String? _validateSellingPrice(String? value) {
+    final baseValidation = _validatePrice(value);
+    if (baseValidation != null) {
+      return baseValidation;
+    }
+    final originalPriceText = _originalPriceController.text;
+    final sellingPriceText = _priceController.text;
+
+    if (originalPriceText.isNotEmpty && sellingPriceText.isNotEmpty) {
+      final originalPrice = double.tryParse(originalPriceText);
+      final sellingPrice = double.tryParse(sellingPriceText);
+      if (originalPrice != null && sellingPrice != null) {
+        if (sellingPrice > originalPrice) {
+          return 'Giá bán không được lớn hơn giá gốc';
+        }
+      }
     }
     return null;
   }
@@ -71,8 +102,6 @@ class ProductAddState extends State<ProductAddScreen> {
     return null;
   }
 
-  // Khởi tạo controller
-  final ProductController _productController = ProductController();
   // Phương thức để chọn ảnh chính
   Future<void> _pickMainImage() async {
     await _imageController.pickMainImage();
@@ -98,6 +127,7 @@ class ProductAddState extends State<ProductAddScreen> {
   }
   
   // Phương thức để thêm vị trí cho ảnh phụ
+
   void _addAdditionalImageSlot() {
     _imageController.addAdditionalImageSlot();
     setState(() {}); // Trigger UI update
@@ -240,10 +270,25 @@ class ProductAddState extends State<ProductAddScreen> {
   @override
   void initState() {
     super.initState();
+    _loadCategories();
+    _originalPriceController.addListener(() {
+      _handleOriginalPriceOrDiscountChange();
+      _handleOriginalPriceOrSellingPriceChange();
+      // Trigger validation for selling price if original price changes
+      if (_formKey.currentState != null && _priceController.text.isNotEmpty) {
+        _formKey.currentState!.validate();
+      }
+    });
+    _discountController.addListener(_handleOriginalPriceOrDiscountChange);
+    _priceController.addListener(_handleOriginalPriceOrSellingPriceChange);
   }
 
   @override
   void dispose() {
+    _originalPriceController.removeListener(_handleOriginalPriceOrDiscountChange);
+    _originalPriceController.removeListener(_handleOriginalPriceOrSellingPriceChange);
+    _discountController.removeListener(_handleOriginalPriceOrDiscountChange);
+    _priceController.removeListener(_handleOriginalPriceOrSellingPriceChange);
     _imageController.dispose();
     super.dispose();
   }
@@ -264,6 +309,73 @@ class ProductAddState extends State<ProductAddScreen> {
     setState(() {}); // Refresh UI
   }
 
+  void _handleOriginalPriceOrDiscountChange() {
+    if (_isCalculatingPrice) return;
+
+    final originalPriceText = _originalPriceController.text;
+    final discountText = _discountController.text;
+
+    if (originalPriceText.isNotEmpty && discountText.isNotEmpty) {
+      final originalPrice = double.tryParse(originalPriceText);
+      final discount = int.tryParse(discountText);
+
+      if (originalPrice != null && discount != null && discount >= 0 && discount <= 100) {
+        _isCalculatingPrice = true;
+        final sellingPrice = PriceCalculator.calculateSellingPrice(originalPrice, discount);
+        _priceController.text = sellingPrice.toStringAsFixed(0); // Assuming price doesn't need decimals
+        _isCalculatingPrice = false;
+      }
+    }
+  }
+
+  void _handleOriginalPriceOrSellingPriceChange() {
+    if (_isCalculatingDiscount) return;
+
+    final originalPriceText = _originalPriceController.text;
+    final sellingPriceText = _priceController.text;
+
+    if (originalPriceText.isNotEmpty && sellingPriceText.isNotEmpty) {
+      final originalPrice = double.tryParse(originalPriceText);
+      final sellingPrice = double.tryParse(sellingPriceText);
+
+      if (originalPrice != null && sellingPrice != null && originalPrice > 0) {
+         if (sellingPrice > originalPrice) {
+          // Handled by validator, but ensure discount isn't calculated negatively
+          _discountController.clear();
+          return;
+        }
+        _isCalculatingDiscount = true;
+        final discount = PriceCalculator.calculateDiscountPercent(originalPrice, sellingPrice);
+        _discountController.text = discount.toString();
+        _isCalculatingDiscount = false;
+      }
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categoriesData = await _categoryController.getCategoriesPaginated();
+      if (mounted) {
+        setState(() {
+          _categories = categoriesData['categories'] as List<CategoryModel>;
+          if (_categories.isNotEmpty) {
+            // Optionally set a default selected category or leave it null
+            // _currentSelectedCategory = _categories.first;
+            // _selectedCategory = _currentSelectedCategory?.name;
+          }
+        });
+      }
+    } catch (e) {
+      // Handle error loading categories
+      print('Error loading categories: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi tải danh mục: $e')),
+        );
+      }
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
@@ -617,7 +729,7 @@ class ProductAddState extends State<ProductAddScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<CategoryModel>(
                       hint: Text('Chọn mục sản phẩm',
                           style: TextStyle(
                               fontSize: 13, color: Colors.grey.shade400)),
@@ -632,32 +744,22 @@ class ProductAddState extends State<ProductAddScreen> {
                             horizontal: 10, vertical: 3),
                         isDense: true,
                       ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'laptop',
-                          child: Text('Laptop', style: TextStyle(fontSize: 12)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'desktop',
-                          child: Text('Máy tính bàn',
+                      value: _currentSelectedCategory,
+                      items: _categories.map((CategoryModel category) {
+                        return DropdownMenuItem<CategoryModel>(
+                          value: category,
+                          child: Text(category.categoryName ?? 'N/A',
                               style: TextStyle(fontSize: 12)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'components',
-                          child:
-                              Text('Linh kiện', style: TextStyle(fontSize: 12)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'accessories',
-                          child:
-                              Text('Phụ kiện', style: TextStyle(fontSize: 12)),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        _selectedCategory = value;
+                        );
+                      }).toList(),
+                      onChanged: (CategoryModel? newValue) {
+                        setState(() {
+                          _currentSelectedCategory = newValue;
+                          _selectedCategory = newValue?.categoryName;
+                        });
                       },
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null) {
                           return 'Vui lòng chọn danh mục sản phẩm';
                         }
                         return null;
@@ -695,6 +797,7 @@ class ProductAddState extends State<ProductAddScreen> {
                             horizontal: 10, vertical: 3),
                         isDense: true,
                       ),
+                      value: _selectedStatus,
                       items: const [
                         DropdownMenuItem(
                           value: 'available',
@@ -712,7 +815,9 @@ class ProductAddState extends State<ProductAddScreen> {
                         ),
                       ],
                       onChanged: (value) {
-                        _selectedStatus = value;
+                        setState(() {
+                          _selectedStatus = value;
+                        });
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -797,7 +902,7 @@ class ProductAddState extends State<ProductAddScreen> {
                       ),
                       keyboardType: TextInputType.number,
                       style: const TextStyle(fontSize: 13),
-                      validator: _validatePrice,
+                      validator: _validateSellingPrice,
                     ),
                   ],
                 ),

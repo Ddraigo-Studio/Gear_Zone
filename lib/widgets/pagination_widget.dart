@@ -7,19 +7,22 @@ class PaginationWidget extends StatelessWidget {
   final bool hasNextPage;
   final bool hasPreviousPage;
   final Function(int) onPageChanged;
+  final bool isMobile;
 
   const PaginationWidget({
-    Key? key,
+    super.key,
     required this.currentPage,
     required this.totalPages,
     required this.hasNextPage,
     required this.hasPreviousPage,
     required this.onPageChanged,
-  }) : super(key: key);
-
+    this.isMobile = false,
+  });
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
+    // Use the isMobile parameter from constructor instead of recalculating
+    // This allows us to force mobile mode when needed
+    final isOnMobile = isMobile || Responsive.isMobile(context);
     
     // Tạo danh sách các trang để hiển thị
     List<int> pageNumbers = [];
@@ -45,10 +48,8 @@ class PaginationWidget extends StatelessWidget {
       }
       
       pageNumbers.add(totalPages); // Luôn hiển thị trang cuối cùng
-    }
-
-    // UI cho phân trang trên thiết bị di động
-    if (isMobile) {
+    }    // UI cho phân trang trên thiết bị di động
+    if (isOnMobile) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

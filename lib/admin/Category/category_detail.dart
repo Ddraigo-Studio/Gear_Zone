@@ -370,9 +370,11 @@ class _CategoryDetailState extends State<CategoryDetail> {
         ),
       );      // Trở về màn hình danh sách
       if (mounted) {
-        Provider.of<AppProvider>(context, listen: false)
-            .setCurrentCategoryId('');
-        Provider.of<AppProvider>(context, listen: false).setCurrentScreen(AppScreen.categoryList);
+        final appProvider = Provider.of<AppProvider>(context, listen: false);
+        appProvider.setCurrentCategoryId('');
+        // Đặt cờ tải lại danh sách thành true trước khi chuyển màn hình
+        appProvider.setReloadCategoryList(true);
+        appProvider.setCurrentScreen(AppScreen.categoryList);
       }
     } catch (e) {
       // Đóng dialog loading nếu có lỗi
