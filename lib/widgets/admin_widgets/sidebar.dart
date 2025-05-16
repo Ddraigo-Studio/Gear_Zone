@@ -29,7 +29,7 @@ class _SidebarState extends State<Sidebar> {
       child: Column(
         children: [
           Container(
-            margin: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               border: Border.all(
                 color: Colors.grey.withOpacity(0.2),
