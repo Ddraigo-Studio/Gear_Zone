@@ -9,10 +9,71 @@ class CategoryController {
   CategoryController() {
     _categoriesCollection = _firestore.collection('categories');
   }
-  // Lấy danh sách danh mục từ Firestore
+  
+  // Lấy danh sách danh mục có phân trang
+  Future<Map<String, dynamic>> getCategoriesPaginated({int page = 1, int limit = 20}) async {
+    try {
+      // Lấy tổng số danh mục
+      final totalSnapshot = await _categoriesCollection.get();
+      final total = totalSnapshot.size;
+      
+      // Lấy dữ liệu danh mục theo trang - đối với Firestore, chúng ta cần thực hiện phân trang thủ công
+      Query query = _categoriesCollection
+          .orderBy('ceatedAt', descending: true)
+          .limit(limit);
+          
+      // Nếu không phải trang đầu tiên, chúng ta cần lấy tài liệu chốt
+      if (page > 1) {
+        // Lấy tài liệu cuối cùng của trang trước
+        final lastDoc = await _categoriesCollection
+            .orderBy('ceatedAt', descending: true)
+            .limit((page - 1) * limit)
+            .get()
+            .then((snap) => snap.docs.isNotEmpty ? snap.docs.last : null);
+            
+        if (lastDoc != null) {
+          query = query.startAfterDocument(lastDoc);
+        }
+      }
+      
+      final QuerySnapshot querySnapshot = await query.get();
+          
+      // Chuyển đổi dữ liệu thành danh sách danh mục
+      final List<CategoryModel> categories = querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return CategoryModel.fromMap(data);
+      }).toList();
+      
+      // Tính tổng số trang
+      final int totalPages = (total / limit).ceil();
+      
+      return {
+        'categories': categories,
+        'total': total,
+        'totalPages': totalPages,
+        'currentPage': page,
+        'hasNextPage': page < totalPages,
+        'hasPreviousPage': page > 1,
+      };
+    } catch (e) {
+      print('Lỗi khi lấy danh mục phân trang: $e');
+      return {
+        'categories': <CategoryModel>[],
+        'total': 0,
+        'totalPages': 1,
+        'currentPage': 1,
+        'hasNextPage': false,
+        'hasPreviousPage': false,
+      };
+    }
+  }
+
+  // Lấy danh sách danh mục từ Firestore (giữ lại cho khả năng tương thích ngược)
   Stream<List<CategoryModel>> getCategories() {
     return _categoriesCollection
         .orderBy('ceatedAt', descending: true)
+        .limit(20) // Giới hạn 20 danh mục mặc định
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {

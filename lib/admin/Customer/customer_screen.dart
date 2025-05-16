@@ -1,8 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
+import 'package:gear_zone/controller/customer_controller.dart';
+import 'package:gear_zone/model/user.dart';
+import '../../widgets/pagination_widget.dart';
 
-class CustomerScreen extends StatelessWidget {
+class CustomerScreen extends StatefulWidget {
   const CustomerScreen({super.key});
+
+  @override
+  State<CustomerScreen> createState() => _CustomerScreenState();
+}
+
+class _CustomerScreenState extends State<CustomerScreen> {
+  final CustomerController _customerController = CustomerController();
+  
+  // Thông tin phân trang
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _hasNextPage = false;
+  bool _hasPreviousPage = false;
+  int _totalItems = 0;
+  final int _itemsPerPage = 20;
+  List<UserModel> _customers = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomers();
+  }
+
+  // Load khách hàng với phân trang
+  Future<void> _loadCustomers() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      final result = await _customerController.getCustomersPaginated(
+        page: _currentPage, 
+        limit: _itemsPerPage
+      );
+      
+      setState(() {
+        _customers = result['customers'];
+        _totalItems = result['total'];
+        _totalPages = result['totalPages'];
+        _currentPage = result['currentPage'];
+        _hasNextPage = result['hasNextPage'];
+        _hasPreviousPage = result['hasPreviousPage'];
+        _isLoading = false;
+        _errorMessage = '';
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Lỗi khi tải khách hàng: $e';
+      });
+    }
+  }
+
+  // Xử lý khi thay đổi trang
+  void _handlePageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+    _loadCustomers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,131 +178,132 @@ class CustomerScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                if (!isMobile)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 24,
-                          child: Checkbox(
-                            value: false,
-                            onChanged: (value) {},
-                          ),
+                // Hiển thị dữ liệu khách hàng
+                _isLoading 
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : _errorMessage.isNotEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Text('Lỗi: $_errorMessage'),
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Tên khách hàng',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                              fontSize: 16,
+                      )
+                    : _customers.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.person_off_outlined,
+                                    size: 48, color: Colors.grey),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Không có khách hàng nào',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Liên hệ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                              fontSize: 16,
+                        )
+                      : Column(
+                          children: [
+                            if (!isMobile)
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      child: Checkbox(
+                                        value: false,
+                                        onChanged: (value) {},
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        'Tên khách hàng',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        'Liên hệ',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        'Địa chỉ',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 100,
+                                      child: Text(
+                                        'Hành động',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey.shade700,
+                                          fontSize: 16,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            
+                            // Table rows - sử dụng dữ liệu thực từ Firestore
+                            ...List.generate(
+                              _customers.length,
+                              (index) => isMobile
+                                  ? _buildMobileCustomerItem(context, _customers[index])
+                                  : _buildDesktopCustomerRow(context, _customers[index]),
                             ),
-                          ),
+                          ],
                         ),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            'Địa chỉ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 100,
-                          child: Text(
-                            'Hành động',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                              fontSize: 16,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 
-                // Table rows
-                ...List.generate(
-                  8,
-                  (index) => isMobile
-                      ? _buildMobileCustomerItem(context, index)
-                      : _buildDesktopCustomerRow(context, index),
-                ),
-                
-                // Pagination
+                // Phân trang
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
                       Text(
-                        '1 - 10 của 13 trang',
+                        'Tổng: $_totalItems khách hàng | Hiển thị ${_customers.length} mục',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        'Trang trên',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Row(
-                          children: [
-                            const Text('1', style: TextStyle(fontSize: 14)),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down, size: 16),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.keyboard_arrow_left),
-                        onPressed: () {},
-                        style: IconButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                            side: BorderSide(color: Colors.grey.shade300),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.keyboard_arrow_right),
-                        onPressed: () {},
-                        style: IconButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                            side: BorderSide(color: Colors.grey.shade300),
-                          ),
-                        ),
+                      
+                      // Widget phân trang
+                      PaginationWidget(
+                        currentPage: _currentPage,
+                        totalPages: _totalPages,
+                        hasNextPage: _hasNextPage,
+                        hasPreviousPage: _hasPreviousPage,
+                        onPageChanged: _handlePageChanged,
                       ),
                     ],
                   ),
@@ -251,68 +315,16 @@ class CustomerScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildDesktopCustomerRow(BuildContext context, int index) {
-    final customers = [
-      {
-        'id': 'ID 12451',
-        'name': 'Leslie Alexander',
-        'email': 'georgia@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2972 Westheimer Rd. Santa Ana, Illinois 85486',
-      },
-      {
-        'id': 'ID 12452',
-        'name': 'Guy Hawkins',
-        'email': 'guys@examp.com',
-        'phone': '+62 819 1314 1435',
-        'address': '4517 Washington Ave. Manchester, Kentucky 39495',
-      },
-      {
-        'id': 'ID 12453',
-        'name': 'Kristin Watson',
-        'email': 'kristin@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-      },
-      {
-        'id': 'ID 12453',
-        'name': 'Kristin Watson',
-        'email': 'kristin@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-      },
-      {
-        'id': 'ID 12452',
-        'name': 'Guy Hawkins',
-        'email': 'guys@examp.com',
-        'phone': '+62 819 1314 1435',
-        'address': '4517 Washington Ave. Manchester, Kentucky 39495',
-      },
-      {
-        'id': 'ID 12451',
-        'name': 'Leslie Alexander',
-        'email': 'georgia@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2972 Westheimer Rd. Santa Ana, Illinois 85486',
-      },
-      {
-        'id': 'ID 12453',
-        'name': 'Kristin Watson',
-        'email': 'kristin@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-      },
-      {
-        'id': 'ID 12451',
-        'name': 'Leslie Alexander',
-        'email': 'georgia@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2972 Westheimer Rd. Santa Ana, Illinois 85486',
-      },
-    ];
+  
+  // Custom widgets to display customer data
+  Widget _buildDesktopCustomerRow(BuildContext context, UserModel customer) {
+    final defaultAddress = customer.addressList.isNotEmpty 
+        ? customer.addressList.firstWhere(
+            (addr) => addr['id'] == customer.defaultAddressId,
+            orElse: () => customer.addressList.first)
+        : {'street': 'N/A', 'city': 'N/A', 'state': 'N/A', 'zipCode': 'N/A'};
     
-    final customer = customers[index % customers.length];
+    final addressText = '${defaultAddress['street']}, ${defaultAddress['city']}, ${defaultAddress['state']} ${defaultAddress['zipCode']}';
     
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -336,14 +348,14 @@ class CustomerScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  customer['id']!,
+                  customer.uid,
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).primaryColor,
                   ),
                 ),
                 Text(
-                  customer['name']!,
+                  customer.name,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -358,11 +370,11 @@ class CustomerScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  customer['email']!,
+                  customer.email,
                   style: const TextStyle(fontSize: 14),
                 ),
                 Text(
-                  customer['phone']!,
+                  customer.phoneNumber,
                   style: const TextStyle(fontSize: 14),
                 ),
               ],
@@ -371,7 +383,7 @@ class CustomerScreen extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Text(
-              customer['address']!,
+              addressText,
               style: const TextStyle(fontSize: 14),
             ),
           ),
@@ -413,68 +425,17 @@ class CustomerScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileCustomerItem(BuildContext context, int index) {
-    final customers = [
-      {
-        'id': 'ID 12451',
-        'name': 'Leslie Alexander',
-        'email': 'georgia@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2972 Westheimer Rd. Santa Ana, Illinois 85486',
-      },
-      {
-        'id': 'ID 12452',
-        'name': 'Guy Hawkins',
-        'email': 'guys@examp.com',
-        'phone': '+62 819 1314 1435',
-        'address': '4517 Washington Ave. Manchester, Kentucky 39495',
-      },
-      {
-        'id': 'ID 12453',
-        'name': 'Kristin Watson',
-        'email': 'kristin@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-      },
-      {
-        'id': 'ID 12453',
-        'name': 'Kristin Watson',
-        'email': 'kristin@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-      },
-      {
-        'id': 'ID 12452',
-        'name': 'Guy Hawkins',
-        'email': 'guys@examp.com',
-        'phone': '+62 819 1314 1435',
-        'address': '4517 Washington Ave. Manchester, Kentucky 39495',
-      },
-      {
-        'id': 'ID 12451',
-        'name': 'Leslie Alexander',
-        'email': 'georgia@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2972 Westheimer Rd. Santa Ana, Illinois 85486',
-      },
-      {
-        'id': 'ID 12453',
-        'name': 'Kristin Watson',
-        'email': 'kristin@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2118 Thornridge Cir. Syracuse, Connecticut 35624',
-      },
-      {
-        'id': 'ID 12451',
-        'name': 'Leslie Alexander',
-        'email': 'georgia@example.com',
-        'phone': '+62 819 1314 1435',
-        'address': '2972 Westheimer Rd. Santa Ana, Illinois 85486',
-      },
-    ];
+  Widget _buildMobileCustomerItem(BuildContext context, UserModel customer) {
+    final defaultAddress = customer.addressList.isNotEmpty 
+        ? customer.addressList.firstWhere(
+            (addr) => addr['id'] == customer.defaultAddressId,
+            orElse: () => customer.addressList.first)
+        : {'street': 'N/A', 'city': 'N/A', 'state': 'N/A', 'zipCode': 'N/A'};
     
-    final customer = customers[index % customers.length];
-    final isExpanded = index == 0;
+    final addressText = '${defaultAddress['street']}, ${defaultAddress['city']}, ${defaultAddress['state']} ${defaultAddress['zipCode']}';
+    
+    // Thật ra nên dùng state để quản lý trạng thái mở rộng, hiện giờ để đơn giản cài mặc định đóng
+    const bool isExpanded = false;
     
     return Container(
       decoration: BoxDecoration(
@@ -498,14 +459,14 @@ class CustomerScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      customer['id']!,
+                      customer.uid,
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
                     Text(
-                      customer['name']!,
+                      customer.name,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -515,11 +476,13 @@ class CustomerScreen extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: Icon(
-                  isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
                   size: 20,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  // Nên cập nhật state ở đây để mở rộng item
+                },
               ),
             ],
           ),
@@ -546,11 +509,11 @@ class CustomerScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              customer['email']!,
+                              customer.email,
                               style: const TextStyle(fontSize: 14),
                             ),
                             Text(
-                              customer['phone']!,
+                              customer.phoneNumber,
                               style: const TextStyle(fontSize: 14),
                             ),
                           ],
@@ -574,7 +537,7 @@ class CustomerScreen extends StatelessWidget {
                       ),
                       Expanded(
                         child: Text(
-                          customer['address']!,
+                          addressText,
                           style: const TextStyle(fontSize: 14),
                         ),
                       ),
@@ -583,42 +546,30 @@ class CustomerScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const SizedBox(
-                        width: 80,
-                        child: Text(
-                          'Hành động',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
+                      const SizedBox(width: 80),
+                      IconButton(
+                        icon: const Icon(Icons.visibility_outlined, size: 18),
+                        onPressed: () {},
+                        color: Colors.grey,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
                       ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.visibility_outlined, size: 20),
-                            onPressed: () {},
-                            color: Colors.grey,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                          const SizedBox(width: 16),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined, size: 20),
-                            onPressed: () {},
-                            color: Colors.grey,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                          const SizedBox(width: 16),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outlined, size: 20),
-                            onPressed: () {},
-                            color: Colors.grey,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ],
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        onPressed: () {},
+                        color: Colors.grey,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outlined, size: 18),
+                        onPressed: () {},
+                        color: Colors.grey,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
                       ),
                     ],
                   ),

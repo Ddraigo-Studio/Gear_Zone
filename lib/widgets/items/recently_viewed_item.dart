@@ -22,8 +22,6 @@ class WishListItem extends StatelessWidget {
 
     // Lấy dữ liệu đã được xử lý từ model
     String discountPercent = product.getDiscountPercent();
-    String formattedPrice = product.getFormattedPrice();
-    String formattedOriginalPrice = product.getFormattedOriginalPrice();
 
     // Adjust item width based on device type
     final double itemWidth = isDesktop
@@ -129,7 +127,7 @@ class WishListItem extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        formattedOriginalPrice,
+                        ProductModel.formatPrice(product.originalPrice),
                         style: theme.textTheme.labelMedium!.copyWith(
                           decoration: TextDecoration.lineThrough,
                           fontSize: isDesktop ? 11.fSize : 10.fSize,
@@ -161,7 +159,7 @@ class WishListItem extends StatelessWidget {
               Container(
                 margin: EdgeInsets.only(top: 2.h),
                 child: Text(
-                  formattedPrice,
+                  ProductModel.formatPrice(product.price),
                   style: theme.textTheme.labelLarge!.copyWith(
                     fontSize: isDesktop ? 12.fSize : 11.fSize,
                   ),

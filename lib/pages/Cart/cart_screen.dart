@@ -8,6 +8,7 @@ import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/custom_checkbox_button.dart';
 import '../Checkout/checkout_screen.dart';
+import '../../model/product.dart'; // Import for price formatting
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -131,19 +132,19 @@ class CartScreen extends StatelessWidget {
           SizedBox(height: 5.h),
           _buildSummaryRow(
             title: "Phí vận chuyển",
-            price: "${shippingFee.toInt()}đ",
+            price: ProductModel.formatPrice(shippingFee),
           ),
           SizedBox(height: 10.h),
           _buildSummaryRow(
             title: "Thuế",
-            price: "${tax.toInt()}đ",
+            price: ProductModel.formatPrice(tax),
           ),
           SizedBox(height: 10.h),
           Divider(color: appTheme.gray300),
           SizedBox(height: 10.h),
           _buildSummaryRow(
             title: "Tổng",
-            price: "${totalPrice.toInt()}đ",
+            price: ProductModel.formatPrice(totalPrice),
             isTotal: true,
           ),
           SizedBox(height: 5.h),
