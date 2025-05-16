@@ -374,7 +374,6 @@ class AuthController with ChangeNotifier {
     Navigator.pushNamedAndRemoveUntil(
         context, AppRoutes.homeScreen, (route) => false);
   }
-
   // Phương thức để đổi mật khẩu
   Future<bool> changePassword(
       String currentPassword, String newPassword) async {
@@ -388,16 +387,27 @@ class AuthController with ChangeNotifier {
         return false;
       }
 
-      // Tái xác thực người dùng với mật khẩu hiện tại
-      AuthCredential credential = EmailAuthProvider.credential(
-        email: _firebaseUser!.email!,
-        password: currentPassword,
-      );
+      // Nếu người dùng mới (chưa đổi mật khẩu từ khi tài khoản tạo tự động)
+      bool isFirstPasswordChange = isUsingGeneratedPassword();
 
-      await _firebaseUser!.reauthenticateWithCredential(credential);
+      // Chỉ xác thực lại với mật khẩu hiện tại nếu không phải là lần đầu thay đổi mật khẩu
+      if (!isFirstPasswordChange) {
+        // Tái xác thực người dùng với mật khẩu hiện tại
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: _firebaseUser!.email!,
+          password: currentPassword,
+        );
 
-      // Đổi mật khẩu
+        await _firebaseUser!.reauthenticateWithCredential(credential);
+      }// Đổi mật khẩu
       await _firebaseUser!.updatePassword(newPassword);
+      
+      // Cập nhật trạng thái đổi mật khẩu
+      if (_userModel != null) {
+        final updatedUserModel = _userModel!.copyWith(hasChangedPassword: true);
+        await _saveUserToFirestore(updatedUserModel);
+        _userModel = updatedUserModel;
+      }
 
       _setSuccessMessage("Đổi mật khẩu thành công!");
       return true;
@@ -426,5 +436,11 @@ class AuthController with ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  // Kiểm tra xem người dùng có đang sử dụng mật khẩu tự động không
+  bool isUsingGeneratedPassword() {
+    if (_userModel == null) return false;
+    return !_userModel!.hasChangedPassword;
   }
 }
