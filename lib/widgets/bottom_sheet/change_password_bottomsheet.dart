@@ -68,7 +68,8 @@ class _ChangePasswordBottomSheetContentState extends State<_ChangePasswordBottom
     Navigator.pop(context); // Đóng bottom sheet trước
     
     final success = await authController.changePassword(
-      _currentPasswordController.text,
+      // Nếu người dùng mới (mật khẩu tự động), không cần mật khẩu hiện tại
+      authController.isUsingGeneratedPassword() ? "" : _currentPasswordController.text,
       _newPasswordController.text,
     );
     
@@ -179,11 +180,12 @@ class _ChangePasswordBottomSheetContentState extends State<_ChangePasswordBottom
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Tiêu đề
+              children: [                // Tiêu đề - Hiển thị tiêu đề phù hợp dựa trên trạng thái người dùng
                 Center(
                   child: Text(
-                    "Đổi mật khẩu",
+                    authController.isUsingGeneratedPassword() 
+                      ? "Tạo mật khẩu mới" 
+                      : "Đổi mật khẩu",
                     style: TextStyle(
                       fontSize: 24.h,
                       fontWeight: FontWeight.bold,
@@ -192,26 +194,27 @@ class _ChangePasswordBottomSheetContentState extends State<_ChangePasswordBottom
                   ),
                 ),
                 SizedBox(height: 24.h),
-                
-                // Mật khẩu hiện tại
-                _buildPasswordField(
-                  label: "Mật khẩu hiện tại",
-                  hint: "Nhập mật khẩu hiện tại",
-                  controller: _currentPasswordController,
-                  obscureText: _obscureCurrentPassword,
-                  onToggleVisibility: () {
-                    setState(() {
-                      _obscureCurrentPassword = !_obscureCurrentPassword;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập mật khẩu hiện tại';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16.h),
+                  // Mật khẩu hiện tại - Chỉ hiển thị nếu không phải người dùng mới
+                if (!authController.isUsingGeneratedPassword())
+                  _buildPasswordField(
+                    label: "Mật khẩu hiện tại",
+                    hint: "Nhập mật khẩu hiện tại",
+                    controller: _currentPasswordController,
+                    obscureText: _obscureCurrentPassword,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _obscureCurrentPassword = !_obscureCurrentPassword;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Vui lòng nhập mật khẩu hiện tại';
+                      }
+                      return null;
+                    },
+                  ),
+                if (!authController.isUsingGeneratedPassword())
+                  SizedBox(height: 16.h),
                 
                 // Mật khẩu mới
                 _buildPasswordField(
@@ -286,9 +289,10 @@ class _ChangePasswordBottomSheetContentState extends State<_ChangePasswordBottom
                       ),
                     ),
                     child: authController.isLoading
-                      ? CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          "Đổi mật khẩu",
+                      ? CircularProgressIndicator(color: Colors.white)                      : Text(
+                          authController.isUsingGeneratedPassword()
+                            ? "Tạo mật khẩu mới"
+                            : "Đổi mật khẩu",
                           style: TextStyle(
                             fontSize: 18.h,
                             color: Colors.white,

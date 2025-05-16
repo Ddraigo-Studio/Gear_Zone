@@ -9,7 +9,7 @@ class UserModel {
   final List<Map<String, dynamic>> addressList; // Danh sách địa chỉ của người dùng
   final String? defaultAddressId; // ID của địa chỉ mặc định
   final String? role; // Vai trò của người dùng (user, admin, etc.)
-
+  final bool hasChangedPassword; // Đánh dấu người dùng đã từng đổi mật khẩu chưa
   UserModel({
     required this.uid,
     required this.name,
@@ -21,8 +21,8 @@ class UserModel {
     this.addressList = const [],
     this.defaultAddressId,
     this.role,
+    this.hasChangedPassword = false,
   });
-
   // Chuyển đổi từ Map (JSON) sang UserModel
   factory UserModel.fromMap(Map<String, dynamic> data) {
     return UserModel(
@@ -40,9 +40,9 @@ class UserModel {
           : [],
       defaultAddressId: data["defaultAddressId"],
       role: data["role"],
+      hasChangedPassword: data["hasChangedPassword"] ?? false,
     );
   }
-
   // Chuyển đổi từ UserModel sang Map (JSON)
   Map<String, dynamic> toMap() {
     return {
@@ -56,9 +56,9 @@ class UserModel {
       "addressList": addressList,
       "defaultAddressId": defaultAddressId,
       "role": role,
+      "hasChangedPassword": hasChangedPassword,
     };
   }
-
   // Tạo bản sao của UserModel với một số thuộc tính được thay đổi
   UserModel copyWith({
     String? uid,
@@ -71,6 +71,7 @@ class UserModel {
     List<Map<String, dynamic>>? addressList,
     String? defaultAddressId,
     String? role,
+    bool? hasChangedPassword,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -83,6 +84,7 @@ class UserModel {
       addressList: addressList ?? this.addressList,
       defaultAddressId: defaultAddressId ?? this.defaultAddressId,
       role: role ?? this.role,
+      hasChangedPassword: hasChangedPassword ?? this.hasChangedPassword,
     );
   }
 
@@ -94,6 +96,7 @@ class UserModel {
     List<Map<String, dynamic>> addressList = const [],
     String? defaultAddressId,
     String? role,
+    bool hasChangedPassword = false,
   }) {
     return UserModel(
       uid: firebaseUser.uid,
@@ -106,6 +109,7 @@ class UserModel {
       addressList: addressList,
       defaultAddressId: defaultAddressId,
       role: role,
+      hasChangedPassword: hasChangedPassword,
     );
   }
 
