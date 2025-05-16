@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/checkout_controller.dart';
 import '../../controller/cart_controller.dart';
+import '../../controller/auth_controller.dart';
 import '../../core/app_export.dart';
-import '../../model/cart.dart';
 import '../../model/cart_item.dart';
-import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
-import '../../widgets/custom_elevated_button.dart';
-import '../Order/order_detail_screen.dart';
+import '../../widgets/custom_image_view.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItem>? selectedItems;
@@ -63,7 +61,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _buildPaymentMethodSection(context),
               SizedBox(height: 16.h),
               _buildVoucherSection(context),
-              SizedBox(height: 16.h),
+              _isVoucherApplied ? SizedBox(height: 0) : SizedBox(height: 16.h),
               _buildOrderSummarySection(context),
             ],
           ),
@@ -95,8 +93,82 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
     );
   }
-
   Widget _buildAddressSection(BuildContext context) {
+    // Lấy thông tin người dùng từ AuthController
+    final authController = Provider.of<AuthController>(context);
+    final userModel = authController.userModel;
+    
+    // Kiểm tra nếu người dùng chưa đăng nhập hoặc không có địa chỉ
+    if (userModel == null || userModel.addressList.isEmpty) {
+      return Container(
+        margin: EdgeInsets.all(16.h),
+        padding: EdgeInsets.all(16.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.h),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  color: appTheme.red400,
+                  size: 24.h,
+                ),
+                SizedBox(width: 12.h),
+                Expanded(
+                  child: Text(
+                    "Bạn chưa có địa chỉ nào",
+                    style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
+                  ),
+                ),
+                SizedBox(width: 8.h),
+                IconButton(
+                  icon: Icon(
+                    Icons.add_circle_outline,
+                    color: appTheme.deepPurpleA200,
+                    size: 24.h,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.addAddressScreen).then((_) {
+                      // Refresh khi quay lại từ trang thêm địa chỉ
+                      setState(() {});
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Lấy địa chỉ mặc định nếu có
+    final Map<String, dynamic>? defaultAddress = userModel.defaultAddressId != null
+        ? userModel.addressList.firstWhere(
+            (address) => address['id'] == userModel.defaultAddressId,
+            orElse: () => userModel.addressList.first)
+        : userModel.addressList.first;
+    
+    if (defaultAddress == null) {
+      return Container(
+        margin: EdgeInsets.all(16.h),
+        padding: EdgeInsets.all(16.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.h),
+        ),
+        child: Text("Không tìm thấy địa chỉ"),
+      );
+    }
+    
+    // Lấy thông tin từ địa chỉ mặc định
+    final String name = defaultAddress['name'] ?? '';
+    final String phoneNumber = defaultAddress['phoneNumber'] ?? '';
+    final String fullAddress = defaultAddress['fullAddress'] ?? '';
+    
     return Container(
       margin: EdgeInsets.all(16.h),
       padding: EdgeInsets.all(16.h),
@@ -124,7 +196,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Nguyễn Văn A",
+                          name,
                           style: CustomTextStyles
                               .titleMediumBaloo2Gray500SemiBold
                               .copyWith(
@@ -132,7 +204,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                         Text(
-                          "093896356",
+                          phoneNumber,
                           style:
                               CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
                         ),
@@ -140,12 +212,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      "Đường 32/2 quận 10, TP. Hồ Chí Minh",
+                      fullAddress,
                       style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold
                           .copyWith(
                         color: appTheme.gray70001,
                       ),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ],
                 ),
@@ -159,6 +232,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 onPressed: () {
                   // Điều hướng đến trang chọn địa chỉ
+                  Navigator.pushNamed(context, AppRoutes.listAddressScreen).then((_) {
+                    // Refresh khi quay lại từ trang chọn địa chỉ
+                    setState(() {});
+                  });
                 },
               ),
             ],
@@ -198,8 +275,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8.h),
-                        child: Image.asset(
-                          item.imagePath,
+                        child: CustomImageView(
+                          imagePath: item.imagePath,
                           width: 80.h,
                           height: 80.h,
                           fit: BoxFit.cover,
@@ -285,7 +362,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       Text(
                         "Phương thức thanh toán",
-                        style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+                        style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold
+                            .copyWith(
                           color: appTheme.gray70001,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -293,7 +371,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       SizedBox(height: 4.h),
                       Text(
                         "Chưa chọn phương thức thanh toán",
-                        style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
+                        style:
+                            CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -321,7 +400,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
       padding: EdgeInsets.all(16.h),
-      
       decoration: AppDecoration.outlineBlack9004.copyWith(
         borderRadius: BorderRadiusStyle.roundedBorder12,
       ),
@@ -358,7 +436,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           top: Radius.circular(16.h),
                         ),
                       ),
-                      builder: (BuildContext context) {                        return AddVoucherBottomsheet();
+                      builder: (BuildContext context) {
+                        return AddVoucherBottomsheet();
                       },
                     );
                   },
@@ -462,6 +541,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
     );
   }
+
   Widget _buildPlaceOrderButton(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: 16.h),
@@ -492,7 +572,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   setState(() {
                     _isProcessing = true;
                   });
-                  
+
                   // Lấy CartController để xóa các sản phẩm đã được thanh toán
                   final cartController = CartController();
 
@@ -501,7 +581,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   if (success) {
                     // Xóa các mục đã chọn khỏi giỏ hàng
                     await cartController.removeSelectedItems();
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Đặt hàng thành công!'),
@@ -538,6 +618,63 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Custom widget for displaying a promo item
+class PromoItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 10.h),
+      padding: EdgeInsets.all(12.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.h),
+        border: Border.all(color: appTheme.deepPurpleA200.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          CustomImageView(
+            imagePath: ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
+            height: 24.h,
+            width: 24.h,
+          ),
+          SizedBox(width: 12.h),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "WELCOME10",
+                  style: CustomTextStyles.titleMediumBalooBhai2Red500,
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  "Giảm 10% cho đơn hàng đầu tiên",
+                  style: CustomTextStyles.labelLargeGray60001,
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: appTheme.deepPurpleA200.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4.h),
+            ),
+            child: Text(
+              "Đã áp dụng",
+              style: TextStyle(
+                color: appTheme.deepPurpleA200,
+                fontSize: 12.h,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

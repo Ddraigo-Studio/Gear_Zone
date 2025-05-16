@@ -201,14 +201,16 @@ class CartScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildPaymentInfoSection(BuildContext context) {
     final cartController = Provider.of<CartController>(context);
     final selectedPrice = cartController.selectedItemsPrice;
-      // Cập nhật giá trị theo yêu cầu
-    final shippingFee = 30000.0;  // Phí vận chuyển cố định 30,000
-    final taxRate = 0.02;  // Thuế 2% trên giá sản phẩm
-    final tax = selectedPrice * taxRate;  // Tính thuế dựa trên giá sản phẩm đã chọn
-    
+    // Cập nhật giá trị theo yêu cầu
+    final shippingFee = 30000.0; // Phí vận chuyển cố định 30,000
+    final taxRate = 0.02; // Thuế 2% trên giá sản phẩm
+    final tax =
+        selectedPrice * taxRate; // Tính thuế dựa trên giá sản phẩm đã chọn
+
     final totalPrice = selectedPrice + shippingFee + tax;
 
     // Không hiển thị thông tin thanh toán nếu không có sản phẩm nào được chọn
@@ -244,7 +246,8 @@ class CartScreen extends StatelessWidget {
             title: "Phí vận chuyển",
             price: ProductModel.formatPrice(shippingFee),
           ),
-          SizedBox(height: 10.h),          _buildSummaryRow(
+          SizedBox(height: 10.h),
+          _buildSummaryRow(
             title: "Thuế (2%)",
             price: ProductModel.formatPrice(tax),
           ),
@@ -323,6 +326,7 @@ class CartScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildSummaryRow({
     required String title,
     required String price,
