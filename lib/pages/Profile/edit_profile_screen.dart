@@ -5,7 +5,7 @@ import '../../widgets/app_bar/appbar_subtitle_two.dart';
 
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -15,7 +15,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   TextEditingController nameInputController = TextEditingController();
   TextEditingController emailInputController = TextEditingController();
   TextEditingController phoneInputController = TextEditingController();
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   
   // Focus nodes để theo dõi trạng thái focus của các trường
   final FocusNode _nameFocus = FocusNode();

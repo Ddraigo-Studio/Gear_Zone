@@ -817,39 +817,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     );
   }
 
-  Widget _buildWishListSection(BuildContext context) {
-    final bool isDesktop = Responsive.isDesktop(context);
-
-    // Show loading indicator if products are still loading
-    if (promotionProducts.isEmpty) {
-      return Container(
-        height: isDesktop ? 290.h : 260.h,
-        child: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(appTheme.deepPurple400),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.h),
-      height: isDesktop ? 290.h : 230.h,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: promotionProducts.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.only(right: 16.h, bottom: 2.h),
-            child: WishListItem(
-              index: index,
-              product: promotionProducts[index],
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildMonitorTopSell(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);

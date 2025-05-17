@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/responsive.dart';
-import '../../theme/custom_text_style.dart';
 import '../../model/product.dart';
 
 class ProductTabTabPage extends StatefulWidget {

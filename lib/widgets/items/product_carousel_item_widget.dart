@@ -18,7 +18,6 @@ class ProductCarouselItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
-    final bool isTablet = Responsive.isTablet(context);
 
     // Lấy dữ liệu đã được xử lý từ model
     String discountPercent = product.getDiscountPercent();

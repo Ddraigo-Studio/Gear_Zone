@@ -155,7 +155,6 @@ class _MyImageSliderState extends State<MyImageSlider> {
               // Xử lý URL Imgur
               String processedUrl = processImgurUrl(imgUrl);
               
-              print("Đang tải ảnh phụ từ URL: $processedUrl");
               myitems.add(Image.network(
                 processedUrl,
                 fit: BoxFit.contain,
@@ -175,7 +174,6 @@ class _MyImageSliderState extends State<MyImageSlider> {
                 },
                 // Hiển thị icon thay vì ảnh mặc định nếu không tải được
                 errorBuilder: (context, error, stackTrace) {
-                  print("Lỗi tải ảnh phụ: $error");
                   return Container(
                     color: Colors.grey[100],
                     child: Center(
@@ -190,14 +188,12 @@ class _MyImageSliderState extends State<MyImageSlider> {
               ));
             } else {
               // Đường dẫn local
-              print("Đang tải ảnh phụ local từ: $imgUrl");
               myitems.add(
                 Image.asset(
                 imgUrl,
                 fit: BoxFit.contain,
                 // Hiển thị icon thay vì ảnh mặc định nếu không tải được
                 errorBuilder: (context, error, stackTrace) {
-                  print("Lỗi tải ảnh phụ local: $error");
                   return Container(
                     color: Colors.grey[100],
                     child: Center(

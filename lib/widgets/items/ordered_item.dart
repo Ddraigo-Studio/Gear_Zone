@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
-import '../../../widgets/custom_elevated_button.dart';
-import '../../../widgets/custom_outlined_button.dart';
-import '../../theme/custom_button_style.dart';
-
 class OrderedItem extends StatelessWidget {
   final String imagePath;
   final String productName;

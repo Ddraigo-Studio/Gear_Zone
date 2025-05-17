@@ -351,7 +351,6 @@ class AppDecoration {
 }
 
 class BorderRadiusStyle {
-  static var roundedBorder;
 
   // Circle borders
   static BorderRadius get circleBorder20 => BorderRadius.circular(

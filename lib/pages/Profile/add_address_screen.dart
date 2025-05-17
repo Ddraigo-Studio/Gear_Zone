@@ -42,7 +42,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             widget.registrationData!['phoneNumber'] ?? '';
       }
 
-      print('Registration data received: ${widget.registrationData}');
     }
     // Nếu không từ trang đăng ký, lấy dữ liệu từ AuthController nếu user đã đăng nhập
     else if (!widget.fromRegistration) {
@@ -564,8 +563,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       final cartController =
           Provider.of<CartController>(context, listen: false);
 
-      print('Bắt đầu đăng ký người dùng với email: $email');
-
       // Đăng ký người dùng
       final success = await authController.registerWithEmailAndPassword(
         email: email,
@@ -581,7 +578,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
       if (success) {
         try {
-          print('Đăng ký thành công, bắt đầu lưu địa chỉ');
           // Lưu địa chỉ của người dùng
           await authController.saveUserAddress(
             province: data.province?.name ?? '',
@@ -589,8 +585,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             ward: data.ward?.name ?? '',
             street: addressInputController.text.trim(),
           );
-
-          print('Đã lưu địa chỉ thành công');
 
           // Hiển thị thông tin cho người dùng
           showDialog(
@@ -616,7 +610,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             ),
           );
         } catch (addressError) {
-          print("Lỗi khi lưu địa chỉ: $addressError");
           // Vẫn tiếp tục với quá trình đăng nhập ngay cả khi không lưu được địa chỉ
           showDialog(
             context: context,

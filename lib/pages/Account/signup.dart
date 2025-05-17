@@ -146,6 +146,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
                   flex: 2,

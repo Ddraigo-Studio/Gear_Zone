@@ -8,7 +8,6 @@ import '../../model/cart_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
-import '../../widgets/custom_image_view.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItem>? selectedItems;
@@ -25,7 +24,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   late CheckoutController _checkoutController;
   bool _isProcessing = false;
-  bool _isVoucherApplied = true; // Để hiển thị ví dụ voucher đã được áp dụng
+  final bool _isVoucherApplied = true; // Để hiển thị ví dụ voucher đã được áp dụng
   @override
   void initState() {
     super.initState();
@@ -655,6 +654,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
 // Custom widget for displaying a promo item
 class PromoItem extends StatelessWidget {
+  const PromoItem({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
