@@ -1,18 +1,99 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../items/voucher_item.dart';
-import '../app_bar/appbar_leading_image.dart'; // ignore_for_file: must_be_immutable
+import '../app_bar/appbar_leading_image.dart';
+import '../../controller/voucher_controller.dart';
+import '../../model/voucher.dart';
 
-class AddVoucherBottomsheet extends StatelessWidget {
+class AddVoucherBottomsheet extends StatefulWidget {
   const AddVoucherBottomsheet({super.key});
 
   @override
+  State<AddVoucherBottomsheet> createState() => _AddVoucherBottomsheetState();
+}
+
+class _AddVoucherBottomsheetState extends State<AddVoucherBottomsheet> {
+  final VoucherController _voucherController = VoucherController();
+  List<Voucher> _vouchers = [];
+  bool _isLoading = true;
+  String? _selectedVoucherId;
+
+  final double _shippingFee = 30000;
+  final double _taxRate = 0.02;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVouchers();
+  }
+
+  // Load danh sách voucher từ Firebase
+  Future<void> _loadVouchers() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Sử dụng Stream để lấy danh sách voucher có thể sử dụng
+      _voucherController.getAvailableVouchers().listen((vouchers) {
+        if (mounted) {
+          setState(() {
+            _vouchers = vouchers;
+            _isLoading = false;
+          });
+        }
+      }, onError: (error) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          print('Error loading vouchers: $error');
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        print('Error initializing voucher stream: $e');
+      }
+    }
+  }
+
+  // Chọn voucher
+  void _selectVoucher(String voucherId) {
+    setState(() {
+      _selectedVoucherId = voucherId;
+    });
+  }
+
+  // Áp dụng voucher đã chọn
+  void _applySelectedVoucher() {
+    if (_selectedVoucherId != null) {
+      // Tìm voucher được chọn từ danh sách
+      final selectedVoucher =
+          _vouchers.firstWhere((v) => v.id == _selectedVoucherId);
+
+      // Trả về toàn bộ thông tin voucher cho màn hình gọi nó
+      Navigator.pop(context, {
+        'id': selectedVoucher.id,
+        'code': selectedVoucher.code,
+        'discountAmount': selectedVoucher.discountAmount,
+        'shippingFee': _shippingFee,
+        'taxRate': _taxRate,
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.of(context).size.height *
+        0.7; // Giới hạn chiều cao tối đa là 70% màn hình
+
     return Container(
       width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 14.h,
+      constraints: BoxConstraints(
+        maxHeight: maxHeight,
       ),
       decoration: AppDecoration.fillWhiteA.copyWith(
         borderRadius: BorderRadiusStyle.customBorderTL16,
@@ -20,58 +101,10 @@ class AddVoucherBottomsheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildVoucherSelectionColumn(context),
-                    SizedBox(height: 20.h),
-                    Padding(
-                      padding: EdgeInsets.only(left: 4.h),
-                      child: Text(
-                        " Không khả dụng",
-                        style: CustomTextStyles.titleMediumInterBluegray600,
-                      ),
-                    ),
-                    SizedBox(height: 22.h),
-                    _buildDiscountRow(context),
-                    SizedBox(height: 12.h),
-                    Text(
-                      "Đơn hàng của bạn chưa đủ điều kiện áp dụng",
-                      style: CustomTextStyles.titleSmallInterYellow900,
-                    ),
-                    SizedBox(height: 12.h),
-                    _buildAdditionalDiscount(context),
-                    SizedBox(height: 12.h),
-                    Text(
-                      "Đơn hàng của bạn chưa đủ điều kiện áp dụng",
-                      style: CustomTextStyles.titleSmallInterYellow900,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 6.h),
-        ],
-      ),
-    );
-  }
-
-  /// Section Widget
-  Widget _buildVoucherSelectionColumn(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        spacing: 24,
-        children: [
+          // Header với tiêu đề và nút đóng
           Container(
             width: double.maxFinite,
-            margin: EdgeInsets.symmetric(horizontal: 4.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 14.h),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -89,192 +122,64 @@ class AddVoucherBottomsheet extends StatelessWidget {
                     width: 20.h,
                   ),
                 ),
-                
               ],
             ),
           ),
-          ListView.separated(
-            padding: EdgeInsets.zero,
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            separatorBuilder: (context, index) {
-              return SizedBox(
-                height: 10.h,
-              );
-            },
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              return ListVoucherItem();
-            },
-          )
-        ],
-      ),
-    );
-  }
 
-  Widget _buildDiscountRow(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 10.h,
-      ),
-      decoration: AppDecoration.row30,
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgDiscountPercentGrey,
-            height: 25.h,
-            width: 25.h,
-          ),
+          // Body có thể cuộn
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(left: 22.h),
-              child: _buildDiscountDetails(
-                context,
-                discount: "Giảm 10% ",
-                condition: "1.000.000đ",
-                date: "16/12/2021",
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 10.h),
-            child: _buildUsageCondition(
-              context
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+              padding: EdgeInsets.symmetric(horizontal: 16.h),
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : _vouchers.isEmpty
+                      ? Center(
+                          child: Text(
+                            "Không có voucher khả dụng",
+                            style: CustomTextStyles.titleMediumInterBluegray600,
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: EdgeInsets.only(top: 8.h),
+                          physics: BouncingScrollPhysics(),
+                          itemCount: _vouchers.length,
+                          separatorBuilder: (context, index) =>
+                              SizedBox(height: 10.h),
+                          itemBuilder: (context, index) {
+                            final voucher = _vouchers[index];
+                            final isSelected = voucher.id == _selectedVoucherId;
 
-  Widget _buildAdditionalDiscount(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 10.h,
-      ),
-      decoration: AppDecoration.row30,
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgDiscountPercentGrey,
-            height: 25.h,
-            width: 25.h,
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: 22.h),
-              child: _buildDiscountDetails(
-                context,
-                discount: "Giảm 10% ",
-                condition: "1.000.000đ",
-                date: "16/12/2021",
-              ),
+                            return ListVoucherItem(
+                              voucher: voucher,
+                              isSelected: isSelected,
+                              onTap: () => _selectVoucher(voucher.id),
+                            );
+                          },
+                        ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 10.h),
-            child: _buildUsageCondition(
-              context
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  /// Common widget
-  Widget _buildUsageCondition(BuildContext context) {
-    return Column(
-      spacing: 26,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          "Điều kiện",
-          style: CustomTextStyles.labelLargeInterBlue300.copyWith(
-            color: appTheme.blue300,
-          ),
-        ),
-        Text(
-          "Sử dụng",
-          style: CustomTextStyles.labelLargeInterGray50001.copyWith(
-            color: appTheme.gray50001,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Common widget
-  Widget _buildDiscountDetails(
-    BuildContext context, {
-    required String discount,
-    required String condition,
-    required String date,
-  }) {
-    return Column(
-      spacing: 6,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          discount,
-          style: CustomTextStyles.labelLargeInterGray700.copyWith(
-            color: appTheme.gray700,
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Đơn tối thiểu',
-              style: CustomTextStyles.bodyMediumInter.copyWith(
-                color: appTheme.gray700,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(left: 4.h),
-              child: Text(
-                condition,
-                style: CustomTextStyles.bodyMediumInter.copyWith(
-                  color: appTheme.gray700,
+          // Button để áp dụng voucher
+          if (_selectedVoucherId != null)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16.h),
+              child: ElevatedButton(
+                onPressed: _applySelectedVoucher,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: appTheme.deepPurple500,
+                  minimumSize: Size(double.infinity, 50.h),
                 ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(
-          width: double.maxFinite,
-          child: Row(
-            children: [
-              Align(
-                alignment: Alignment.topCenter,
                 child: Text(
-                  "HSD",
-                  style: CustomTextStyles.labelMediumInter.copyWith(
-                    color: appTheme.gray700,
+                  "Áp dụng voucher",
+                  style: CustomTextStyles.labelLargeInterDeeppurple400.copyWith(
+                    color: Colors.white,
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.only(left: 10.h),
-                child: Text(
-                  date,
-                  style: CustomTextStyles.labelMediumInterGray50001.copyWith(
-                    color: appTheme.gray50001,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+        ],
+      ),
     );
   }
 }
-

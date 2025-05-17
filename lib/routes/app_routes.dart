@@ -140,7 +140,7 @@ class AppRoutes {
         address: args['address'],
       );
     },
-    initialRoute: (context) => AdminScreen(),
+    initialRoute: (context) => LoginScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),
