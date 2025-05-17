@@ -4,10 +4,10 @@ import 'package:gear_zone/core/app_provider.dart';
 import 'package:gear_zone/controller/voucher_controller.dart';
 import 'package:gear_zone/model/voucher.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
-import 'package:intl/intl.dart';
+import 'Items/voucher_row_item.dart';
 
 class VoucherScreen extends StatefulWidget {
-  const VoucherScreen({Key? key}) : super(key: key);
+  const VoucherScreen({super.key});
 
   @override
   _VoucherScreenState createState() => _VoucherScreenState();
@@ -15,8 +15,6 @@ class VoucherScreen extends StatefulWidget {
 
 class _VoucherScreenState extends State<VoucherScreen> {
   final VoucherController _voucherController = VoucherController();
-  bool _showActiveOnly = false;
-  bool _isLoading = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -43,17 +41,9 @@ class _VoucherScreenState extends State<VoucherScreen> {
   @override
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context);
-    final isMobile = Responsive.isMobile(context);
-
-    return Scaffold(
+    final isMobile = Responsive.isMobile(context);    return Scaffold(
       backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          appProvider.setCurrentScreen(AppScreen.voucherAdd);
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.add),
-      ),
+      // Removed floating action button
       body: SingleChildScrollView(
         controller: _scrollController,
         child: Padding(
@@ -137,9 +127,9 @@ class _VoucherScreenState extends State<VoucherScreen> {
       ],
     );
   }
-
   Widget _buildFilters(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,31 +155,37 @@ class _VoucherScreenState extends State<VoucherScreen> {
         if (isMobile) const SizedBox(height: 16),
         
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            FilterChip(
-              label: const Text('Chỉ hiển thị phiếu còn hiệu lực'),
-              selected: _showActiveOnly,
-              onSelected: (selected) {
-                setState(() {
-                  _showActiveOnly = selected;
-                });
+            // Status filter removed
+            
+            // Add a "New Voucher" button
+            ElevatedButton.icon(
+              onPressed: () {
+                appProvider.setCurrentScreen(AppScreen.voucherAdd);
               },
-              backgroundColor: Colors.grey[200],
-              selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
-              checkmarkColor: Theme.of(context).primaryColor,
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm mã giảm giá mới'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 16 : 24,
+                  vertical: isMobile ? 10 : 16,
+                ),
+              ),
             ),
           ],
         ),
       ],
     );
   }
-
   Widget _buildVouchersList(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final appProvider = Provider.of<AppProvider>(context, listen: false);
-
+    
     return StreamBuilder<List<Voucher>>(
-      stream: _voucherController.getVouchers(activeOnly: _showActiveOnly),
+      stream: _voucherController.getVouchers(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -228,61 +224,32 @@ class _VoucherScreenState extends State<VoucherScreen> {
             : _buildDesktopVouchersList(filteredVouchers, appProvider);
       },
     );
-  }
+  }  Widget _buildMobileVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
+    final List<bool> expandedItems = List.generate(vouchers.length, (_) => false);
 
-  Widget _buildMobileVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
-    return ListView.builder(
-      itemCount: vouchers.length,
-      itemBuilder: (context, index) {
-        final voucher = vouchers[index];
-        final isActive = voucher.isActive && 
-                         DateTime.now().isBefore(voucher.validToDate);
-        
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            title: Text(
-              voucher.code,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  'Giảm ${voucher.discountPercentage}% (tối đa ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(voucher.maximumDiscountAmount)})',
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'HSD: ${DateFormat('dd/MM/yyyy').format(voucher.validToDate)}',
-                  style: TextStyle(
-                    color: isActive ? Colors.green : Colors.red,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.arrow_forward_ios, size: 14),
-              onPressed: () {
-                appProvider.setCurrentVoucherId(voucher.id);
-                appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: true);
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: vouchers.length,
+          itemBuilder: (context, index) {
+            return buildMobileVoucherItem(
+              context, 
+              index, 
+              vouchers[index],
+              isExpanded: expandedItems[index],
+              onExpandToggle: (idx) {
+                setState(() {
+                  expandedItems[idx] = !expandedItems[idx];
+                });
               },
-            ),
-            onTap: () {
-              appProvider.setCurrentVoucherId(voucher.id);
-              appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: true);
-            },
-          ),
+            );
+          },
         );
-      },
+      }
     );
-  }
-
-  Widget _buildDesktopVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
+  }Widget _buildDesktopVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -297,12 +264,13 @@ class _VoucherScreenState extends State<VoucherScreen> {
       ),
       child: Table(
         columnWidths: const {
-          0: FlexColumnWidth(2), // Mã giảm giá
-          1: FlexColumnWidth(2), // Giảm giá
-          2: FlexColumnWidth(2), // Điều kiện
-          3: FlexColumnWidth(2), // Hiệu lực
-          4: FlexColumnWidth(2), // Trạng thái
-          5: FlexColumnWidth(1), // Thao tác
+          0: FlexColumnWidth(0.5), // Checkbox
+          1: FlexColumnWidth(2.5), // Mã giảm giá
+          2: FlexColumnWidth(1.5), // Giá trị giảm giá
+          3: FlexColumnWidth(1), // Lượt sử dụng
+          4: FlexColumnWidth(1.5), // Ngày tạo
+          5: FlexColumnWidth(1), // Trạng thái
+          6: FlexColumnWidth(1.5), // Thao tác
         },
         children: [
           // Header row
@@ -314,6 +282,23 @@ class _VoucherScreenState extends State<VoucherScreen> {
               ),
             ),
             children: [
+              // Checkbox header
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Checkbox(
+                      value: false,
+                      onChanged: (value) {},
+                    ),
+                  ),
+                ),
+              ),
+              // Mã giảm giá header
               TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
                 child: Padding(
@@ -327,45 +312,52 @@ class _VoucherScreenState extends State<VoucherScreen> {
                   ),
                 ),
               ),
+              // Giá trị header
               TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Giảm giá',
+                    'Giá trị',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[700],
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
+              // Lượt sử dụng header
               TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Điều kiện',
+                    'Lượt sử dụng',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[700],
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
+              // Ngày tạo header
               TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Hiệu lực',
+                    'Ngày tạo',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[700],
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
+              // Trạng thái header
               TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
                 child: Padding(
@@ -376,9 +368,11 @@ class _VoucherScreenState extends State<VoucherScreen> {
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[700],
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
+              // Thao tác header
               TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
                 child: Padding(
@@ -395,173 +389,12 @@ class _VoucherScreenState extends State<VoucherScreen> {
               ),
             ],
           ),
-          // Data rows
-          ...vouchers.map((voucher) {
-            final isActive = voucher.isActive && DateTime.now().isBefore(voucher.validToDate);
-            return TableRow(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade200),
-                ),
-              ),
-              children: [
-                TableCell(
-                  verticalAlignment: TableCellVerticalAlignment.middle,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      voucher.code,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                TableCell(
-                  verticalAlignment: TableCellVerticalAlignment.middle,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      '${voucher.discountPercentage}% (tối đa ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(voucher.maximumDiscountAmount)})',
-                    ),
-                  ),
-                ),
-                TableCell(
-                  verticalAlignment: TableCellVerticalAlignment.middle,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'Đơn hàng từ ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(voucher.minimumOrderAmount)}',
-                    ),
-                  ),
-                ),
-                TableCell(
-                  verticalAlignment: TableCellVerticalAlignment.middle,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      '${DateFormat('dd/MM/yyyy').format(voucher.validFromDate)} - ${DateFormat('dd/MM/yyyy').format(voucher.validToDate)}',
-                    ),
-                  ),
-                ),
-                TableCell(
-                  verticalAlignment: TableCellVerticalAlignment.middle,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isActive ? Colors.green[50] : Colors.red[50],
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: isActive ? Colors.green : Colors.red,
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        isActive ? 'Còn hiệu lực' : 'Hết hiệu lực',
-                        style: TextStyle(
-                          color: isActive ? Colors.green : Colors.red,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                TableCell(
-                  verticalAlignment: TableCellVerticalAlignment.middle,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.visibility_outlined, size: 18),
-                          onPressed: () {
-                            appProvider.setCurrentVoucherId(voucher.id);
-                            appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: true);
-                          },
-                          tooltip: 'Xem chi tiết',
-                          splashRadius: 20,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 18),
-                          onPressed: () {
-                            appProvider.setCurrentVoucherId(voucher.id);
-                            appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: false);
-                          },
-                          tooltip: 'Chỉnh sửa',
-                          splashRadius: 20,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outlined, size: 18),
-                          onPressed: () => _showDeleteConfirmation(context, voucher.id),
-                          tooltip: 'Xóa',
-                          splashRadius: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
+          // Data rows using custom voucher row items
+          for (int i = 0; i < vouchers.length; i++)
+            buildVoucherTableRow(context, i, vouchers),
         ],
       ),
     );
   }
-
-  void _showDeleteConfirmation(BuildContext context, String voucherId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xác nhận xóa'),
-        content: const Text('Bạn có chắc chắn muốn xóa phiếu giảm giá này không?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              setState(() {
-                _isLoading = true;
-              });
-              
-              try {
-                await _voucherController.deleteVoucher(voucherId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Đã xóa phiếu giảm giá'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Lỗi khi xóa: $e'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              } finally {
-                if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              }
-            },
-            child: const Text('Xóa'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Using deleteVoucher function from voucher_row_item.dart instead
 }
