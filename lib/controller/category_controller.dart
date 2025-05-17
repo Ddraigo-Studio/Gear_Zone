@@ -209,4 +209,61 @@ class CategoryController {
       return null;
     }
   }
+
+  // Tìm kiếm danh mục có phân trang
+  Future<Map<String, dynamic>> searchCategoriesPaginated(String query, {int page = 1, int limit = 20}) async {
+    query = query.toLowerCase();
+    try {
+      // Lấy tất cả danh mục để tìm kiếm và lọc (vì Firestore không hỗ trợ tìm kiếm text trực tiếp)
+      QuerySnapshot allCategoriesSnapshot = await _categoriesCollection.get();
+      
+      // Lọc danh mục theo query
+      List<DocumentSnapshot> filteredDocs = allCategoriesSnapshot.docs.where((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String categoryName = (data['categoryName'] ?? '').toLowerCase();
+        String id = doc.id.toLowerCase();
+        
+        return categoryName.contains(query) || id.contains(query);
+      }).toList();
+      
+      // Tính toán thông tin phân trang
+      int totalItems = filteredDocs.length;
+      int totalPages = (totalItems / limit).ceil();
+      
+      // Phân trang kết quả tìm kiếm
+      int startIndex = (page - 1) * limit;
+      int endIndex = (startIndex + limit < totalItems) ? startIndex + limit : totalItems;
+      
+      // Đảm bảo chỉ số không âm và không vượt quá giới hạn danh sách
+      startIndex = startIndex < 0 ? 0 : startIndex;
+      startIndex = startIndex > totalItems ? 0 : startIndex;
+      endIndex = endIndex > totalItems ? totalItems : endIndex;
+      
+      // Lấy danh sách trang hiện tại từ kết quả đã lọc
+      List<DocumentSnapshot> pagedDocs = [];
+      if (startIndex < endIndex) {
+        pagedDocs = filteredDocs.sublist(startIndex, endIndex);
+      }
+      
+      // Chuyển đổi sang CategoryModel
+      List<CategoryModel> categories = pagedDocs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return CategoryModel.fromMap(data);
+      }).toList();
+      
+      // Trả về kết quả bao gồm dữ liệu và thông tin phân trang
+      return {
+        'categories': categories,
+        'total': totalItems,
+        'totalPages': totalPages > 0 ? totalPages : 1,
+        'currentPage': page,
+        'hasNextPage': page < totalPages,
+        'hasPreviousPage': page > 1,
+      };
+    } catch (e) {
+      print('Error searching paginated categories: $e');
+      throw e;
+    }
+  }
 }
