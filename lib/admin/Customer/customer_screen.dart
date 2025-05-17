@@ -5,24 +5,38 @@ import 'package:gear_zone/controller/user_controller.dart';
 import 'package:gear_zone/model/user.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 import 'package:intl/intl.dart';
+import 'package:gear_zone/widgets/pagination_widget.dart';
+import 'package:gear_zone/widgets/admin_widgets/breadcrumb.dart';
+import 'Items/customer_row_item.dart';
 
 class CustomerScreen extends StatefulWidget {
   const CustomerScreen({super.key});
 
   @override
-  _CustomerScreenState createState() => _CustomerScreenState();
+  State<CustomerScreen> createState() => _CustomerScreenState();
 }
 
 class _CustomerScreenState extends State<CustomerScreen> {
   final UserController _userController = UserController();
-  bool _isLoading = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  
+  // Thông tin phân trang
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _hasNextPage = false;
+  bool _hasPreviousPage = false;
+  int _totalItems = 0;
+  final int _itemsPerPage = 20;
+  List<UserModel> _customers = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    // Kiểm tra xem có cần tải lại danh sách không
+    _loadCustomers();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appProvider = Provider.of<AppProvider>(context, listen: false);
       if (appProvider.reloadCustomerList) {
@@ -34,618 +48,307 @@ class _CustomerScreenState extends State<CustomerScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+  // Load customers with pagination
+  Future<void> _loadCustomers() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    
+    try {
+      Map<String, dynamic> result;
+      
+      if (_searchQuery.isEmpty) {
+        // Get all customers with pagination
+        result = await _userController.getUsersPaginated(
+          page: _currentPage, 
+          limit: _itemsPerPage
+        );
+      } else {
+        // Search customers with pagination
+        result = await _userController.searchUsersPaginated(
+          _searchQuery,
+          page: _currentPage, 
+          limit: _itemsPerPage
+        );
+      }
+      
+      // Check if result contains valid data
+      if (!result.containsKey('users')) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Không nhận được dữ liệu hợp lệ từ server';
+        });
+        return;
+      }
+      
+      // Update state with new data
+      setState(() {
+        _customers = result['users'];
+        _totalItems = result['total'];
+        _totalPages = result['totalPages'] > 0 ? result['totalPages'] : 1;
+        _currentPage = result['currentPage'];
+        _hasNextPage = result['hasNextPage'];
+        _hasPreviousPage = result['hasPreviousPage'];
+        _isLoading = false;
+        _errorMessage = '';
+      });
+      
+      // If no customers are returned but there is a total count > 0
+      // and we're not on page 1, go back to page 1
+      if (_customers.isEmpty && _totalItems > 0 && _currentPage > 1) {
+        setState(() {
+          _currentPage = 1;
+        });
+        _loadCustomers();
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Lỗi khi tải dữ liệu: $e';
+      });
+    }
+  }
+
+  // Handle page change
+  void _handlePageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+    _loadCustomers();
+  }
+
+  Widget _buildBreadcrumbs(BuildContext context) {
+    return Breadcrumb(
+      items: [
+        BreadcrumbBuilder.dashboard(context),
+        BreadcrumbBuilder.customers(context),
+      ],
+    );
+  }
+
+  Widget _buildPageTitleAndCount(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Padding(
-        padding: EdgeInsets.all(isMobile ? 16 : 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header and search bar
-            _buildHeader(context),
-            const SizedBox(height: 16),
-            
-            // Filters and actions
-            _buildFilters(context),
-            const SizedBox(height: 16),
-
-            // Customers list
-            Expanded(
-              child: _buildCustomersList(context),
-            ),
-          ],
-        ),
+    return Text(
+      'Danh sách khách hàng',
+      style: TextStyle(
+        fontSize: isMobile ? 20 : 24,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildSearchFilterAddNewSection(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
+    final primaryColor = Color(0xFF7C3AED); // Purple color
 
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Danh sách khách hàng',
-                style: TextStyle(
-                  fontSize: isMobile ? 20 : 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              FutureBuilder<int>(
-                future: _userController.getUsersCount(),
-                builder: (context, snapshot) {
-                  final count = snapshot.data ?? 0;
-                  return Text(
-                    '$count người dùng',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: isMobile ? 12 : 14,
-                    ),
-                  );
-                },
-              ),
-            ],
+    Widget searchField = Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: TextField(
+        controller: _searchController,          decoration: InputDecoration(
+            hintText: 'Tìm kiếm khách hàng...',
+            prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           ),
+          onChanged: _onSearchQueryChanged,
+      ),
+    );
+
+    Widget filterButton = Container(
+      height: 40,
+      decoration: BoxDecoration(
+        border: Border.all(color: primaryColor),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextButton.icon(
+        onPressed: () { /* TODO: Implement filter */ },
+        icon: Icon(Icons.filter_list, size: 18, color: primaryColor),
+        label: Text('Lọc', style: TextStyle(color: primaryColor, fontSize: 14)),
+        style: TextButton.styleFrom(
+          minimumSize: Size.zero,
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        if (!isMobile) ...[
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 300,
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm khách hàng...',
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-            ),
-          ),
+      ),
+    );
+
+    // Nút "Khách hàng mới" đã được loại bỏ theo yêu cầu
+
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          searchField,
+          const SizedBox(height: 12),
+          filterButton, // Hiển thị nút lọc với chiều rộng đầy đủ
         ],
-      ],
-    );
-  }
-
-  Widget _buildFilters(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (isMobile)
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Tìm kiếm khách hàng...',
-              prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
-          ),
-      ],
-    );
+      );
+    } else { // Desktop
+      return Row(
+        children: [
+          Expanded(flex: 3, child: searchField),
+          const SizedBox(width: 12),
+          filterButton,
+        ],
+      );
+    }
   }
 
   Widget _buildCustomersList(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
-
-    return StreamBuilder<List<UserModel>>(
-      stream: _searchQuery.isEmpty
-          ? _userController.getUsers()
-          : _userController.searchUsers(_searchQuery),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Đã có lỗi xảy ra: ${snapshot.error}',
-              style: TextStyle(color: Colors.red),
-            ),
-          );
-        }
-
-        final users = snapshot.data ?? [];
-
-        if (users.isEmpty) {
-          return const Center(
-            child: Text(
-              'Không có người dùng nào',
-              style: TextStyle(color: Colors.grey),
-            ),
-          );
-        }
-
-        return isMobile
-            ? _buildMobileCustomersList(users, appProvider)
-            : _buildDesktopCustomersList(users, appProvider);
-      },
-    );
-  }
-
-  Widget _buildMobileCustomersList(List<UserModel> users, AppProvider appProvider) {
-    return ListView.builder(
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        final user = users[index];
-        final isBanned = user.isBanned ?? false;
-        
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () {
-              appProvider.setCurrentCustomerId(user.uid);
-              appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: true);
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Avatar
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.grey[200],
-                    backgroundImage: user.photoURL != null && user.photoURL!.isNotEmpty 
-                        ? NetworkImage(user.photoURL!) 
-                        : null,
-                    child: user.photoURL == null || user.photoURL!.isEmpty 
-                        ? const Icon(Icons.person, color: Colors.grey) 
-                        : null,
-                  ),
-                  const SizedBox(width: 16),
-                  
-                  // User info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                user.name,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: isBanned ? Colors.grey : Colors.black,
-                                ),
-                              ),
-                            ),
-                            if (isBanned)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.red[50],
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.red, width: 1),
-                                ),
-                                child: Text(
-                                  'Đã cấm',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user.email,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            decoration: isBanned ? TextDecoration.lineThrough : null,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user.phoneNumber,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            decoration: isBanned ? TextDecoration.lineThrough : null,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ngày đăng ký: ${DateFormat('dd/MM/yyyy').format(user.createdAt)}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () => _showBanUserDialog(context, user),
-                              child: Text(
-                                isBanned ? 'Bỏ cấm' : 'Cấm',
-                                style: TextStyle(
-                                  color: isBanned ? Colors.orange : Colors.red,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                appProvider.setCurrentCustomerId(user.uid);
-                                appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: false);
-                              },
-                              child: const Text('Sửa'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDesktopCustomersList(List<UserModel> users, AppProvider appProvider) {
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
+            color: Color.fromRGBO(0, 0, 0, 0.05),
+            blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Table header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'Avatar',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
+          _isLoading 
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(),
                 ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Tên',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Email',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Số điện thoại',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'Ngày đăng ký',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'Vai trò',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'Trạng thái',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-                const Expanded(
-                  flex: 1,
-                  child: Text(
-                    'Thao tác',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Table divider
-          Divider(height: 1, color: Colors.grey[300]),
-
-          // Table data
-          Expanded(
-            child: ListView.separated(
-              itemCount: users.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: Colors.grey[300],
-              ),
-              itemBuilder: (context, index) {
-                final user = users[index];
-                final isBanned = user.isBanned ?? false;
-                
-                return InkWell(
-                  onTap: () {
-                    appProvider.setCurrentCustomerId(user.uid);
-                    appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: true);
-                  },
+              )
+            : _errorMessage.isNotEmpty
+              ? Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        // Avatar
-                        Expanded(
-                          flex: 1,
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: user.photoURL != null && user.photoURL!.isNotEmpty 
-                                ? NetworkImage(user.photoURL!) 
-                                : null,
-                            child: user.photoURL == null || user.photoURL!.isEmpty 
-                                ? const Icon(Icons.person, color: Colors.grey) 
-                                : null,
-                          ),
-                        ),
-                        
-                        // Name
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            user.name,
-                            style: TextStyle(
-                              decoration: isBanned ? TextDecoration.lineThrough : null,
-                              color: isBanned ? Colors.grey : Colors.black,
-                            ),
-                          ),
-                        ),
-                        
-                        // Email
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            user.email,
-                            style: TextStyle(
-                              decoration: isBanned ? TextDecoration.lineThrough : null,
-                              color: isBanned ? Colors.grey : Colors.grey[800],
-                            ),
-                          ),
-                        ),
-                        
-                        // Phone
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            user.phoneNumber,
-                            style: TextStyle(
-                              decoration: isBanned ? TextDecoration.lineThrough : null,
-                              color: isBanned ? Colors.grey : Colors.grey[800],
-                            ),
-                          ),
-                        ),
-                        
-                        // Registration date
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            DateFormat('dd/MM/yyyy').format(user.createdAt),
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        
-                        // Role
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            user.role?.toUpperCase() ?? 'USER',
-                            style: TextStyle(
-                              color: user.role?.toLowerCase() == 'admin' ? Colors.deepPurple : Colors.grey[700],
-                              fontWeight: user.role?.toLowerCase() == 'admin' ? FontWeight.bold : FontWeight.normal,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        
-                        // Status
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isBanned ? Colors.red[50] : Colors.green[50],
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: isBanned ? Colors.red : Colors.green,
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              isBanned ? 'Đã cấm' : 'Hoạt động',
-                              style: TextStyle(
-                                color: isBanned ? Colors.red : Colors.green,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-                        
-                        // Actions
-                        Expanded(
-                          flex: 1,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 18),
-                                onPressed: () {
-                                  appProvider.setCurrentCustomerId(user.uid);
-                                  appProvider.setCurrentScreen(AppScreen.customerDetail, isViewOnly: false);
-                                },
-                                tooltip: 'Chỉnh sửa',
-                                splashRadius: 20,
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  isBanned ? Icons.check_circle_outline : Icons.block,
-                                  size: 18,
-                                  color: isBanned ? Colors.orange : Colors.red,
-                                ),
-                                onPressed: () => _showBanUserDialog(context, user),
-                                tooltip: isBanned ? 'Bỏ cấm' : 'Cấm người dùng',
-                                splashRadius: 20,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'Đã có lỗi xảy ra: $_errorMessage',
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
-                );
-              },
+                )
+              : _customers.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_off_outlined, size: 48, color: Colors.grey[400]),
+                          const SizedBox(height: 16),
+                          Text(
+                            _searchQuery.isEmpty
+                              ? 'Không có người dùng nào'
+                              : 'Không tìm thấy người dùng nào',
+                            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : CustomerListView(customers: _customers),
+          
+          // Phân trang
+          if (!_isLoading && _customers.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: isMobile
+                ? Column(
+                    children: [
+                      // Hiển thị thông tin số lượng
+                      Text(
+                        'Tổng: $_totalItems người dùng | Trang $_currentPage/$_totalPages',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Widget phân trang cho mobile
+                      PaginationWidget(
+                        currentPage: _currentPage,
+                        totalPages: _totalPages,
+                        hasNextPage: _hasNextPage,
+                        hasPreviousPage: _hasPreviousPage,
+                        onPageChanged: _handlePageChanged,
+                        isMobile: true,
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Text(
+                        'Tổng: $_totalItems người dùng | Hiển thị ${_customers.length} mục',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const Spacer(),
+                      
+                      // Widget phân trang
+                      PaginationWidget(
+                        currentPage: _currentPage,
+                        totalPages: _totalPages,
+                        hasNextPage: _hasNextPage,
+                        hasPreviousPage: _hasPreviousPage,
+                        onPageChanged: _handlePageChanged,
+                      ),
+                    ],
+                  ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  void _showBanUserDialog(BuildContext context, UserModel user) {
-    final isBanned = user.isBanned ?? false;
+  // When search query changes
+  void _onSearchQueryChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+      _currentPage = 1; // Reset to page 1 when search changes
+    });
+    _loadCustomers();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
     
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isBanned ? 'Bỏ cấm người dùng' : 'Cấm người dùng'),
-        content: Text(
-          isBanned
-              ? 'Bạn có chắc chắn muốn bỏ cấm người dùng ${user.name} không?'
-              : 'Bạn có chắc chắn muốn cấm người dùng ${user.name} không? Họ sẽ không thể đăng nhập vào hệ thống.',
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        child: Container(
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildPageTitleAndCount(context),
+              const SizedBox(height: 24),
+              _buildBreadcrumbs(context),
+              const SizedBox(height: 16),
+              _buildSearchFilterAddNewSection(context),
+              const SizedBox(height: 24),
+              _buildCustomersList(context),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              setState(() {
-                _isLoading = true;
-              });
-              
-              try {
-                await _userController.banUser(user.uid, !isBanned);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isBanned 
-                        ? 'Đã bỏ cấm người dùng ${user.name}'
-                        : 'Đã cấm người dùng ${user.name}'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Lỗi: $e'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              } finally {
-                if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              }
-            },
-            child: Text(
-              isBanned ? 'Bỏ cấm' : 'Cấm',
-              style: TextStyle(
-                color: isBanned ? Colors.orange : Colors.red,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

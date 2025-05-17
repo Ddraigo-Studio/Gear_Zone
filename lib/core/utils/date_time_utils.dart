@@ -1,11 +1,4 @@
-import 'package:intl/intl.dart';
 
-/// Các tiện ích xử lý ngày tháng
-
-/// Định dạng ngày tháng từ chuỗi ISO8601 sang định dạng thân thiện hơn
-/// 
-/// [isoDate] Chuỗi ISO8601 cần định dạng
-/// Trả về chuỗi đã định dạng theo dạng dd/MM/yyyy HH:mm
 String formatDate(String isoDate) {
   try {
     final date = DateTime.parse(isoDate);

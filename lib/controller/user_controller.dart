@@ -178,4 +178,125 @@ class UserController {
       return false;
     }
   }
+
+  // Lấy danh sách người dùng có phân trang
+  Future<Map<String, dynamic>> getUsersPaginated({int page = 1, int limit = 20}) async {
+    try {
+      // Tính toán vị trí bắt đầu dựa trên trang và giới hạn
+      int skip = (page - 1) * limit;
+      
+      // Lấy tổng số người dùng để tính số trang
+      QuerySnapshot countSnapshot = await _firestore.collection(_collection).get();
+      int totalItems = countSnapshot.docs.length;
+      int totalPages = (totalItems / limit).ceil();
+      
+      // Lấy dữ liệu cho trang hiện tại
+      QuerySnapshot snapshot = await _firestore
+          .collection(_collection)
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+          
+      // Nếu không phải trang đầu tiên, thì sử dụng startAfter để phân trang
+      if (page > 1) {
+        // Lấy document cuối cùng của trang trước đó
+        QuerySnapshot previousPageSnapshot = await _firestore
+            .collection(_collection)
+            .orderBy('createdAt', descending: true)
+            .limit(skip)
+            .get();
+        
+        // Nếu có đủ document để phân trang
+        if (previousPageSnapshot.docs.isNotEmpty) {
+          DocumentSnapshot lastVisibleDoc = previousPageSnapshot.docs.last;
+          
+          // Lấy danh sách document cho trang hiện tại
+          snapshot = await _firestore
+              .collection(_collection)
+              .orderBy('createdAt', descending: true)
+              .startAfterDocument(lastVisibleDoc)
+              .limit(limit)
+              .get();
+        }
+      }
+      
+      // Chuyển đổi snapshot thành danh sách UserModel
+      List<UserModel> users = snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['uid'] = doc.id;
+        return UserModel.fromMap(data);
+      }).toList();
+      
+      // Trả về kết quả bao gồm dữ liệu và thông tin phân trang
+      return {
+        'users': users,
+        'total': totalItems,
+        'totalPages': totalPages,
+        'currentPage': page,
+        'hasNextPage': page < totalPages,
+        'hasPreviousPage': page > 1,
+      };
+    } catch (e) {
+      print('Error getting paginated users: $e');
+      throw e;
+    }
+  }
+
+  // Tìm kiếm người dùng có phân trang
+  Future<Map<String, dynamic>> searchUsersPaginated(String query, {int page = 1, int limit = 20}) async {
+    query = query.toLowerCase();
+    try {
+      // Lấy tất cả người dùng để tìm kiếm và lọc (vì Firestore không hỗ trợ tìm kiếm text trực tiếp)
+      QuerySnapshot allUsersSnapshot = await _firestore.collection(_collection).get();
+      
+      // Lọc người dùng theo query
+      List<DocumentSnapshot> filteredDocs = allUsersSnapshot.docs.where((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String name = (data['name'] ?? '').toLowerCase();
+        String email = (data['email'] ?? '').toLowerCase();
+        String phone = (data['phoneNumber'] ?? '');
+        
+        return name.contains(query) || email.contains(query) || phone.contains(query);
+      }).toList();
+      
+      // Tính toán thông tin phân trang
+      int totalItems = filteredDocs.length;
+      int totalPages = (totalItems / limit).ceil();
+      
+      // Phân trang kết quả tìm kiếm
+      int startIndex = (page - 1) * limit;
+      int endIndex = (startIndex + limit < totalItems) ? startIndex + limit : totalItems;
+      
+      // Đảm bảo chỉ số không âm và không vượt quá giới hạn danh sách
+      startIndex = startIndex < 0 ? 0 : startIndex;
+      startIndex = startIndex > totalItems ? 0 : startIndex;
+      endIndex = endIndex > totalItems ? totalItems : endIndex;
+      
+      // Lấy danh sách trang hiện tại từ kết quả đã lọc
+      List<DocumentSnapshot> pagedDocs = [];
+      if (startIndex < endIndex) {
+        pagedDocs = filteredDocs.sublist(startIndex, endIndex);
+      }
+      
+      // Chuyển đổi sang UserModel
+      List<UserModel> users = pagedDocs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['uid'] = doc.id;
+        return UserModel.fromMap(data);
+      }).toList();
+      
+      // Trả về kết quả bao gồm dữ liệu và thông tin phân trang
+      return {
+        'users': users,
+        'total': totalItems,
+        'totalPages': totalPages > 0 ? totalPages : 1,
+        'currentPage': page,
+        'hasNextPage': page < totalPages,
+        'hasPreviousPage': page > 1,
+      };
+    } catch (e) {
+      print('Error searching paginated users: $e');
+      throw e;
+    }
+  }
 }

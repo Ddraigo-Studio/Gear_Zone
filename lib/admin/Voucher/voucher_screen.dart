@@ -19,6 +19,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
   bool _isLoading = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -35,6 +36,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -52,24 +54,25 @@ class _VoucherScreenState extends State<VoucherScreen> {
         backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.add),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(isMobile ? 16 : 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header and search bar
-            _buildHeader(context),
-            const SizedBox(height: 16),
-            
-            // Filters and actions
-            _buildFilters(context),
-            const SizedBox(height: 16),
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        child: Padding(
+          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header and search bar
+              _buildHeader(context),
+              const SizedBox(height: 16),
+              
+              // Filters and actions
+              _buildFilters(context),
+              const SizedBox(height: 16),
 
-            // Vouchers list
-            Expanded(
-              child: _buildVouchersList(context),
-            ),
-          ],
+              // Vouchers list
+              _buildVouchersList(context),
+            ],
+          ),
         ),
       ),
     );
@@ -292,15 +295,29 @@ class _VoucherScreenState extends State<VoucherScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Table(
+        columnWidths: const {
+          0: FlexColumnWidth(2), // Mã giảm giá
+          1: FlexColumnWidth(2), // Giảm giá
+          2: FlexColumnWidth(2), // Điều kiện
+          3: FlexColumnWidth(2), // Hiệu lực
+          4: FlexColumnWidth(2), // Trạng thái
+          5: FlexColumnWidth(1), // Thao tác
+        },
         children: [
-          // Table header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
+          // Header row
+          TableRow(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
+            children: [
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     'Mã giảm giá',
                     style: TextStyle(
@@ -309,8 +326,11 @@ class _VoucherScreenState extends State<VoucherScreen> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 2,
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     'Giảm giá',
                     style: TextStyle(
@@ -319,8 +339,11 @@ class _VoucherScreenState extends State<VoucherScreen> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 2,
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     'Điều kiện',
                     style: TextStyle(
@@ -329,8 +352,11 @@ class _VoucherScreenState extends State<VoucherScreen> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 2,
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     'Hiệu lực',
                     style: TextStyle(
@@ -339,8 +365,11 @@ class _VoucherScreenState extends State<VoucherScreen> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 2,
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     'Trạng thái',
                     style: TextStyle(
@@ -349,137 +378,136 @@ class _VoucherScreenState extends State<VoucherScreen> {
                     ),
                   ),
                 ),
-                const Expanded(
-                  flex: 1,
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
                     'Thao tác',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+                      color: Colors.grey[700],
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // Table divider
-          Divider(height: 1, color: Colors.grey[300]),
-
-          // Table data
-          Expanded(
-            child: ListView.separated(
-              itemCount: vouchers.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: Colors.grey[300],
               ),
-              itemBuilder: (context, index) {
-                final voucher = vouchers[index];
-                final isActive = voucher.isActive && 
-                                DateTime.now().isBefore(voucher.validToDate);
-                
-                return InkWell(
-                  onTap: () {
-                    appProvider.setCurrentVoucherId(voucher.id);
-                    appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: true);
-                  },
+            ],
+          ),
+          // Data rows
+          ...vouchers.map((voucher) {
+            final isActive = voucher.isActive && DateTime.now().isBefore(voucher.validToDate);
+            return TableRow(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade200),
+                ),
+              ),
+              children: [
+                TableCell(
+                  verticalAlignment: TableCellVerticalAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      voucher.code,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                TableCell(
+                  verticalAlignment: TableCellVerticalAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      '${voucher.discountPercentage}% (tối đa ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(voucher.maximumDiscountAmount)})',
+                    ),
+                  ),
+                ),
+                TableCell(
+                  verticalAlignment: TableCellVerticalAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'Đơn hàng từ ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(voucher.minimumOrderAmount)}',
+                    ),
+                  ),
+                ),
+                TableCell(
+                  verticalAlignment: TableCellVerticalAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      '${DateFormat('dd/MM/yyyy').format(voucher.validFromDate)} - ${DateFormat('dd/MM/yyyy').format(voucher.validToDate)}',
+                    ),
+                  ),
+                ),
+                TableCell(
+                  verticalAlignment: TableCellVerticalAlignment.middle,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isActive ? Colors.green[50] : Colors.red[50],
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: isActive ? Colors.green : Colors.red,
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        isActive ? 'Còn hiệu lực' : 'Hết hiệu lực',
+                        style: TextStyle(
+                          color: isActive ? Colors.green : Colors.red,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                TableCell(
+                  verticalAlignment: TableCellVerticalAlignment.middle,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Mã giảm giá
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            voucher.code,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        IconButton(
+                          icon: Icon(Icons.visibility_outlined, size: 18),
+                          onPressed: () {
+                            appProvider.setCurrentVoucherId(voucher.id);
+                            appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: true);
+                          },
+                          tooltip: 'Xem chi tiết',
+                          splashRadius: 20,
                         ),
-                        
-                        // Giảm giá
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            '${voucher.discountPercentage}% (tối đa ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(voucher.maximumDiscountAmount)})',
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          onPressed: () {
+                            appProvider.setCurrentVoucherId(voucher.id);
+                            appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: false);
+                          },
+                          tooltip: 'Chỉnh sửa',
+                          splashRadius: 20,
                         ),
-                        
-                        // Điều kiện
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Đơn hàng từ ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(voucher.minimumOrderAmount)}',
-                          ),
-                        ),
-                        
-                        // Hiệu lực
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            '${DateFormat('dd/MM/yyyy').format(voucher.validFromDate)} - ${DateFormat('dd/MM/yyyy').format(voucher.validToDate)}',
-                          ),
-                        ),
-                        
-                        // Trạng thái
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isActive ? Colors.green[50] : Colors.red[50],
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: isActive ? Colors.green : Colors.red,
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              isActive ? 'Còn hiệu lực' : 'Hết hiệu lực',
-                              style: TextStyle(
-                                color: isActive ? Colors.green : Colors.red,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-                        
-                        // Thao tác
-                        Expanded(
-                          flex: 1,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 18),
-                                onPressed: () {
-                                  appProvider.setCurrentVoucherId(voucher.id);
-                                  appProvider.setCurrentScreen(AppScreen.voucherDetail, isViewOnly: false);
-                                },
-                                tooltip: 'Chỉnh sửa',
-                                splashRadius: 20,
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, size: 18),
-                                onPressed: () {
-                                  _showDeleteConfirmation(context, voucher.id);
-                                },
-                                tooltip: 'Xóa',
-                                splashRadius: 20,
-                              ),
-                            ],
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outlined, size: 18),
+                          onPressed: () => _showDeleteConfirmation(context, voucher.id),
+                          tooltip: 'Xóa',
+                          splashRadius: 20,
                         ),
                       ],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
+                ),
+              ],
+            );
+          }).toList(),
         ],
       ),
     );

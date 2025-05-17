@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gear_zone/admin/Customer/customer_screen.dart';
 import 'package:gear_zone/admin/Product/product_detail_screen.dart';
 import '../core/utils/responsive.dart';
 import '../widgets/admin_widgets/sidebar.dart';
@@ -7,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'Dashboard/dashboard_screen.dart';
 import 'Product/product_screen.dart';
 import 'Product/product_add_screen.dart';
-import 'Customer/enhanced_customer_screen.dart';
 import 'Customer/customer_detail_screen.dart';
 import 'Category/category_screen.dart';
 import 'Category/category_detail.dart';
@@ -223,14 +223,14 @@ class AdminScreen extends StatelessWidget {
             return const CategoryAddScreen(); // Màn hình thêm danh mục mới
             
           case AppScreen.customerList:
-            return const EnhancedCustomerScreen(); // Màn hình quản lý khách hàng nâng cao
+            return const CustomerScreen(); // Màn hình quản lý khách hàng nâng cao
             
           case AppScreen.customerDetail:
             // Kiểm tra nếu có customerId thì hiển thị chi tiết, nếu không thì hiển thị danh sách khách hàng
             if (appProvider.currentCustomerId.isNotEmpty) {
               return CustomerDetailScreen(isViewOnly: appProvider.isViewOnlyMode);
             } else {
-              return const EnhancedCustomerScreen();
+              return const CustomerScreen();
             }
             
           case AppScreen.productAdd:
