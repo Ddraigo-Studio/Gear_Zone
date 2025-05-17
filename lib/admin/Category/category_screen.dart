@@ -18,6 +18,10 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final CategoryController _categoryController = CategoryController();
   
+  // Biến tìm kiếm
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  
   // Thông tin phân trang
   int _currentPage = 1;
   int _totalPages = 1;
@@ -28,11 +32,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
   List<CategoryModel> _categories = [];
   bool _isLoading = true;
   String _errorMessage = '';
-
   @override
   void initState() {
     super.initState();
     _loadCategories();
+  }
+  
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,16 +53,30 @@ class _CategoryScreenState extends State<CategoryScreen> {
       appProvider.setReloadCategoryList(false);
     }
   }
-
   // Load danh mục với phân trang
   Future<void> _loadCategories() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
     
     try {
-      final result = await _categoryController.getCategoriesPaginated(
-        page: _currentPage, 
-        limit: _itemsPerPage
-      );
+      Map<String, dynamic> result;
+      
+      if (_searchQuery.isNotEmpty) {
+        // Tìm kiếm danh mục
+        result = await _categoryController.searchCategoriesPaginated(
+          _searchQuery,
+          page: _currentPage, 
+          limit: _itemsPerPage
+        );
+      } else {
+        // Lấy tất cả danh mục
+        result = await _categoryController.getCategoriesPaginated(
+          page: _currentPage, 
+          limit: _itemsPerPage
+        );
+      }
       
       setState(() {
         _categories = result['categories'];
@@ -141,6 +164,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               color: Colors.grey.shade50,
                             ),
                             child: TextField(
+                              controller: _searchController,
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                });
+                              },
                               decoration: InputDecoration(
                                 hintText: 'Tìm kiếm tên danh mục',
                                 prefixIcon: const Icon(Icons.search,
@@ -229,6 +258,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                 color: Colors.grey.shade50,
                               ),
                               child: TextField(
+                                controller: _searchController,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _searchQuery = value;
+                                  });
+                                },
                                 decoration: InputDecoration(
                                   hintText: 'Tìm kiếm tên danh mục',
                                   prefixIcon: const Icon(Icons.search,

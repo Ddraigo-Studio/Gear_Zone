@@ -813,4 +813,64 @@ class ProductController {
       return false;
     }
   }
+
+  // Tìm kiếm sản phẩm có phân trang
+  Future<Map<String, dynamic>> searchProductsPaginated(String query, {int page = 1, int limit = 20}) async {
+    query = query.toLowerCase();
+    try {
+      // Lấy tất cả sản phẩm để tìm kiếm và lọc (vì Firestore không hỗ trợ tìm kiếm text trực tiếp)
+      QuerySnapshot allProductsSnapshot = await _productsCollection.get();
+      
+      // Lọc sản phẩm theo query
+      List<DocumentSnapshot> filteredDocs = allProductsSnapshot.docs.where((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String name = (data['name'] ?? '').toLowerCase();
+        String id = doc.id.toLowerCase();
+        String category = (data['category'] ?? '').toLowerCase();
+        String code = (data['productCode'] ?? '').toLowerCase();
+        
+        return name.contains(query) || id.contains(query) || 
+               category.contains(query) || code.contains(query);
+      }).toList();
+      
+      // Tính toán thông tin phân trang
+      int totalItems = filteredDocs.length;
+      int totalPages = (totalItems / limit).ceil();
+      
+      // Phân trang kết quả tìm kiếm
+      int startIndex = (page - 1) * limit;
+      int endIndex = (startIndex + limit < totalItems) ? startIndex + limit : totalItems;
+      
+      // Đảm bảo chỉ số không âm và không vượt quá giới hạn danh sách
+      startIndex = startIndex < 0 ? 0 : startIndex;
+      startIndex = startIndex > totalItems ? 0 : startIndex;
+      endIndex = endIndex > totalItems ? totalItems : endIndex;
+      
+      // Lấy danh sách trang hiện tại từ kết quả đã lọc
+      List<DocumentSnapshot> pagedDocs = [];
+      if (startIndex < endIndex) {
+        pagedDocs = filteredDocs.sublist(startIndex, endIndex);
+      }
+      
+      // Chuyển đổi sang ProductModel
+      List<ProductModel> products = pagedDocs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+      
+      // Trả về kết quả bao gồm dữ liệu và thông tin phân trang
+      return {
+        'products': products,
+        'total': totalItems,
+        'totalPages': totalPages > 0 ? totalPages : 1,
+        'currentPage': page,
+        'hasNextPage': page < totalPages,
+        'hasPreviousPage': page > 1,
+      };
+    } catch (e) {
+      print('Error searching paginated products: $e');
+      throw e;
+    }
+  }
 }

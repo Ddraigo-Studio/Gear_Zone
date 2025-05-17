@@ -22,6 +22,10 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   final ProductController _productController = ProductController();
   
+  // Biến tìm kiếm
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  
   // Thông tin phân trang
   int _currentPage = 1;
   int _totalPages = 1;
@@ -145,7 +149,14 @@ class _ProductScreenState extends State<ProductScreen> {
       
       Map<String, dynamic> result;
       
-      if (selectedCategory.isEmpty) {
+      if (_searchQuery.isNotEmpty) {
+        // Tìm kiếm sản phẩm
+        result = await _productController.searchProductsPaginated(
+          _searchQuery,
+          page: _currentPage, 
+          limit: _itemsPerPage
+        );
+      } else if (selectedCategory.isEmpty) {
         // Lấy tất cả sản phẩm nếu không có danh mục được chọn
         result = await _productController.getProductsPaginated(
           page: _currentPage, 
@@ -450,6 +461,15 @@ class _ProductScreenState extends State<ProductScreen> {
                               color: Colors.grey.shade50,
                             ),
                             child: TextField(
+                              controller: _searchController,
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                  _currentPage = 1; // Reset về trang 1 khi tìm kiếm
+                                });
+                                // Gọi lại phương thức tải sản phẩm với từ khóa tìm kiếm
+                                _loadProducts();
+                              },
                               decoration: InputDecoration(
                                 hintText: 'Tìm kiếm ID, tên sản phẩm',
                                 prefixIcon: const Icon(Icons.search,
@@ -538,6 +558,15 @@ class _ProductScreenState extends State<ProductScreen> {
                                 color: Colors.grey.shade50,
                               ),
                               child: TextField(
+                                controller: _searchController,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _searchQuery = value;
+                                    _currentPage = 1; // Reset về trang 1 khi tìm kiếm
+                                  });
+                                  // Gọi lại phương thức tải sản phẩm với từ khóa tìm kiếm
+                                  _loadProducts();
+                                },
                                 decoration: InputDecoration(
                                   hintText: 'Tìm kiếm ID, tên sản phẩm',
                                   prefixIcon: const Icon(Icons.search,
