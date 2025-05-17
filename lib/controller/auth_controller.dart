@@ -33,13 +33,19 @@ class AuthController with ChangeNotifier {
   bool get isAuthenticated => _firebaseUser != null;
   String? get error => _error;
   String? get successMessage => _successMessage;
-
   // Khởi tạo - kiểm tra phiên đăng nhập hiện tại
   Future<void> initAuth() async {
     _auth.authStateChanges().listen((User? user) async {
       _firebaseUser = user;
       if (user != null) {
         await _fetchUserData(user.uid);
+        
+        // Kiểm tra xem tài khoản có bị cấm không sau khi lấy được dữ liệu
+        if (_userModel != null && (_userModel!.isBanned ?? false)) {
+          // Đăng xuất ngay lập tức nếu tài khoản bị cấm
+          await signOut();
+          _setError("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với bộ phận hỗ trợ.");
+        }
       } else {
         _userModel = null;
       }
@@ -146,10 +152,17 @@ class AuthController with ChangeNotifier {
 
       if (userCredential.user == null) {
         _setError("Đăng nhập thất bại. Vui lòng thử lại.");
-        return false;
-      }
+        return false;      }
 
       await _fetchUserData(userCredential.user!.uid);
+      
+      // Kiểm tra xem tài khoản có bị cấm không
+      if (_userModel != null && (_userModel!.isBanned ?? false)) {
+        // Đăng xuất người dùng ngay lập tức nếu họ bị cấm
+        await signOut();
+        _setError("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với bộ phận hỗ trợ.");
+        return false;
+      }
 
       // Xử lý giỏ hàng sau khi đăng nhập thành công
       await cartController.handleUserLogin(userCredential.user!.uid);

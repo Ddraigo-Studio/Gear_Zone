@@ -10,6 +10,8 @@ class UserModel {
   final String? defaultAddressId; // ID của địa chỉ mặc định
   final String? role; // Vai trò của người dùng (user, admin, etc.)
   final bool hasChangedPassword; // Đánh dấu người dùng đã từng đổi mật khẩu chưa
+  final bool? isBanned; // Trạng thái cấm tài khoản
+  
   UserModel({
     required this.uid,
     required this.name,
@@ -22,6 +24,7 @@ class UserModel {
     this.defaultAddressId,
     this.role,
     this.hasChangedPassword = false,
+    this.isBanned = false,
   });
   // Chuyển đổi từ Map (JSON) sang UserModel
   factory UserModel.fromMap(Map<String, dynamic> data) {
@@ -37,10 +40,10 @@ class UserModel {
           : DateTime.now(),
       addressList: data["addressList"] != null 
           ? List<Map<String, dynamic>>.from(data["addressList"]) 
-          : [],
-      defaultAddressId: data["defaultAddressId"],
+          : [],      defaultAddressId: data["defaultAddressId"],
       role: data["role"],
       hasChangedPassword: data["hasChangedPassword"] ?? false,
+      isBanned: data["isBanned"] ?? false,
     );
   }
   // Chuyển đổi từ UserModel sang Map (JSON)
@@ -52,11 +55,12 @@ class UserModel {
       "phoneNumber": phoneNumber,
       "photoURL": photoURL,
       "loyaltyPoints": loyaltyPoints,
-      "createdAt": createdAt.toIso8601String(),
+      "createdAt": createdAt.toIso8601String(),      
       "addressList": addressList,
       "defaultAddressId": defaultAddressId,
       "role": role,
       "hasChangedPassword": hasChangedPassword,
+      "isBanned": isBanned,
     };
   }
   // Tạo bản sao của UserModel với một số thuộc tính được thay đổi

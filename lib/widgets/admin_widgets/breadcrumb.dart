@@ -179,4 +179,23 @@ class BreadcrumbBuilder {  /// Create dashboard breadcrumb
       }
     );
   }
+
+  /// Create customer list breadcrumb
+  static BreadcrumbItem customers(BuildContext context) {
+    return BreadcrumbItem(
+      title: 'Khách hàng',
+      screen: AppScreen.customerList,
+    );
+  }
+
+  /// Create a customer detail breadcrumb
+  static BreadcrumbItem customerDetail(BuildContext context, String name) {
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    return BreadcrumbItem(
+      title: name,
+      screen: AppScreen.customerDetail,
+      id: appProvider.currentCustomerId,
+      isActive: true,
+    );
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gear_zone/admin/Customer/customer_screen.dart';
 import 'package:gear_zone/admin/Product/product_detail_screen.dart';
 import '../core/utils/responsive.dart';
 import '../widgets/admin_widgets/sidebar.dart';
@@ -7,10 +8,15 @@ import 'package:provider/provider.dart';
 import 'Dashboard/dashboard_screen.dart';
 import 'Product/product_screen.dart';
 import 'Product/product_add_screen.dart';
-import 'Customer/customer_screen.dart';
+import 'Customer/customer_detail_screen.dart';
 import 'Category/category_screen.dart';
 import 'Category/category_detail.dart';
 import 'Category/category_add_screen.dart';
+import 'Voucher/voucher_screen.dart';
+import 'Voucher/voucher_detail_screen.dart';
+import 'Voucher/voucher_add_screen.dart';
+import 'Order/order_screen.dart';
+import 'Order/order_detail_screen.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});  @override
@@ -90,10 +96,10 @@ class AdminScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-      // Show drawer on mobile
+      ),      // Show drawer on mobile
+      // We remove the 'const' keyword to ensure the Sidebar is recreated each time the drawer is opened
       drawer:
-          Responsive.isDesktop(context) ? null : const Drawer(child: Sidebar()),
+          Responsive.isDesktop(context) ? null : Drawer(child: Sidebar()),
     );
   }
 
@@ -186,8 +192,10 @@ class AdminScreen extends StatelessWidget {
         switch (screenIndex) {          
           case AppScreen.dashboard:
             return const DashboardScreen();
+            
           case AppScreen.productList:
             return const ProductScreen(); // Màn hình danh sách sản phẩm
+            
           case AppScreen.productDetail:
             // Kiểm tra nếu có productId thì hiển thị chi tiết, nếu không thì hiển thị danh sách sản phẩm
             if (appProvider.currentProductId.isNotEmpty) {
@@ -196,8 +204,10 @@ class AdminScreen extends StatelessWidget {
               // Hiển thị danh sách sản phẩm, có thể lọc theo danh mục nếu có
               return const ProductScreen();
             }
+            
           case AppScreen.categoryList:
             return const CategoryScreen(); // Màn hình danh sách danh mục
+            
           case AppScreen.categoryDetail:
             // Kiểm tra nếu có categoryId thì hiển thị chi tiết, nếu không thì hiển thị danh sách danh mục
             if (appProvider.currentCategoryId.isNotEmpty) {
@@ -208,12 +218,49 @@ class AdminScreen extends StatelessWidget {
             } else {
               return const CategoryScreen();
             }
+            
           case AppScreen.categoryAdd:
             return const CategoryAddScreen(); // Màn hình thêm danh mục mới
+            
           case AppScreen.customerList:
-            return const CustomerScreen(); // Màn hình khách hàng
+            return const CustomerScreen(); // Màn hình quản lý khách hàng nâng cao
+            
+          case AppScreen.customerDetail:
+            // Kiểm tra nếu có customerId thì hiển thị chi tiết, nếu không thì hiển thị danh sách khách hàng
+            if (appProvider.currentCustomerId.isNotEmpty) {
+              return CustomerDetailScreen(isViewOnly: appProvider.isViewOnlyMode);
+            } else {
+              return const CustomerScreen();
+            }
+            
           case AppScreen.productAdd:
             return const ProductAddScreen(); // Màn hình thêm sản phẩm mới
+            
+          case AppScreen.voucherList:
+            return const VoucherScreen(); // Màn hình danh sách phiếu giảm giá
+            
+          case AppScreen.voucherDetail:
+            // Kiểm tra nếu có voucherId thì hiển thị chi tiết, nếu không thì hiển thị danh sách voucher
+            if (appProvider.currentVoucherId.isNotEmpty) {
+              return VoucherDetailScreen(isViewOnly: appProvider.isViewOnlyMode);
+            } else {
+              return const VoucherScreen();
+            }
+            
+          case AppScreen.voucherAdd:
+            return const VoucherAddScreen(); // Màn hình thêm phiếu giảm giá mới
+            
+          case AppScreen.orderList:
+            return const OrderScreen(); // Màn hình danh sách đơn hàng
+            
+          case AppScreen.orderDetail:
+            // Kiểm tra nếu có orderId thì hiển thị chi tiết, nếu không thì hiển thị danh sách đơn hàng
+            if (appProvider.currentOrderId.isNotEmpty) {
+              return OrderDetailScreen(isViewOnly: appProvider.isViewOnlyMode);
+            } else {
+              return const OrderScreen();
+            }
+            
           default:
             return const DashboardScreen();
         }
