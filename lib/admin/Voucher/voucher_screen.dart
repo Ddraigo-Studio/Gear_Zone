@@ -125,7 +125,6 @@ class _VoucherScreenState extends State<VoucherScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
     final isMobile = Responsive.isMobile(context);    return Scaffold(
       backgroundColor: Colors.transparent,
       // Removed floating action button
@@ -185,81 +184,144 @@ class _VoucherScreenState extends State<VoucherScreen> {
               ),
             ],
           ),
-        ),        if (!isMobile) ...[
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 300,
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm mã giảm giá...',
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                  _currentPage = 1; // Reset to first page when searching
-                });
-                _loadVouchers(); // Reload vouchers with new search query
-              },
-            ),
-          ),
-        ],
+        ),        // Đã chuyển thanh tìm kiếm xuống cùng hàng với nút thêm voucher
       ],
     );
-  }
-  Widget _buildFilters(BuildContext context) {
+  }  Widget _buildFilters(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final appProvider = Provider.of<AppProvider>(context, listen: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [        if (isMobile)
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Tìm kiếm mã giảm giá...',
-              prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+
+      children: [        
+        if (isMobile)
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  alignment: Alignment.center,
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm mã giảm giá...',
+                      prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
+                      prefixIconConstraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                    ),
+                    textAlignVertical: TextAlignVertical.center,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                        _currentPage = 1; // Reset to first page when searching
+                      });
+                      _loadVouchers(); // Reload vouchers with new search query
+                    },
+                  ),
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-                _currentPage = 1; // Reset to first page when searching
-              });
-              _loadVouchers(); // Reload vouchers with new search query
-            },
+              const SizedBox(width: 12),
+              Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Color(0xFF7C3AED),
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    appProvider.setCurrentScreen(AppScreen.voucherAdd);
+                  },
+                  icon: const Icon(Icons.add, color: Colors.white, size: 20),
+                  label: const Text('Thêm', style: TextStyle(fontSize: 14)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 0,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         if (isMobile) const SizedBox(height: 16),
-        
-        Row(
+          if (!isMobile) Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Status filter removed
+          children: [            // Thanh tìm kiếm (chỉ hiển thị ở desktop view)              
+          Expanded(
+              child: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                alignment: Alignment.center,
+                child: TextField(
+                  controller: _searchController,
+                  style: TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'Tìm kiếm mã giảm giá...',
+                    prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
+                    prefixIconConstraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  ),
+                  textAlignVertical: TextAlignVertical.center,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                      _currentPage = 1; // Reset to first page when searching
+                    });
+                    _loadVouchers(); // Reload vouchers with new search query
+                  },
+                ),
+              ),
+            ),
             
+            // Khoảng cách giữa thanh tìm kiếm và nút thêm
+            const SizedBox(width: 16),
             // Add a "New Voucher" button
-            ElevatedButton.icon(
-            
-              onPressed: () {
-                appProvider.setCurrentScreen(AppScreen.voucherAdd);
-              },
-              icon: const Icon(Icons.add, color: Colors.white,),
-              label: const Text('Thêm mã giảm giá mới'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 16 : 24,
-                  vertical: isMobile ? 10 : 16,
+            Container(
+              height: 40,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Color(0xFF7C3AED), // Purple color như trong CustomerScreen
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  appProvider.setCurrentScreen(AppScreen.voucherAdd);
+                },
+                icon: const Icon(Icons.add, color: Colors.white, size: 20),
+                label: const Text('Thêm mã giảm giá mới', style: TextStyle(fontSize: 14)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 0,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
             ),

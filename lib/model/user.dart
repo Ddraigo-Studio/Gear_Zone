@@ -151,7 +151,6 @@ class UserModel {
       defaultAddressId: newDefaultAddressId,
     );
   }
-
   // Phương thức cập nhật địa chỉ mặc định
   UserModel updateDefaultAddress(String addressId) {
     // Kiểm tra xem addressId có tồn tại trong danh sách địa chỉ không
@@ -161,5 +160,44 @@ class UserModel {
     return this.copyWith(
       defaultAddressId: addressId,
     );
+  }
+  
+  // Phương thức lấy địa chỉ mặc định
+  Map<String, dynamic>? getDefaultAddress() {
+    if (addressList.isEmpty) {
+      return null;
+    }
+    
+    if (defaultAddressId != null) {
+      for (var address in addressList) {
+        if (address['id'] == defaultAddressId) {
+          return address;
+        }
+      }
+    }
+    
+    // Nếu không tìm thấy địa chỉ mặc định, trả về địa chỉ đầu tiên
+    return addressList.isNotEmpty ? addressList.first : null;
+  }
+  
+  // Phương thức lấy địa chỉ đầy đủ từ địa chỉ mặc định
+  String getDefaultAddressText() {
+    final address = getDefaultAddress();
+    if (address == null) {
+      return 'Không có địa chỉ';
+    }
+    
+    // Ưu tiên sử dụng trường fullAddress nếu có
+    if (address['fullAddress'] != null && address['fullAddress'].toString().isNotEmpty) {
+      return address['fullAddress'];
+    }
+    
+    // Nếu không có fullAddress, tạo từ các thành phần
+    final street = address['street'] ?? address['addressDetail'] ?? '';
+    final ward = address['ward'] ?? '';
+    final district = address['district'] ?? '';
+    final province = address['province'] ?? '';
+    
+    return '$street, $ward, $district, $province'.replaceAll(RegExp(r', ,'), ',').replaceAll(RegExp(r'(^,|,$)'), '');
   }
 }

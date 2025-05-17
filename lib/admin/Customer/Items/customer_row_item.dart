@@ -8,21 +8,8 @@ import 'package:intl/intl.dart';
 
 // Helper function để lấy địa chỉ mặc định của người dùng
 String _getDefaultAddress(UserModel customer) {
-  if (customer.addressList.isEmpty) {
-    return 'Không có địa chỉ';
-  }
-  
-  if (customer.defaultAddressId != null) {
-    for (var address in customer.addressList) {
-      if (address['id'] == customer.defaultAddressId) {
-        return '${address['address']}, ${address['ward']}, ${address['district']}, ${address['province']}';
-      }
-    }
-  }
-  
-  // Nếu không tìm thấy địa chỉ mặc định, trả về địa chỉ đầu tiên
-  var firstAddress = customer.addressList.first;
-  return '${firstAddress['address']}, ${firstAddress['ward']}, ${firstAddress['district']}, ${firstAddress['province']}';
+  // Sử dụng phương thức getDefaultAddressText từ UserModel
+  return customer.getDefaultAddressText();
 }
 
 TableRow buildCustomerTableRow(

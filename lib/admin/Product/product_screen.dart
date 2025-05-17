@@ -451,14 +451,13 @@ class _ProductScreenState extends State<ProductScreen> {
                 isMobile
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Search field - full width on mobile
+                        children: [                          // Search field - full width on mobile
                           Container(
-                            height: 40,
+                            height: 40,                            
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: Colors.grey.shade300),
-                              color: Colors.grey.shade50,
+                              color: Colors.white,
                             ),
                             child: TextField(
                               controller: _searchController,
@@ -474,12 +473,15 @@ class _ProductScreenState extends State<ProductScreen> {
                                 hintText: 'Tìm kiếm ID, tên sản phẩm',
                                 prefixIcon: const Icon(Icons.search,
                                     color: Colors.grey, size: 20),
+                                prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                                 border: InputBorder.none,
+                                isDense: true,
                                 contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 10),
+                                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                                 hintStyle: TextStyle(
                                     color: Colors.grey.shade400, fontSize: 14),
                               ),
+                              textAlignVertical: TextAlignVertical.center,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -551,11 +553,10 @@ class _ProductScreenState extends State<ProductScreen> {
                         children: [
                           Expanded(
                             child: Container(
-                              height: 40,
-                              decoration: BoxDecoration(
+                              height: 40,                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: Colors.grey.shade300),
-                                color: Colors.grey.shade50,
+                                color: Colors.white,
                               ),
                               child: TextField(
                                 controller: _searchController,
@@ -571,12 +572,15 @@ class _ProductScreenState extends State<ProductScreen> {
                                   hintText: 'Tìm kiếm ID, tên sản phẩm',
                                   prefixIcon: const Icon(Icons.search,
                                       color: Colors.grey, size: 20),
+                                  prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                                   border: InputBorder.none,
+                                  isDense: true,
                                   contentPadding:
-                                      const EdgeInsets.symmetric(vertical: 10),
+                                      const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                                   hintStyle: TextStyle(
                                       color: Colors.grey.shade400, fontSize: 14),
                                 ),
+                                textAlignVertical: TextAlignVertical.center,
                               ),
                             ),
                           ),

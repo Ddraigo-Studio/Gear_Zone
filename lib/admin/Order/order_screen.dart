@@ -106,22 +106,38 @@ class _OrderScreenState extends State<OrderScreen> {
               ),
             ],
           ),
-        ),
-        if (!isMobile) ...[
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 300,
+        ),        // Đã chuyển thanh tìm kiếm xuống cùng hàng với bộ lọc
+      ],
+    );
+  }
+
+  Widget _buildFilters(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Thanh tìm kiếm cho mobile
+        if (isMobile)
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
             child: TextField(
               controller: _searchController,
+              style: TextStyle(fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Tìm kiếm đơn hàng...',
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
+                prefixIconConstraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
               ),
+              textAlignVertical: TextAlignVertical.center,
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value;
@@ -129,36 +145,47 @@ class _OrderScreenState extends State<OrderScreen> {
               },
             ),
           ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildFilters(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (isMobile)
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Tìm kiếm đơn hàng...',
-              prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey[300]!),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
-          ),
         if (isMobile) const SizedBox(height: 16),
+        
+        // Thanh tìm kiếm desktop và bộ lọc trạng thái
+        Row(
+          children: [
+            // Thanh tìm kiếm (chỉ hiển thị ở desktop view)            
+            if (!isMobile) 
+              Expanded(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  alignment: Alignment.center,
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm đơn hàng...',
+                      prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
+                      prefixIconConstraints: BoxConstraints(minWidth: 40, minHeight: 40),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                    ),
+                    textAlignVertical: TextAlignVertical.center,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+              ),
+          ],
+        ),
+        
+        const SizedBox(height: 16),
         
         // Status filters
         Wrap(

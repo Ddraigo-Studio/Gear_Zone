@@ -427,27 +427,13 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                       ),
-                    )
-                  else if (_user!.defaultAddressId == null || _user!.defaultAddressId!.isEmpty) 
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Không có địa chỉ mặc định',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ),
-                    )
-                  else
+                    )                  else
                     Builder(
                       builder: (context) {
-                        // Tìm địa chỉ mặc định
-                        final defaultAddress = _user!.addressList.firstWhere(
-                          (address) => address['id'] == _user!.defaultAddressId,
-                          orElse: () => {},
-                        );
+                        // Lấy địa chỉ mặc định sử dụng phương thức mới từ UserModel
+                        final defaultAddress = _user!.getDefaultAddress();
                         
-                        if (defaultAddress.isEmpty) {
+                        if (defaultAddress == null || defaultAddress.isEmpty) {
                           return Center(
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -468,8 +454,8 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('${defaultAddress['name']} | ${defaultAddress['phoneNumber']}'),
-                              Text(defaultAddress['fullAddress'] ?? ''),
+                              Text('${defaultAddress['name'] ?? ''} | ${defaultAddress['phoneNumber'] ?? ''}'),
+                              Text(defaultAddress['fullAddress'] ?? _user!.getDefaultAddressText()),
                             ],
                           ),
                           trailing: Chip(
