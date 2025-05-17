@@ -4,6 +4,7 @@ import 'package:gear_zone/core/app_provider.dart';
 import 'package:gear_zone/controller/voucher_controller.dart';
 import 'package:gear_zone/model/voucher.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
+import 'package:gear_zone/widgets/pagination_widget.dart';
 import 'Items/voucher_row_item.dart';
 
 class VoucherScreen extends StatefulWidget {
@@ -18,17 +19,101 @@ class _VoucherScreenState extends State<VoucherScreen> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  
+  // Pagination variables
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _hasNextPage = false;
+  bool _hasPreviousPage = false;
+  int _totalItems = 0;
+  final int _itemsPerPage = 20;
+  List<Voucher> _vouchers = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+  
 
   @override
   void initState() {
     super.initState();
+    _loadVouchers(); // Load vouchers with pagination on init
+    
     // Kiểm tra xem có cần tải lại danh sách không
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appProvider = Provider.of<AppProvider>(context, listen: false);
       if (appProvider.reloadVoucherList) {
         appProvider.setReloadVoucherList(false);
+        _loadVouchers(); // Reload vouchers when reloadVoucherList is true
       }
     });
+  }
+  
+  // Load vouchers with pagination
+  Future<void> _loadVouchers() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    
+    try {
+      Map<String, dynamic> result;
+      
+      if (_searchQuery.isNotEmpty) {
+        // TODO: Implement search with pagination if needed
+        result = await _voucherController.getVouchersPaginated(
+          page: _currentPage,
+          limit: _itemsPerPage
+        );
+      } else {
+        // Get all vouchers with pagination
+        result = await _voucherController.getVouchersPaginated(
+          page: _currentPage,
+          limit: _itemsPerPage
+        );
+      }
+      
+      // Check if result contains valid data
+      if (!result.containsKey('vouchers')) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Không nhận được dữ liệu hợp lệ từ server';
+        });
+        print('Lỗi: Kết quả trả về không hợp lệ');
+        return;
+      }
+      
+      final vouchersList = result['vouchers'] as List<Voucher>;
+      print('Đã nhận được dữ liệu: ${vouchersList.length} phiếu giảm giá');
+      
+      // Update state with new data
+      setState(() {
+        _vouchers = result['vouchers'];
+        _totalItems = result['totalItems'];
+        _totalPages = result['totalPages'] > 0 ? result['totalPages'] : 1;
+        _currentPage = result['currentPage'];
+        _hasNextPage = result['hasNextPage'];
+        _hasPreviousPage = result['hasPreviousPage'];
+        _isLoading = false;
+        _errorMessage = '';
+      });
+      
+      // Debug log
+      print('Đã tải ${_vouchers.length} phiếu giảm giá');
+      print('Tổng số: $_totalItems, Trang: $_currentPage/$_totalPages');
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Lỗi khi tải dữ liệu: $e';
+      });
+      print('Lỗi khi tải phiếu giảm giá: $e');
+    }
+  }
+
+  // Handle page change
+  void _handlePageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+    _loadVouchers();
   }
 
   @override
@@ -100,8 +185,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
               ),
             ],
           ),
-        ),
-        if (!isMobile) ...[
+        ),        if (!isMobile) ...[
           const SizedBox(width: 16),
           SizedBox(
             width: 300,
@@ -119,7 +203,9 @@ class _VoucherScreenState extends State<VoucherScreen> {
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value;
+                  _currentPage = 1; // Reset to first page when searching
                 });
+                _loadVouchers(); // Reload vouchers with new search query
               },
             ),
           ),
@@ -133,8 +219,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (isMobile)
+      children: [        if (isMobile)
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
@@ -149,7 +234,9 @@ class _VoucherScreenState extends State<VoucherScreen> {
             onChanged: (value) {
               setState(() {
                 _searchQuery = value;
+                _currentPage = 1; // Reset to first page when searching
               });
+              _loadVouchers(); // Reload vouchers with new search query
             },
           ),
         if (isMobile) const SizedBox(height: 16),
@@ -161,10 +248,11 @@ class _VoucherScreenState extends State<VoucherScreen> {
             
             // Add a "New Voucher" button
             ElevatedButton.icon(
+            
               onPressed: () {
                 appProvider.setCurrentScreen(AppScreen.voucherAdd);
               },
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add, color: Colors.white,),
               label: const Text('Thêm mã giảm giá mới'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
@@ -179,52 +267,63 @@ class _VoucherScreenState extends State<VoucherScreen> {
         ),
       ],
     );
-  }
-  Widget _buildVouchersList(BuildContext context) {
+  }  
+    Widget _buildVouchersList(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     
-    return StreamBuilder<List<Voucher>>(
-      stream: _voucherController.getVouchers(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    // Show loading indicator or error message if needed
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (_errorMessage.isNotEmpty) {
+      return Center(
+        child: Text(
+          'Đã có lỗi xảy ra: $_errorMessage',
+          style: TextStyle(color: Colors.red),
+        ),
+      );
+    }
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Đã có lỗi xảy ra: ${snapshot.error}',
-              style: TextStyle(color: Colors.red),
-            ),
-          );
-        }
+    // Áp dụng bộ lọc tìm kiếm
+    final filteredVouchers = _searchQuery.isEmpty
+        ? _vouchers
+        : _vouchers.where((v) => 
+            v.code.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            v.id.toLowerCase().contains(_searchQuery.toLowerCase())
+          ).toList();
 
-        final vouchers = snapshot.data ?? [];
-        
-        // Áp dụng bộ lọc tìm kiếm
-        final filteredVouchers = _searchQuery.isEmpty
-            ? vouchers
-            : vouchers.where((v) => 
-                v.code.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                v.id.toLowerCase().contains(_searchQuery.toLowerCase())
-              ).toList();
+    if (filteredVouchers.isEmpty) {
+      return const Center(
+        child: Text(
+          'Không có phiếu giảm giá nào',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
 
-        if (filteredVouchers.isEmpty) {
-          return const Center(
-            child: Text(
-              'Không có phiếu giảm giá nào',
-              style: TextStyle(color: Colors.grey),
-            ),
-          );
-        }
-
-        return isMobile
+    return Column(
+      children: [
+        // Voucher list based on device type
+        isMobile
             ? _buildMobileVouchersList(filteredVouchers, appProvider)
-            : _buildDesktopVouchersList(filteredVouchers, appProvider);
-      },
+            : _buildDesktopVouchersList(filteredVouchers, appProvider),
+            
+        // Add pagination widget
+        const SizedBox(height: 24),
+        PaginationWidget(
+          currentPage: _currentPage,
+          totalPages: _totalPages,
+          hasNextPage: _hasNextPage,
+          hasPreviousPage: _hasPreviousPage,
+          onPageChanged: _handlePageChanged,
+          isMobile: isMobile,
+        ),
+      ],
     );
-  }  Widget _buildMobileVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
+  }
+  Widget _buildMobileVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
     final List<bool> expandedItems = List.generate(vouchers.length, (_) => false);
 
     return StatefulBuilder(
@@ -249,7 +348,8 @@ class _VoucherScreenState extends State<VoucherScreen> {
         );
       }
     );
-  }Widget _buildDesktopVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
+  }
+  Widget _buildDesktopVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -276,7 +376,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
           // Header row
           TableRow(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.grey.shade200,
               border: Border(
                 bottom: BorderSide(color: Colors.grey.shade200),
               ),

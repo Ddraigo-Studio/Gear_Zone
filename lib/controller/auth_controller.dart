@@ -653,4 +653,10 @@ class AuthController with ChangeNotifier {
       _setLoading(false);
     }
   }
+
+  // Navigate to admin screen
+  void navigateToAdminScreen(BuildContext context) {
+    Navigator.pushNamedAndRemoveUntil(
+        context, AppRoutes.admin, (route) => false);
+  }
 }
