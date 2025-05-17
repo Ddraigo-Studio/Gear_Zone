@@ -189,14 +189,6 @@ class _SidebarState extends State<Sidebar> {
 
                   _buildMenuItem(
                     context,
-                    icon: Icons.settings_outlined,
-                    title: 'Cài đặt',
-                    screen: AppScreen.dashboard, // Tạm thời sử dụng dashboard vì chưa có màn hình cài đặt
-                    currentScreen: appProvider.currentScreen,
-                  ),
-                  
-                  _buildMenuItem(
-                    context,
                     icon: Icons.chat_outlined,
                     title: 'Hộp thoại',
                     screen: AppScreen.dashboard, // Tạm thời sử dụng dashboard vì chưa có màn hình hộp thoại

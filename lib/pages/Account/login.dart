@@ -52,7 +52,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
-
   // Phương thức đăng nhập người dùng
   Future<void> _loginUser(BuildContext context) async {
     // Kiểm tra xác thực form
@@ -82,10 +81,14 @@ class _LoginScreenState extends State<LoginScreen> {
             duration: Duration(seconds: 2),
           ),
         );
+      }      // Kiểm tra vai trò của người dùng
+      if (authController.userModel?.role?.toLowerCase() == 'admin') {
+        // Nếu là admin, chuyển đến trang quản trị
+        authController.navigateToAdminScreen(context);
+      } else {
+        // Nếu là người dùng thông thường, chuyển đến trang chủ
+        authController.navigateToHomeScreen(context);
       }
-
-      // Chuyển đến trang chủ (phương thức từ controller)
-      authController.navigateToHomeScreen(context);
     }
   }
 
@@ -468,7 +471,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildSocialButton(
-                icon: "assets/images/ic_google.png",
+                icon: "images/ic_google.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -481,7 +484,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(width: 16.h),
               _buildSocialButton(
-                icon: "assets/images/ic_facebook.png",
+                icon: "images/ic_facebook.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -494,7 +497,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(width: 20.h),
               _buildSocialButton(
-                icon: "assets/images/ic_apple.png",
+                icon: "images/ic_apple.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
