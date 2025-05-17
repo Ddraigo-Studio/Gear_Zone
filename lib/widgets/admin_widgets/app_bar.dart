@@ -70,26 +70,7 @@ class CustomAppBar extends StatelessWidget {
           const Spacer(),
 
           if (Responsive.isDesktop(context)) ...[
-            // Search bar
-            Container(
-              width: 300,
-              height: 40,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Tìm kiếm sản phẩm',
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  hintStyle:
-                      TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
+           
           ] else ...[
             IconButton(
               icon: const Icon(Icons.search),

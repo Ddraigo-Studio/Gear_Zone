@@ -144,15 +144,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       );
-    }
-
-    // Lấy địa chỉ mặc định nếu có
-    final Map<String, dynamic>? defaultAddress =
-        userModel.defaultAddressId != null
-            ? userModel.addressList.firstWhere(
-                (address) => address['id'] == userModel.defaultAddressId,
-                orElse: () => userModel.addressList.first)
-            : userModel.addressList.first;
+    }    // Lấy địa chỉ mặc định sử dụng phương thức mới từ UserModel
+    final Map<String, dynamic>? defaultAddress = userModel.getDefaultAddress();
 
     if (defaultAddress == null) {
       return Container(
@@ -169,7 +162,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // Lấy thông tin từ địa chỉ mặc định
     final String name = defaultAddress['name'] ?? '';
     final String phoneNumber = defaultAddress['phoneNumber'] ?? '';
-    final String fullAddress = defaultAddress['fullAddress'] ?? '';
+    // Ưu tiên sử dụng trường fullAddress nếu có
+    final String fullAddress = defaultAddress['fullAddress'] ?? userModel.getDefaultAddressText();
 
     return Container(
       margin: EdgeInsets.all(16.h),

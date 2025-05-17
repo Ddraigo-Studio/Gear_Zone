@@ -258,7 +258,6 @@ class AuthController with ChangeNotifier {
       _setError("Không thể lưu thông tin người dùng: $e");
     }
   }
-
   Future<void> saveUserAddress({
     required String province,
     required String district,
@@ -304,19 +303,28 @@ class AuthController with ChangeNotifier {
             List.from(_userModel!.addressList);
         updatedAddressList.add(newAddress);
 
+        // Chỉ đặt địa chỉ mới làm mặc định nếu:
+        // 1. isDefault = true (được yêu cầu đặt làm mặc định), hoặc
+        // 2. Đây là địa chỉ đầu tiên (không có địa chỉ mặc định nào trước đó)
+        String? newDefaultAddressId = _userModel!.defaultAddressId;
+        if (isDefault || _userModel!.defaultAddressId == null || _userModel!.defaultAddressId!.isEmpty) {
+          newDefaultAddressId = addressId;
+        }
+
         // Cập nhật userModel với địa chỉ mới
         _userModel = _userModel!.copyWith(
           addressList: updatedAddressList,
-          defaultAddressId: addressId, // Đặt làm địa chỉ mặc định
+          defaultAddressId: newDefaultAddressId,
         );
 
         // Lưu vào Firestore
         await _firestore.collection('users').doc(user.uid).update({
           'addressList': updatedAddressList,
-          'defaultAddressId': addressId,
+          'defaultAddressId': newDefaultAddressId,
         });
       } else {
         // Nếu chưa có userModel, tạo document địa chỉ riêng
+        // Địa chỉ đầu tiên luôn là mặc định
         await _firestore.collection('users').doc(user.uid).update({
           'addressList': FieldValue.arrayUnion([newAddress]),
           'defaultAddressId': addressId,

@@ -4,7 +4,6 @@ import 'package:gear_zone/core/app_provider.dart';
 import 'package:gear_zone/controller/user_controller.dart';
 import 'package:gear_zone/model/user.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
-import 'package:intl/intl.dart';
 import 'package:gear_zone/widgets/pagination_widget.dart';
 import 'package:gear_zone/widgets/admin_widgets/breadcrumb.dart';
 import 'Items/customer_row_item.dart';
@@ -149,19 +148,25 @@ class _CustomerScreenState extends State<CustomerScreen> {
     Widget searchField = Container(
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Colors.white,
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(20),
       ),
+      alignment: Alignment.center,
       child: TextField(
-        controller: _searchController,          decoration: InputDecoration(
-            hintText: 'Tìm kiếm khách hàng...',
-            prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          ),
-          onChanged: _onSearchQueryChanged,
+        controller: _searchController,
+        style: TextStyle(fontSize: 14),
+        decoration: InputDecoration(
+          hintText: 'Tìm kiếm khách hàng...',
+          prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
+          prefixIconConstraints: BoxConstraints(minWidth: 40, minHeight: 40),
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        ),
+        textAlignVertical: TextAlignVertical.center,
+        onChanged: _onSearchQueryChanged,
       ),
     );
 
