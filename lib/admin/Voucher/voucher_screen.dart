@@ -268,7 +268,7 @@ class _VoucherScreenState extends State<VoucherScreen> {
       ],
     );
   }  
-    Widget _buildVouchersList(BuildContext context) {
+  Widget _buildVouchersList(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     
@@ -295,33 +295,109 @@ class _VoucherScreenState extends State<VoucherScreen> {
           ).toList();
 
     if (filteredVouchers.isEmpty) {
-      return const Center(
-        child: Text(
-          'Không có phiếu giảm giá nào',
-          style: TextStyle(color: Colors.grey),
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              const Icon(Icons.card_giftcard, size: 48, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                'Không có phiếu giảm giá nào',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return Column(
-      children: [
-        // Voucher list based on device type
-        isMobile
-            ? _buildMobileVouchersList(filteredVouchers, appProvider)
-            : _buildDesktopVouchersList(filteredVouchers, appProvider),
-            
-        // Add pagination widget
-        const SizedBox(height: 24),
-        PaginationWidget(
-          currentPage: _currentPage,
-          totalPages: _totalPages,
-          hasNextPage: _hasNextPage,
-          hasPreviousPage: _hasPreviousPage,
-          onPageChanged: _handlePageChanged,
-          isMobile: isMobile,
+    // Mobile view với danh sách và phân trang
+    if (isMobile) {
+      return Column(
+        children: [
+          // Danh sách vouchers cho mobile view
+          _buildMobileVouchersList(filteredVouchers, appProvider),
+          
+          // Phân trang cho mobile view
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              children: [
+                // Hiển thị thông tin số lượng
+                Text(
+                  'Tổng: $_totalItems phiếu giảm giá | Trang $_currentPage/$_totalPages',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                
+                // Widget phân trang cho mobile
+                PaginationWidget(
+                  currentPage: _currentPage,
+                  totalPages: _totalPages,
+                  hasNextPage: _hasNextPage,
+                  hasPreviousPage: _hasPreviousPage,
+                  onPageChanged: _handlePageChanged,
+                  isMobile: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    // Desktop view - bảng vouchers
+    else {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-      ],
-    );
+        child: Column(
+          children: [
+            // Bảng voucher với danh sách từ voucher_row_item.dart
+            _buildDesktopVouchersList(filteredVouchers, appProvider),
+            
+            // Phân trang
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Text(
+                    'Tổng: $_totalItems phiếu giảm giá | Hiển thị ${filteredVouchers.length} mục',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const Spacer(),
+                  
+                  // Widget phân trang
+                  PaginationWidget(
+                    currentPage: _currentPage,
+                    totalPages: _totalPages,
+                    hasNextPage: _hasNextPage,
+                    hasPreviousPage: _hasPreviousPage,
+                    onPageChanged: _handlePageChanged,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
   Widget _buildMobileVouchersList(List<Voucher> vouchers, AppProvider appProvider) {
     final List<bool> expandedItems = List.generate(vouchers.length, (_) => false);
