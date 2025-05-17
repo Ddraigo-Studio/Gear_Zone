@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
-import '../../widgets/bottom_sheet/product_variant_bottomsheet.dart';
 
 class AppNavigationScreen extends StatelessWidget {
   const AppNavigationScreen({super.key});
@@ -28,7 +26,7 @@ class AppNavigationScreen extends StatelessWidget {
                         "App Navigation",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Color(0xFFF000000),
+                          color: Color(0xFFF00000),
                           fontSize: 20.fSize,
                           fontFamily: 'Roboto',
                           fontWeight: FontWeight.w400,

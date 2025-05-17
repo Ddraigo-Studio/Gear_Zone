@@ -4,7 +4,6 @@ import '../../core/utils/responsive.dart';
 import '../../model/category.dart';
 import '../../widgets/items/category_products_grid.dart';
 import '../../controller/category_controller.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/cart_icon_button.dart';
 
 class CategoryProductsPage extends StatefulWidget {

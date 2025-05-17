@@ -24,9 +24,9 @@ class Breadcrumb extends StatelessWidget {
   final List<BreadcrumbItem> items;
 
   const Breadcrumb({
-    Key? key,
+    super.key,
     required this.items,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

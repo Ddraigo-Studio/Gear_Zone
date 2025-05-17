@@ -18,8 +18,6 @@ class CategoriesListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        print('Tapped on $categoryName');
-        // Navigate to the category product page
         Navigator.pushNamed(context, '/category_products', arguments: {
           'categoryId': id,
         });

@@ -7,9 +7,9 @@ class PaymentIconTest extends StatelessWidget {
   final String paymentIcon;
 
   const PaymentIconTest({
-    Key? key,
+    super.key,
     required this.paymentIcon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

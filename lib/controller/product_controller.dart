@@ -289,11 +289,10 @@ class ProductController {
       };
     }
   }
-  // Giữ các phương thức stream cho khả năng tương thích ngược
   Stream<List<ProductModel>> getProducts() {
     return _productsCollection
         .orderBy('createdAt', descending: true)
-        .limit(20) // Giới hạn 20 sản phẩm mặc định
+        .limit(20) 
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -302,33 +301,23 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     });
-  }  // Cập nhật phương thức lấy sản phẩm theo danh mục với giới hạn
+  }
   Stream<List<ProductModel>> getProductsByCategory(String category) {
-    // print('Lấy stream sản phẩm theo danh mục: "$category"');
     
     if (category.isEmpty) {
-      // print('Danh mục trống, trả về danh sách rỗng');
       return Stream.value(<ProductModel>[]);
     }
     
     // Sử dụng StreamController để quản lý luồng dữ liệu - broadcast để nhiều người có thể lắng nghe
     final controller = StreamController<List<ProductModel>>.broadcast();
     
-    // Tìm các sản phẩm có danh mục khớp với yêu cầu (không phân biệt hoa/thường)
     _productsCollection.get().then((allDocs) {
-      // print('Tổng số sản phẩm trong DB: ${allDocs.docs.length}');
-      // print('Đang tìm danh mục: "$category" (lowercase: "${category.toLowerCase()}")');
-      
-      // In ra tất cả các danh mục có trong DB để debug
       final allCategories = allDocs.docs
         .map((doc) => (doc.data() as Map<String, dynamic>)['category']?.toString() ?? "null")
         .where((cat) => cat != "null")
         .toSet()
         .toList();
       
-      // print('Các danh mục trong DB: ${allCategories.join(", ")}');
-
-      // In ra tên các sản phẩm và danh mục tương ứng để debug chi tiết
       if (category.toLowerCase() == "loa") {
         // print('🔍 DEBUG DANH MỤC LOA:');
         for (var doc in allDocs.docs) {
@@ -357,21 +346,17 @@ class ProductController {
       // print('Tổng số document phù hợp: ${matchingDocs.length}');
       
       if (matchingDocs.isNotEmpty) {
-        // Nếu tìm thấy sản phẩm khớp với tên danh mục (không phân biệt hoa/thường)
         final String exactCategoryName = (matchingDocs.first.data() as Map<String, dynamic>)['category'] as String;
-        // print('Sử dụng tên danh mục chính xác: "$exactCategoryName" từ cơ sở dữ liệu');
-        
-        // Tạo danh sách sản phẩm từ các document đã tìm thấy (trả về ngay lập tức)
+       
         final List<ProductModel> immediateProducts = matchingDocs.map((doc) {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           data['id'] = doc.id;
           final product = ProductModel.fromMap(data);
-          // print('✅ Chuyển đổi document thành sản phẩm: "${product.name}" (ID: ${product.id})');
+         
           return product;
         }).toList();
         
-        // Thêm sản phẩm đã tìm thấy vào stream ngay lập tức
-        // print('Đã tìm thấy ${immediateProducts.length} sản phẩm cho danh mục "$exactCategoryName", thêm vào stream');
+     
         if (!controller.isClosed) {
           controller.add(immediateProducts);
         }
@@ -447,9 +432,7 @@ class ProductController {
       product.id = productId;
       
       // Thêm thời gian tạo nếu chưa có
-      if (product.createdAt == null) {
-        product.createdAt = DateTime.now();
-      }
+      product.createdAt ??= DateTime.now();
       
       // Chuyển đổi sản phẩm thành Map
       Map<String, dynamic> productMap = product.toMap();

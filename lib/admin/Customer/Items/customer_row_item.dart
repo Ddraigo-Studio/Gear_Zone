@@ -549,7 +549,7 @@ class CustomerListView extends StatefulWidget {
 
 class _CustomerListViewState extends State<CustomerListView> {
   List<UserModel> _customers = [];
-  String _errorMessage = '';
+  final String _errorMessage = '';
   bool _isLoading = false;
   
   @override

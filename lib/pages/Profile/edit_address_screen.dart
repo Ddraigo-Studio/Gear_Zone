@@ -12,9 +12,9 @@ class EditAddressScreen extends StatefulWidget {
   final Map<String, dynamic> address;
 
   const EditAddressScreen({
-    Key? key,
+    super.key,
     required this.address,
-  }) : super(key: key);
+  });
 
   @override
   State<EditAddressScreen> createState() => _EditAddressScreenState();

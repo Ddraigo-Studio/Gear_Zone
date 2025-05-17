@@ -450,7 +450,7 @@ class CategoryListView extends StatefulWidget {
 
 class _CategoryListViewState extends State<CategoryListView> {
   // Theo dõi các mục đã được mở rộng
-  Set<int> _expandedItems = {};
+  final Set<int> _expandedItems = {};
   
   // Xử lý mở rộng/thu gọn cho từng mục
   void _toggleExpanded(int index) {
