@@ -4,7 +4,6 @@ import '../../core/utils/responsive.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../Profile/edit_profile_screen.dart';
-import '../Profile/list_address_screen.dart';
 import '../../controller/auth_controller.dart';
 import '../../widgets/bottom_sheet/change_password_bottomsheet.dart';
 import 'package:provider/provider.dart';
@@ -362,64 +361,83 @@ class SettingsScreen extends StatelessWidget {
   }  Widget _buttonLogout(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
     final authController = Provider.of<AuthController>(context);
+    final bool isLoggedIn = authController.isAuthenticated;
     
     return CustomElevatedButton(
       height: isDesktop ? 60.h : 50.h,
-      text: "Đăng xuất",
-      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 24.h),
-      leftIcon: Container(
+      text: isLoggedIn ? "Đăng xuất" : "Đăng nhập",
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 24.h),      leftIcon: Container(
         margin: EdgeInsets.only(right: isDesktop ? 15.h : 10.h),
-        child: CustomImageView(
-          imagePath: ImageConstant.imgThumbsup,
-          height: isDesktop ? 28.h : 24.h,
-          width: isDesktop ? 28.h : 24.h,
-          fit: BoxFit.contain,
-        ),
+        child: isLoggedIn 
+            ? Icon(
+                Icons.logout_rounded,
+                color: appTheme.red500,
+                size: isDesktop ? 28.h : 24.h,
+              )
+            : Icon(
+                Icons.login_rounded,
+                color: appTheme.deepPurple400,
+                size: isDesktop ? 28.h : 24.h,
+              ),
       ),
       buttonStyle: CustomButtonStyles.fillWhiteA,
       buttonTextStyle: isDesktop 
-          ? CustomTextStyles.titleMediumGabaritoRed500SemiBold.copyWith(fontSize: 18.h)
-          : CustomTextStyles.titleMediumGabaritoRed500SemiBold,
+          ? (isLoggedIn 
+              ? CustomTextStyles.titleMediumGabaritoRed500SemiBold.copyWith(fontSize: 18.h)
+              : CustomTextStyles.titleMediumGabaritoDeeppurple400.copyWith(fontSize: 18.h))
+          : (isLoggedIn 
+              ? CustomTextStyles.titleMediumGabaritoRed500SemiBold
+              : CustomTextStyles.titleMediumGabaritoDeeppurple400),
       onPressed: () async {
-        // Hiển thị hộp thoại xác nhận trước khi đăng xuất
-        bool confirm = await showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Xác nhận đăng xuất"),
-              content: Text("Bạn có chắc chắn muốn đăng xuất?"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text("Hủy"),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text("Đăng xuất"),
-                ),
-              ],
+        if (isLoggedIn) {
+          // Người dùng đã đăng nhập, hiển thị hộp thoại xác nhận đăng xuất
+          bool confirm = await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Xác nhận đăng xuất"),
+                content: Text("Bạn có chắc chắn muốn đăng xuất?"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text("Hủy"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text("Đăng xuất"),
+                  ),
+                ],
+              );
+            },
+          ) ?? false;
+          
+          if (confirm) {
+            await authController.signOut();
+            // Chuyển về màn hình đăng nhập sau khi đăng xuất
+            Navigator.pushNamedAndRemoveUntil(
+              context, 
+              AppRoutes.login, 
+              (route) => false
             );
-          },
-        ) ?? false;
-        
-        if (confirm) {
-          await authController.signOut();
-          // Chuyển về màn hình đăng nhập sau khi đăng xuất
+            
+            // Hiển thị thông báo đăng xuất thành công
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Đăng xuất thành công"),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        } else {
+          // Người dùng chưa đăng nhập, chuyển đến trang đăng nhập
           Navigator.pushNamedAndRemoveUntil(
             context, 
             AppRoutes.login, 
             (route) => false
           );
-          
-          // Hiển thị thông báo đăng xuất thành công
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Đăng xuất thành công"),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }      },
+        }
+      },
     );
   }
 }
