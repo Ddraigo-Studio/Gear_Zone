@@ -19,6 +19,7 @@ enum AppScreen {
   couponList,        // 14: Danh sách mã giảm giá
   couponDetail,      // 15: Chi tiết mã giảm giá
   couponAdd,         // 16: Thêm mã giảm giá mới
+  supportChat,       // 17: Hỗ trợ chat
 }
 
 class AppProvider extends ChangeNotifier {

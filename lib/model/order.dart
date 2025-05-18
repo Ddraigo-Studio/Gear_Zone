@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Simple Order class for UI display purposes (legacy support)
@@ -35,10 +34,13 @@ class OrderModel {
   final double discount;
   final double total;
   final String? voucherId;
+  final String? voucherCode; // Added field for voucher code
+  final double voucherDiscount; // Added field for voucher discount
+  final double pointsDiscount; // Added field for loyalty points discount
+  final int pointsUsed; // Added field for loyalty points used
   final String paymentMethod;
   final bool isPaid;
   final String? note;
-
   OrderModel({
     required this.id,
     required this.userId,
@@ -53,11 +55,14 @@ class OrderModel {
     required this.discount,
     required this.total,
     this.voucherId,
+    this.voucherCode,
+    this.voucherDiscount = 0.0,
+    this.pointsDiscount = 0.0,
+    this.pointsUsed = 0,
     required this.paymentMethod,
     required this.isPaid,
     this.note,
   });
-
   // Convert to map for Firestore
   Map<String, dynamic> toMap() {
     return {
@@ -74,6 +79,10 @@ class OrderModel {
       'discount': discount,
       'total': total,
       'voucherId': voucherId,
+      'voucherCode': voucherCode,
+      'voucherDiscount': voucherDiscount,
+      'pointsDiscount': pointsDiscount,
+      'pointsUsed': pointsUsed,
       'paymentMethod': paymentMethod,
       'isPaid': isPaid,
       'note': note,
@@ -100,6 +109,10 @@ class OrderModel {
       discount: (data['discount'] ?? 0).toDouble(),
       total: (data['total'] ?? 0).toDouble(),
       voucherId: data['voucherId'],
+      voucherCode: data['voucherCode'],
+      voucherDiscount: (data['voucherDiscount'] ?? 0).toDouble(),
+      pointsDiscount: (data['pointsDiscount'] ?? 0).toDouble(),
+      pointsUsed: (data['pointsUsed'] ?? 0) as int,
       paymentMethod: data['paymentMethod'] ?? 'COD',
       isPaid: data['isPaid'] ?? false,
       note: data['note'],

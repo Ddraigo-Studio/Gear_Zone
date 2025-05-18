@@ -39,12 +39,13 @@ class AuthController with ChangeNotifier {
       _firebaseUser = user;
       if (user != null) {
         await _fetchUserData(user.uid);
-        
+
         // Kiểm tra xem tài khoản có bị cấm không sau khi lấy được dữ liệu
         if (_userModel != null && (_userModel!.isBanned ?? false)) {
           // Đăng xuất ngay lập tức nếu tài khoản bị cấm
           await signOut();
-          _setError("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với bộ phận hỗ trợ.");
+          _setError(
+              "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với bộ phận hỗ trợ.");
         }
       } else {
         _userModel = null;
@@ -152,15 +153,17 @@ class AuthController with ChangeNotifier {
 
       if (userCredential.user == null) {
         _setError("Đăng nhập thất bại. Vui lòng thử lại.");
-        return false;      }
+        return false;
+      }
 
       await _fetchUserData(userCredential.user!.uid);
-      
+
       // Kiểm tra xem tài khoản có bị cấm không
       if (_userModel != null && (_userModel!.isBanned ?? false)) {
         // Đăng xuất người dùng ngay lập tức nếu họ bị cấm
         await signOut();
-        _setError("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với bộ phận hỗ trợ.");
+        _setError(
+            "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với bộ phận hỗ trợ.");
         return false;
       }
 
@@ -246,6 +249,13 @@ class AuthController with ChangeNotifier {
     }
   }
 
+  // Refresh user data from Firestore - used after checkout to update loyalty points
+  Future<void> refreshUserData() async {
+    if (_firebaseUser != null) {
+      await _fetchUserData(_firebaseUser!.uid);
+    }
+  }
+
   // Lưu thông tin người dùng vào Firestore
   Future<void> _saveUserToFirestore(UserModel user) async {
     try {
@@ -258,6 +268,7 @@ class AuthController with ChangeNotifier {
       _setError("Không thể lưu thông tin người dùng: $e");
     }
   }
+
   Future<void> saveUserAddress({
     required String province,
     required String district,
@@ -307,7 +318,9 @@ class AuthController with ChangeNotifier {
         // 1. isDefault = true (được yêu cầu đặt làm mặc định), hoặc
         // 2. Đây là địa chỉ đầu tiên (không có địa chỉ mặc định nào trước đó)
         String? newDefaultAddressId = _userModel!.defaultAddressId;
-        if (isDefault || _userModel!.defaultAddressId == null || _userModel!.defaultAddressId!.isEmpty) {
+        if (isDefault ||
+            _userModel!.defaultAddressId == null ||
+            _userModel!.defaultAddressId!.isEmpty) {
           newDefaultAddressId = addressId;
         }
 

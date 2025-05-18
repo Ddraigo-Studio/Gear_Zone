@@ -1,6 +1,9 @@
 // filepath: d:\HOCTAP\CrossplatformMobileApp\DOANCK\Project\Gear_Zone\lib\controller\checkout_controller.dart
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../model/cart_item.dart';
+import '../model/order.dart';
 
 class CheckoutController extends ChangeNotifier {
   // Singleton pattern
@@ -20,11 +23,9 @@ class CheckoutController extends ChangeNotifier {
   // Payment method
   String _paymentMethod = 'Thanh toán khi nhận hàng';
   String _paymentIcon = '';
-  int _paymentMethodIndex = 2; // Mặc định là thanh toán khi nhận hàng (index 2)
-  // Shipping fee
+  int _paymentMethodIndex =
+      2; // Mặc định là thanh toán khi nhận hàng (index 2)  // Shipping fee
   double _shippingFee = 30000.0;
-  // Tax fee (sẽ được tính là 2% giá trị đơn hàng)
-  double _taxFee = 0.0;
 
   // Discount from voucher
   double _discount = 0.0;
@@ -65,7 +66,11 @@ class CheckoutController extends ChangeNotifier {
   // Get the final total price
   double get totalPrice {
     // Tính toán trực tiếp từ từng thành phần thay vì dùng _discount tổng
-    return subtotalPrice + _shippingFee + _taxFee - _voucherDiscount - _pointsDiscount;
+    return subtotalPrice +
+        _shippingFee +
+        taxFee -
+        _voucherDiscount -
+        _pointsDiscount;
   }
 
   // Set items to be checked out
@@ -111,6 +116,7 @@ class CheckoutController extends ChangeNotifier {
     _updateTotalDiscount(); // Reset discount với cập nhật tổng
     notifyListeners();
   }
+
   // Update total discount (from voucher and points)
   void _updateTotalDiscount() {
     // Vẫn giữ _discount là tổng của cả hai loại giảm giá
@@ -155,21 +161,143 @@ class CheckoutController extends ChangeNotifier {
     }
   }
 
+  // Tính điểm sẽ tích được từ đơn hàng (10% giá trị)
+  int get pointsToEarn {
+    return (totalPrice / 10000)
+        .floor(); // 10% giá trị đơn hàng (1 điểm = 1000 VND)
+  }
 
   // Complete the checkout process
-  Future<bool> completeCheckout() async {
-    // Placeholder for API call to create order
+  Future<String?> completeCheckout() async {
     try {
-      // Simulate a network call
-      await Future.delayed(Duration(seconds: 1));
+      // Get the FirebaseFirestore instance
+      final firestore = FirebaseFirestore.instance;
+
+      // Get the current user information from FirebaseAuth
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        return null;
+      }
+
+      // Get user document to retrieve user data
+      final userDoc =
+          await firestore.collection('users').doc(currentUser.uid).get();
+      final userData = userDoc.data();
+      if (userData == null) {
+        return null;
+      }
+
+      // Get the user's default address
+      String shippingAddress = '';
+      if (userData.containsKey('addressList') &&
+          userData['addressList'] is List &&
+          userData['addressList'].isNotEmpty) {
+        for (var address in userData['addressList']) {
+          if (address['isDefault'] == true) {
+            // Construct full address
+            final name = address['name'] ?? '';
+            final phoneNumber = address['phoneNumber'] ?? '';
+            final addressText = address['fullAddress'] ?? '';
+            shippingAddress = '$name, $phoneNumber, $addressText';
+            break;
+          }
+        }
+      }
+
+      if (shippingAddress.isEmpty) {
+        return null; // Cannot proceed without shipping address
+      }
+
+      // Create order items from cart items
+      final List<OrderItem> orderItems = _items
+          .map((item) => OrderItem(
+                productId: item.productId,
+                productName: item.productName,
+                productImage: item.imagePath,
+                quantity: item.quantity,
+                price: item.discountedPrice,
+                color: item.color,
+                size: null, // Add size if your app supports it
+              ))
+          .toList();
+
+      // Generate a unique order ID
+      final String orderId =
+          firestore.collection('orders').doc().id; // Create the order model
+      final OrderModel order = OrderModel(
+        id: orderId,
+        userId: currentUser.uid,
+        userName: userData['name'] ?? '',
+        userPhone: userData['phoneNumber'] ?? '',
+        shippingAddress: shippingAddress,
+        orderDate: DateTime.now(),
+        status: 'Chờ xử lý',
+        items: orderItems,
+        subtotal: subtotalPrice,
+        shippingFee: _shippingFee,
+        discount: _voucherDiscount + _pointsDiscount,
+        total: totalPrice,
+        voucherId: _voucherId,
+        voucherCode: _voucherCode,
+        voucherDiscount: _voucherDiscount,
+        pointsDiscount: _pointsDiscount,
+        pointsUsed: _usePoints ? _userPoints : 0,
+        paymentMethod: _paymentMethod,
+        isPaid: _paymentMethodIndex != 2, // Not COD means already paid
+        note: '',
+      );
+
+      // Save order to Firestore
+      await firestore.collection('orders').doc(orderId).set(order.toMap());
+
+      // Update user's used vouchers if a voucher was applied
+      if (_voucherId != null) {
+        await firestore.collection('users').doc(currentUser.uid).update({
+          'usedVouchers': FieldValue.arrayUnion([_voucherId]),
+        });
+      }
+      // Update user's loyalty points if points were used
+      if (_usePoints && _pointsDiscount > 0) {
+        // Use all available points
+        await firestore.collection('users').doc(currentUser.uid).update({
+          'loyaltyPoints':
+              0, // Reset points to zero since we're using all points
+        });
+
+        // Add points transaction record
+        await firestore.collection('pointTransactions').add({
+          'userId': currentUser.uid,
+          'amount': -_userPoints,
+          'reason': 'Sử dụng để giảm giá đơn hàng #$orderId',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Add loyalty points for the new purchase (10% of total)
+      int pointsEarned = (totalPrice / 10000).floor(); // 10% of order value
+      if (pointsEarned > 0) {
+        await firestore.collection('users').doc(currentUser.uid).update({
+          'loyaltyPoints': FieldValue.increment(pointsEarned),
+        });
+
+        // Add points transaction record
+        await firestore.collection('pointTransactions').add({
+          'userId': currentUser.uid,
+          'amount': pointsEarned,
+          'reason': 'Tích lũy từ đơn hàng #$orderId',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      }
 
       // Clear checkout items after successful checkout
       _items = [];
       notifyListeners();
-      return true;
+
+      // Return the order ID for reference
+      return orderId;
     } catch (e) {
       print('Error during checkout: $e');
-      return false;
+      return null;
     }
   }
 }

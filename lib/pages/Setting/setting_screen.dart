@@ -8,6 +8,7 @@ import '../../controller/auth_controller.dart';
 import '../../widgets/bottom_sheet/change_password_bottomsheet.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'support_chat_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -357,6 +358,14 @@ class SettingsScreen extends StatelessWidget {
       buttonTextStyle: isDesktop 
           ? CustomTextStyles.titleMediumGabaritoGray900SemiBold.copyWith(fontSize: 18.h)
           : CustomTextStyles.titleMediumGabaritoGray900SemiBold,
+          onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SupportChatScreen(),
+          ),
+        );
+      },
     );
   }  Widget _buttonLogout(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);

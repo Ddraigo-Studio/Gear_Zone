@@ -117,11 +117,29 @@ class AppRoutes {
       );
     },
     myCartScreen: (context) => CartScreen(),
-    checkoutScreen: (context) => CheckoutScreen(),
+    checkoutScreen: (context) {
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return CheckoutScreen(
+        selectedItems: args?['selectedItems'],
+      );
+    },
     methodCheckoutScreen: (context) => PaymentMethodScreen(),
-    ordersDetailScreen: (context) => OrdersDetailScreen(),
-    // orderPlacedScreen: (context) => PaymentSuccess(),
-    // voucherDetailScreen: (context) => VoucherDetailScreen(),
+    ordersDetailScreen: (context) {
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return OrdersDetailScreen(
+        orderId: args?['orderId'],
+      );
+    },
+    orderPlacedScreen: (context) {
+      final args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      return PaymentSuccessScreen(
+        orderId: args?['orderId'],
+      );
+    },
+    voucherDetailScreen: (context) => Container(),
     settingsScreen: (context) => SettingsScreen(),
     editProfileScreen: (context) => EditProfileScreen(),
     listAddressScreen: (context) => ListAddressScreen(),
@@ -141,7 +159,7 @@ class AppRoutes {
       );
     },
 
-    initialRoute: (context) => HomeScreen(),
+    initialRoute: (context) => LoginScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),

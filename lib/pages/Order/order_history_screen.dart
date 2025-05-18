@@ -15,7 +15,6 @@ class OrdersHistoryScreen extends StatefulWidget {
   OrdersHistoryScreenState createState() => OrdersHistoryScreenState();
 }
 
-// ignore_for_file: must_be_immutable
 class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
     with TickerProviderStateMixin {
   late TabController tabviewController;
@@ -76,6 +75,13 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
         _isLoading = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    // Dispose the tab controller to avoid memory leaks
+    tabviewController.dispose();
+    super.dispose();
   }
 
   @override
@@ -203,11 +209,13 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
           setState(() {
             tabIndex = index; // Update tabIndex immediately on tap
           });
-        },
-        tabs: List.generate(
-          _statusOptions.length,
-          (index) => _buildTabItem(_statusOptions[index]['label'], index),
-        ),
+        },        tabs: [
+          _buildTabItem("Tất cả", 0),
+          _buildTabItem("Chờ xử lý", 1),
+          _buildTabItem("Đang giao", 2),
+          _buildTabItem("Đã nhận", 3),
+          _buildTabItem("Đã hủy", 4),
+        ],
       ),
     );
   }
