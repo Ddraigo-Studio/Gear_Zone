@@ -235,16 +235,22 @@ class OrdersController {
     return controller.stream;
   } // Chuyển đổi OrderModel sang Order cũ để hỗ trợ UI hiện tại
 
-  // Được tối ưu để làm việc nhanh hơn
+  // Được tối ưu để làm việc nhanh hơn và sửa lỗi hiển thị hình ảnh sản phẩm
   List<Order> convertToLegacyOrders(List<OrderModel> orders) {
     print('🔄 Converting ${orders.length} OrderModel to legacy orders');
     return orders.map((order) {
       // Lấy sản phẩm đầu tiên trong đơn hàng để hiển thị
       final firstItem = order.items.isNotEmpty ? order.items[0] : null;
 
+      // Xác định đường dẫn hình ảnh, giữ nguyên đường dẫn URL cho hình ảnh từ mạng
+      String imagePath = 'assets/images/default_product.png';
+      if (firstItem?.productImage != null &&
+          firstItem!.productImage!.isNotEmpty) {
+        imagePath = firstItem.productImage!;
+      }
+
       return Order(
-        imagePath:
-            firstItem?.productImage ?? 'assets/images/default_product.png',
+        imagePath: imagePath,
         productName: firstItem?.productName ?? 'Sản phẩm',
         color: firstItem?.color ?? '',
         quantity: firstItem?.quantity ?? 0,

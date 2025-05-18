@@ -7,6 +7,7 @@ import '../../core/app_export.dart';
 import '../../controller/auth_controller.dart';
 import '../../model/order.dart';
 import 'package:intl/intl.dart';
+import '../custom_image_view.dart';
 
 class OrderTabPage extends StatefulWidget {
   final String status;
@@ -24,6 +25,13 @@ class _OrderTabPageState extends State<OrderTabPage>
 
   // Khởi tạo controller tĩnh để duy trì cùng instance trên tất cả các tab
   static final OrdersController _ordersController = OrdersController();
+
+  @override
+  void dispose() {
+    // Không cần gọi _ordersController.dispose() tại đây vì nó là static và được dùng chung
+    // giữa các tab, sẽ được dọn dẹp khi OrderHistoryScreen bị dispose
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
