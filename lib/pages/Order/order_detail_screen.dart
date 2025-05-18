@@ -1,16 +1,58 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/items/order_item.dart';
+import '../../widgets/items/order_item.dart' as widget_order_item;
 import '../../widgets/items/order_timeline_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
+import '../../controller/order_controller.dart';
+import '../../model/order.dart';
 
-class OrdersDetailScreen extends StatelessWidget {
-  const OrdersDetailScreen({super.key});
+class OrdersDetailScreen extends StatefulWidget {
+  final String? orderId;
+  
+  const OrdersDetailScreen({super.key, this.orderId});
+
+  @override
+  State<OrdersDetailScreen> createState() => _OrdersDetailScreenState();
+}
+
+class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
+  final OrderController _orderController = OrderController();
+  bool isLoading = true;
+  OrderModel? orderData;
+  String? error;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadOrderData();
+  }
+  
+  Future<void> _loadOrderData() async {
+    if (widget.orderId != null) {
+      try {
+        final order = await _orderController.getOrderById(widget.orderId!);
+        setState(() {
+          orderData = order;
+          isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          error = "Không thể tải thông tin đơn hàng: $e";
+          isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        error = "Không tìm thấy thông tin đơn hàng";
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,31 +61,44 @@ class OrdersDetailScreen extends StatelessWidget {
       appBar: _buildAppBar(context),
       body: SafeArea(
         top: false,
-        child: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.only(
-                left: 16.h,
-                top: 24.h,
-                right: 16.h,
-              ),
-              child: Column(
-                children: [
-                  _buildOrderInformation(context),
-                  SizedBox(height: 48.h),
-                  _buildOrderList(context),
-                  SizedBox(height: 48.h),
-                  _buildPromoCode(context),
-                  SizedBox(height: 16.h),
-                  _buildPaymentInfo(context),
-                  SizedBox(height: 8.h),
-                ],
-              ),
-            ),
-          ),
-        ),
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : error != null 
+                ? Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.h),
+                      child: Text(
+                        error!,
+                        style: TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )
+                : SizedBox(
+                    width: double.maxFinite,
+                    child: SingleChildScrollView(
+                      child: Container(
+                        width: double.maxFinite,
+                        padding: EdgeInsets.only(
+                          left: 16.h,
+                          top: 24.h,
+                          right: 16.h,
+                        ),
+                        child: Column(
+                          children: [
+                            _buildOrderInformation(context),
+                            SizedBox(height: 48.h),
+                            _buildOrderList(context),
+                            SizedBox(height: 48.h),
+                            _buildPromoCode(context),
+                            SizedBox(height: 16.h),
+                            _buildPaymentInfo(context),
+                            SizedBox(height: 8.h),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
       ),
       bottomNavigationBar: _buildReviewAndReturn(context),
     );
@@ -71,7 +126,6 @@ class OrdersDetailScreen extends StatelessWidget {
       ),
     );
   }
-
   /// Section Widget
   Widget _buildOrderInformation(BuildContext context) {
     return Container(
@@ -97,7 +151,7 @@ class OrdersDetailScreen extends StatelessWidget {
                 ),
                 Spacer(),
                 Text(
-                  "sgssahrhsvs",
+                  orderData?.id.substring(0, 10) ?? "N/A",
                   style: theme.textTheme.bodyMedium,
                 ),
                 Container(
@@ -135,7 +189,7 @@ class OrdersDetailScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "Tiền mặt",
+                  orderData?.paymentMethod ?? "COD",
                   style: CustomTextStyles.bodyMedium13,
                 )
               ],
@@ -169,9 +223,14 @@ class OrdersDetailScreen extends StatelessWidget {
       ),
     );
   }
-
   /// Section Widget
   Widget _buildOrderList(BuildContext context) {
+    if (orderData == null || orderData!.items.isEmpty) {
+      return Center(
+        child: Text("Không có sản phẩm nào trong đơn hàng"),
+      );
+    }
+    
     return ListView.separated(
       padding: EdgeInsets.zero,
       physics: NeverScrollableScrollPhysics(),
@@ -180,16 +239,31 @@ class OrdersDetailScreen extends StatelessWidget {
         return SizedBox(
           height: 16.h,
         );
-      },
-      itemCount: 2,
+      },      itemCount: orderData!.items.length,
       itemBuilder: (context, index) {
-        return OrderItem();
+        final item = orderData!.items[index];
+        return widget_order_item.OrderItem(
+          productName: item.productName,
+          imagePath: item.productImage ?? 'assets/images/_product_1.png',
+          price: item.price,
+          quantity: item.quantity,
+          color: item.color ?? 'N/A',
+          size: item.size ?? '',
+        );
       },
     );
   }
 
-  /// Section Widget
+  /// Section Widget  
   Widget _buildPromoCode(BuildContext context) {
+    // Only show voucher section if order has discount or voucher
+    bool hasVoucher = orderData != null && 
+                      (orderData!.voucherId != null || orderData!.discount > 0);
+    
+    if (!hasVoucher) {
+      return SizedBox.shrink(); // Don't display this section if no voucher
+    }
+    
     return Container(
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
@@ -233,8 +307,7 @@ class OrdersDetailScreen extends StatelessWidget {
                         ),
                       ),
                       builder: (BuildContext context) {
-                        return AddVoucherBottomsheet();
-                      },
+                        return AddVoucherBottomsheet();                      },
                     );
                   },
                   icon: CustomImageView(
@@ -244,7 +317,10 @@ class OrdersDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          PromoItem(),
+          PromoItem(
+            voucherId: orderData?.voucherId,
+            discount: orderData?.discount ?? 0.0,
+          ),
         ],
       ),
     );
@@ -292,8 +368,7 @@ class OrdersDetailScreen extends StatelessWidget {
                 alpha: 0.9,
               ),
             ),
-          ),
-          SizedBox(
+          ),          SizedBox(
             width: double.maxFinite,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -305,13 +380,12 @@ class OrdersDetailScreen extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: 8.h),
                   child: Text(
-                    "(3 món)",
+                    "(${orderData?.items.length ?? 0} món)",
                     style: CustomTextStyles.bodyLargeGray50001,
                   ),
                 ),
-                Spacer(),
-                Text(
-                  "\$8.00",
+                Spacer(),                Text(
+                  orderData != null ? FormatUtils.formatPrice(orderData!.subtotal) : "0 đ",
                   style: theme.textTheme.bodyLarge,
                 ),
               ],
@@ -322,23 +396,22 @@ class OrdersDetailScreen extends StatelessWidget {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Phí vận chuyển",
-              priceThree: "\$8.00",
+              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.shippingFee) : "0 đ",
             ),
           ),
           SizedBox(
             width: double.maxFinite,
             child: _buildInfoRow(
               context,
-              uiphvnchuyOne: "Ưu đãi phí vận chuyển",
-              priceThree: "\$8.00",
+              uiphvnchuyOne: "Giảm giá",
+              priceThree: orderData != null ? "-${FormatUtils.formatPrice(orderData!.discount)}" : "0 đ",
             ),
-          ),
-          SizedBox(
+          ),          SizedBox(
             width: double.maxFinite,
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Thuế",
-              priceThree: "\$0.00",
+              priceThree: "0 đ",
             ),
           ),
           SizedBox(
@@ -346,7 +419,7 @@ class OrdersDetailScreen extends StatelessWidget {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Voucher",
-              priceThree: "- 8.000 đ",
+              priceThree: orderData?.voucherId != null ? "Đã áp dụng" : "Không áp dụng",
             ),
           ),
           SizedBox(
@@ -362,16 +435,19 @@ class OrdersDetailScreen extends StatelessWidget {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Thành tiền:",
-              priceThree: "17.390.000 đ",
+              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.total) : "0 đ",
             ),
           ),
         ],
       ),
     );
   }
-
   /// Section Widget
   Widget _buildReviewAndReturn(BuildContext context) {
+    if (orderData == null) {
+      return Container(height: 80.h);
+    }
+    
     return Container(
       height: 80.h,
       padding: EdgeInsets.symmetric(
@@ -383,20 +459,50 @@ class OrdersDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CustomOutlinedButton(
-            height: 38.h,
-            width: 134.h,
-            text: "Xem đánh giá",
-            buttonStyle: CustomButtonStyles.outlinePrimary,
-            buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
-          ),
-          CustomOutlinedButton(
-            height: 38.h,
-            width: 152.h,
-            text: "Yêu cầu trả hàng",
-            buttonStyle: CustomButtonStyles.outlineGrayTL10,
-            buttonTextStyle: theme.textTheme.bodyMedium!,
-          ),
+          if (orderData!.status == "Đã nhận")
+            CustomOutlinedButton(
+              height: 38.h,
+              width: 134.h,
+              text: "Đánh giá",
+              buttonStyle: CustomButtonStyles.outlinePrimary,
+              buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+              onPressed: () {
+                // Implement review functionality
+              },
+            ),
+          if (orderData!.status == "Chờ xử lý")
+            CustomOutlinedButton(
+              height: 38.h,
+              width: 152.h,
+              text: "Hủy đơn hàng",
+              buttonStyle: CustomButtonStyles.outlineGrayTL10,
+              buttonTextStyle: theme.textTheme.bodyMedium!,
+              onPressed: () {
+                // Implement cancel order functionality
+              },
+            ),
+          if (orderData!.status == "Đã nhận")
+            CustomOutlinedButton(
+              height: 38.h,
+              width: 152.h,
+              text: "Yêu cầu trả hàng",
+              buttonStyle: CustomButtonStyles.outlineGrayTL10,
+              buttonTextStyle: theme.textTheme.bodyMedium!,
+              onPressed: () {
+                // Implement return request functionality
+              },
+            ),
+          if (orderData!.status == "Đang giao")
+            CustomOutlinedButton(
+              height: 38.h,
+              width: 152.h,
+              text: "Theo dõi đơn hàng",
+              buttonStyle: CustomButtonStyles.outlinePrimary,
+              buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+              onPressed: () {
+                // Implement tracking functionality 
+              },
+            ),
         ],
       ),
     );
@@ -432,8 +538,13 @@ class OrdersDetailScreen extends StatelessWidget {
 }
 
 class PromoItem extends StatefulWidget {
+  final String? voucherId;
+  final double discount;
+  
   const PromoItem({
     super.key,
+    this.voucherId,
+    this.discount = 0.0,
   });
 
   @override
@@ -445,7 +556,9 @@ class _PromoItemState extends State<PromoItem> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isVisible) return SizedBox.shrink(); // Return an empty widget if not visible
+    if (!_isVisible || (widget.voucherId == null && widget.discount <= 0)) {
+      return SizedBox.shrink(); // Return an empty widget if not visible or no voucher
+    }
 
     return Container(
       width: double.maxFinite,

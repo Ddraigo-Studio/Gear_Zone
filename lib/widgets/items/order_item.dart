@@ -2,7 +2,22 @@ import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 
 class OrderItem extends StatelessWidget {
-  const OrderItem({super.key});
+  final String productName;
+  final String imagePath;
+  final double price;
+  final int quantity;
+  final String color;
+  final String size;
+
+  const OrderItem({
+    super.key,
+    this.productName = "Unknown Product",
+    this.imagePath = "assets/images/_product_1.png",
+    this.price = 0.0,
+    this.quantity = 1,
+    this.color = "",
+    this.size = "",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +29,7 @@ class OrderItem extends StatelessWidget {
       child: Row(
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgImage33,
+            imagePath: imagePath,
             height: 42.h,
             width: 64.h,
           ),
@@ -25,7 +40,7 @@ class OrderItem extends StatelessWidget {
                 SizedBox(
                   width: 222.h,
                   child: Text(
-                    "Laptop ASUS Vivobook 14 OLED A1405VA KM095W",
+                    productName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(
@@ -39,35 +54,31 @@ class OrderItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Màu sắc: bạc",
+                        color.isNotEmpty ? "Màu sắc: $color" : "",
                         style: CustomTextStyles.labelMediumGray60001,
                       ),
                       Text(
-                        "Số lượng: 1",
+                        "Số lượng: $quantity",
                         style: CustomTextStyles.labelMediumGray60001,
                       ),
                     ],
                   ),
-                ),
-                SizedBox(height: 6.h),
+                ),                SizedBox(height: 6.h),
                 SizedBox(
                   width: double.maxFinite,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Align(
+                      size.isNotEmpty ? Align(
                         alignment: Alignment.bottomCenter,
                         child: Text(
-                          "20.990.000đ",
-                          style: theme.textTheme.labelMedium!.copyWith(
-                            decoration: TextDecoration.lineThrough,
-                          ),
+                          "Kích thước: $size",
+                          style: CustomTextStyles.labelMediumGray60001,
                         ),
-                      ),
+                      ) : Container(),
                       Padding(
-                        padding: EdgeInsets.only(left: 4.h),
-                        child: Text(
-                          "17.390.000đ",
+                        padding: EdgeInsets.only(left: 4.h),                        child: Text(
+                          FormatUtils.formatPrice(price, symbol: "đ", symbolPosition: 'right'),
                           style: theme.textTheme.labelLarge,
                         ),
                       ),

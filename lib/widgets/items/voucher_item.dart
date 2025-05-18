@@ -16,11 +16,8 @@ class ListVoucherItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Format discount amount to VND
-    final formatCurrency =
-        NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
-    final discountText = '${formatCurrency.format(voucher.discountAmount)}đ';
+  Widget build(BuildContext context) {    // Format discount amount to VND using the central formatter
+    final discountText = FormatUtils.formatPrice(voucher.discountAmount);
 
     // Format expiry date (using createdAt + 30 days as example)
     final expiryDate = voucher.createdAt.add(const Duration(days: 30));

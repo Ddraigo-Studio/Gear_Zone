@@ -67,13 +67,28 @@ class OrderedItem extends StatelessWidget {
           // Thông tin sản phẩm + trạng thái
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Ảnh sản phẩm
+            children: [              // Ảnh sản phẩm
               Container(
                 height: 60.h,
                 width: 60.h,
                 margin: EdgeInsets.only(bottom: 6.h),
-                child: Image.asset(imagePath, fit: BoxFit.contain),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4.h),
+                ),
+                child: imagePath.startsWith('http') || imagePath.startsWith('https')
+                    ? Image.network(
+                        imagePath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => 
+                          Image.asset('assets/images/img_check_out.png', fit: BoxFit.contain),
+                      )
+                    : Image.asset(
+                        imagePath,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                          Image.asset('assets/images/img_check_out.png', fit: BoxFit.contain),
+                      ),
               ),
               // Thông tin chi tiết
               Expanded(
@@ -110,10 +125,9 @@ class OrderedItem extends StatelessWidget {
                         style: TextStyle(color: statusColor),
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    // Giá sản phẩm
+                    SizedBox(height: 8.h),                    // Giá sản phẩm
                     Text(
-                      "${price.toStringAsFixed(2)}",
+                      FormatUtils.formatPrice(price),
                       style: CustomTextStyles.bodySmallBalooBhaiRed500,
                     ),
                   ],

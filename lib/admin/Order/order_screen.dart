@@ -5,6 +5,7 @@ import 'package:gear_zone/controller/order_controller.dart';
 import 'package:gear_zone/model/order.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 import 'package:intl/intl.dart';
+import 'package:gear_zone/core/utils/format_utils.dart';
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -260,11 +261,7 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   Widget _buildMobileOrdersList(List<OrderModel> orders, AppProvider appProvider) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'vi_VN',
-      symbol: 'đ',
-      decimalDigits: 0,
-    );
+    // Using central formatting utility for consistency
 
     return ListView.builder(
       itemCount: orders.length,
@@ -330,9 +327,8 @@ class _OrderScreenState extends State<OrderScreen> {
                       Text(
                         '${order.items.length} sản phẩm',
                         style: const TextStyle(fontSize: 12),
-                      ),
-                      Text(
-                        currencyFormat.format(order.total),
+                      ),                      Text(
+                        FormatUtils.formatPrice(order.total),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -368,12 +364,7 @@ class _OrderScreenState extends State<OrderScreen> {
       },
     );
   }
-  Widget _buildDesktopOrdersList(List<OrderModel> orders, AppProvider appProvider) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'vi_VN',
-      symbol: 'đ',
-      decimalDigits: 0,
-    );
+  Widget _buildDesktopOrdersList(List<OrderModel> orders, AppProvider appProvider) {    // Using central formatting utility for consistency
 
     return Container(
       decoration: BoxDecoration(
@@ -536,9 +527,8 @@ class _OrderScreenState extends State<OrderScreen> {
                         
                         // Tổng tiền
                         Expanded(
-                          flex: 2,
-                          child: Text(
-                            currencyFormat.format(order.total),
+                          flex: 2,                          child: Text(
+                            FormatUtils.formatPrice(order.total),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
