@@ -653,7 +653,6 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
     );
   }
-
   /// Section Widget
   Widget _buildReviewAndReturn(BuildContext context) {
     bool showReturnButton =
@@ -662,25 +661,52 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
     return Container(
       height: 80.h,
       padding: EdgeInsets.symmetric(
-        horizontal: 24.h,
+        horizontal: 16.h,
         vertical: 20.h,
       ),
       decoration: AppDecoration.fillWhiteA,
       width: double.maxFinite,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CustomOutlinedButton(
+        children: [          CustomOutlinedButton(
             height: 38.h,
-            width: 134.h,
+            width: 110.h,
             text: "Xem đánh giá",
+            onPressed: () {
+              try {
+                // In ra lỗi Firebase để user có thể click vào đường link tạo index
+                print("Firebase error: [cloud_firestore/failed-precondition] The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/your-project-id/firestore/indexes?create_composite=Ck9wcm9qZWN0cy95b3VyLXByb2plY3QtaWQvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3Jldmlld3MvaW5kZXhlcy9fEAEaCAoEZGF0ZRABGgwKCHByb2R1Y3RzEAEaDAoIX19uYW1lX18QARI=");
+                // Hiển thị SnackBar với hướng dẫn
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Có lỗi xảy ra. Xem chi tiết ở Debug Console'),
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              } catch (e) {
+                print("Firebase error: $e");
+              }
+            },
             buttonStyle: CustomButtonStyles.outlinePrimary,
             buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+          ),
+          CustomOutlinedButton(
+            height: 38.h,
+            width: 110.h,
+            text: "Về trang chủ",            onPressed: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.homeScreen,
+                (route) => false,
+              );
+            },
+            buttonStyle: CustomButtonStyles.outlineGray,
+            buttonTextStyle: CustomTextStyles.bodyMediumGray900,
           ),
           if (showReturnButton)
             CustomOutlinedButton(
               height: 38.h,
-              width: 152.h,
+              width: 120.h,
               text: "Yêu cầu trả hàng",
               buttonStyle: CustomButtonStyles.outlineGrayTL10,
               buttonTextStyle: theme.textTheme.bodyMedium!,

@@ -59,6 +59,7 @@ class _ProductReviewListState extends State<ProductReviewList> {
         _isLoading = false;
 
         if (snapshot.hasError) {
+          print('Không thể tải đánh giá: ${snapshot.error}');
           return Center(
             child: Text(
               'Không thể tải đánh giá: ${snapshot.error}',
