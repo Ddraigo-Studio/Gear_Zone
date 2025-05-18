@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import '../custom_image_view.dart';
+
 class OrderedItem extends StatelessWidget {
   final String imagePath;
   final String productName;
@@ -36,7 +38,7 @@ class OrderedItem extends StatelessWidget {
       case 'Đã hủy':
         return Colors.grey;
       default:
-        return  const Color(0xFFFF7E5F);
+        return const Color(0xFFFF7E5F);
     }
   }
 
@@ -47,6 +49,44 @@ class OrderedItem extends StatelessWidget {
         return Color(0xfff2655d);
       default:
         return Colors.grey;
+    }
+  }
+
+  /// Hàm xây dựng widget hiển thị hình ảnh sản phẩm
+  /// Hỗ trợ cả hình ảnh cục bộ (asset) và hình ảnh từ URL mạng
+  Widget _buildProductImage(String path) {
+    // Kiểm tra xem đường dẫn có phải là URL không
+    bool isNetworkImage = path.startsWith('http') || path.startsWith('https');
+
+    if (isNetworkImage) {
+      // Hiển thị ảnh từ mạng với xử lý lỗi
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8.h),
+        child: CustomImageView(
+          imagePath: path,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else {
+      // Hiển thị ảnh local từ assets
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8.h),
+        child: Image.asset(
+          path,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            // Nếu không tìm thấy ảnh, hiển thị icon placeholder
+            return Container(
+              color: Colors.grey.shade100,
+              child: Icon(
+                Icons.image_not_supported,
+                color: Colors.grey,
+                size: 30.h,
+              ),
+            );
+          },
+        ),
+      );
     }
   }
 
@@ -72,23 +112,8 @@ class OrderedItem extends StatelessWidget {
                 height: 60.h,
                 width: 60.h,
                 margin: EdgeInsets.only(bottom: 6.h),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4.h),
-                ),
-                child: imagePath.startsWith('http') || imagePath.startsWith('https')
-                    ? Image.network(
-                        imagePath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => 
-                          Image.asset('assets/images/img_check_out.png', fit: BoxFit.contain),
-                      )
-                    : Image.asset(
-                        imagePath,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                          Image.asset('assets/images/img_check_out.png', fit: BoxFit.contain),
-                      ),
+
+                child: _buildProductImage(imagePath),
               ),
               // Thông tin chi tiết
               Expanded(
@@ -101,8 +126,10 @@ class OrderedItem extends StatelessWidget {
                         productName,
                         style: theme.textTheme.bodyLarge,
                       ),
-                      Text("Color $color", style: CustomTextStyles.bodySmallBalooBhaiBlack900),
-                      Text("Số lượng: $quantity", style: CustomTextStyles.bodySmallBalooBhaiGray90010),
+                      Text("Color $color",
+                          style: CustomTextStyles.bodySmallBalooBhaiBlack900),
+                      Text("Số lượng: $quantity",
+                          style: CustomTextStyles.bodySmallBalooBhaiGray90010),
                     ],
                   ),
                 ),
@@ -114,7 +141,8 @@ class OrderedItem extends StatelessWidget {
                   children: [
                     // Trạng thái
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 2.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10.h, vertical: 2.h),
                       decoration: BoxDecoration(
                         // color: statusColor.withOpacity(0.1),
                         border: Border.all(color: statusColor),
@@ -133,7 +161,6 @@ class OrderedItem extends StatelessWidget {
                   ],
                 ),
               ),
-              
             ],
           ),
           if (status == "Đã nhận")
@@ -147,9 +174,8 @@ class OrderedItem extends StatelessWidget {
               },
             ),
           SizedBox(height: 16.h),
-          if(status != "Đã nhận")
+          if (status != "Đã nhận")
             SizedBox(
-              
               width: double.maxFinite,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -180,7 +206,7 @@ class OrderedItem extends StatelessWidget {
           ),
         ),
         onPressed: onReviewPressed,
-        child:  Text("Đánh giá", style: CustomTextStyles.titleSmallInterGray700),
+        child: Text("Đánh giá", style: CustomTextStyles.titleSmallInterGray700),
       ),
     );
   }
@@ -199,13 +225,12 @@ class OrderedItem extends StatelessWidget {
         ),
         onPressed: onDetailsPressed,
         child: Text(
-          "Chi tiết" ,
+          "Chi tiết",
           style: CustomTextStyles.titleSmallWhiteA700,
         ),
       ),
     );
   }
-
 }
 
 /// Widget hiển thị thông báo "Giao hàng thành công"
@@ -257,7 +282,8 @@ class DeliverySuccessWidget extends StatelessWidget {
                     ),
                     minimumSize: Size(double.infinity, 48.h),
                   ),
-                  child: Text('Trả hàng/hoàn tiền', style: CustomTextStyles.titleSmallInterGray700),
+                  child: Text('Trả hàng/hoàn tiền',
+                      style: CustomTextStyles.titleSmallInterGray700),
                 ),
               ),
               SizedBox(width: 16.h),
@@ -269,11 +295,11 @@ class DeliverySuccessWidget extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.h),
                     ),
-                    minimumSize: Size(double.infinity, 48.h), 
+                    minimumSize: Size(double.infinity, 48.h),
                   ),
                   child: Text(
                     'Đã nhận được hàng',
-                    style: CustomTextStyles.titleSmallWhiteA700, 
+                    style: CustomTextStyles.titleSmallWhiteA700,
                   ),
                 ),
               ),

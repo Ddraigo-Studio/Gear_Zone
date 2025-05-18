@@ -1,45 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../controller/orders_controller.dart';
+import '../../controller/orders_controller_new.dart';
+import '../../routes/app_routes.dart';
 import '../items/ordered_item.dart';
 import '../../core/app_export.dart';
-import '../../model/order.dart';
-
 import '../../controller/auth_controller.dart';
-
-
+import '../../model/order.dart';
 import 'package:intl/intl.dart';
-import '../custom_image_view.dart';
 
-
-class OrderTabPage extends StatefulWidget {
+class OrderTabPage extends StatelessWidget {
   final String status;
   const OrderTabPage({super.key, required this.status});
 
   @override
-  State<OrderTabPage> createState() => _OrderTabPageState();
-}
-
-class _OrderTabPageState extends State<OrderTabPage>
-    with AutomaticKeepAliveClientMixin {
-  // Giữ trạng thái tab để không tải lại khi người dùng chuyển tab
-  @override
-  bool get wantKeepAlive => true;
-
-  // Khởi tạo controller tĩnh để duy trì cùng instance trên tất cả các tab
-  static final OrdersController _ordersController = OrdersController();
-
-  @override
-  void dispose() {
-    // Không cần gọi _ordersController.dispose() tại đây vì nó là static và được dùng chung
-    // giữa các tab, sẽ được dọn dẹp khi OrderHistoryScreen bị dispose
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
-
+    // Khởi tạo OrdersController
+    final ordersController = OrdersController();
     // Lấy userId từ AuthController
     final authController = Provider.of<AuthController>(context, listen: false);
     final userId = authController.userModel?.uid;
@@ -58,11 +34,10 @@ class _OrderTabPageState extends State<OrderTabPage>
 
     // Chọn stream dựa trên loại tab
     Stream<List<OrderModel>> orderStream;
-    if (widget.status == 'Tất cả') {
-      orderStream = _ordersController.getAllOrdersStream(userId);
+    if (status == 'Tất cả') {
+      orderStream = ordersController.getAllOrdersStream(userId);
     } else {
-      orderStream =
-          _ordersController.getOrdersByStatusStream(userId, widget.status);
+      orderStream = ordersController.getOrdersByStatusStream(userId, status);
     }
 
     return Padding(
@@ -70,24 +45,8 @@ class _OrderTabPageState extends State<OrderTabPage>
       child: StreamBuilder<List<OrderModel>>(
         stream: orderStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.colorScheme.primary),
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'Đang tải đơn hàng...',
-                    style: TextStyle(fontSize: 16.h, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -100,7 +59,7 @@ class _OrderTabPageState extends State<OrderTabPage>
           }
 
           final orders = snapshot.data ?? [];
-          final legacyOrders = _ordersController.convertToLegacyOrders(orders);
+          final legacyOrders = ordersController.convertToLegacyOrders(orders);
 
           if (legacyOrders.isEmpty) {
             return _buildEmptyOrderMessage(context);
@@ -113,6 +72,13 @@ class _OrderTabPageState extends State<OrderTabPage>
             itemBuilder: (context, index) {
               final order = legacyOrders[index];
               final orderModel = orders[index]; // Original OrderModel with ID
+
+              // Lấy thời gian giao hàng từ OrderModel nếu trạng thái là "Đã nhận"
+              String deliveryDate = '';
+              if (orderModel.status == OrdersController.STATUS_COMPLETED) {
+                deliveryDate =
+                    DateFormat('dd/MM/yyyy').format(orderModel.orderDate);
+              }
 
               return OrderedItem(
                 imagePath: order.imagePath,
@@ -156,9 +122,8 @@ class _OrderTabPageState extends State<OrderTabPage>
           ),
           SizedBox(height: 12.h),
           Text(
-            "Bạn chưa có đơn hàng nào ${widget.status != 'Tất cả' ? 'ở trạng thái ${widget.status}' : ''} :<<<",
+            "Bạn chưa có đơn hàng nào :<<<",
             style: TextStyle(fontSize: 16.h, color: Colors.black54),
-            textAlign: TextAlign.center,
           ),
           SizedBox(height: 16.h),
           ElevatedButton(
@@ -167,7 +132,6 @@ class _OrderTabPageState extends State<OrderTabPage>
               Navigator.pushNamed(context, AppRoutes.homeScreen);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
               padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 8.h),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24.h),

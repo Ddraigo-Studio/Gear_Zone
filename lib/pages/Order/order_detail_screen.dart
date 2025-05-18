@@ -37,28 +37,30 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       });
     }
   }
+
   Future<void> _fetchOrderDetails() async {
     try {
       print('🔍 Fetching order details for ID: ${widget.orderId}');
       final startTime = DateTime.now();
-      
+
       final order = await _orderController.getOrderById(widget.orderId!);
-      
+
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime).inMilliseconds;
       print('⏱️ Order details fetched in $duration ms');
-      
+
       if (mounted) {
         setState(() {
           orderData = order;
           isLoading = false;
         });
       }
-      
+
       if (order == null) {
         print('❌ Order not found for ID: ${widget.orderId}');
       } else {
-        print('✅ Order loaded: ${order.id}, Status: ${order.status}, Items: ${order.items.length}');
+        print(
+            '✅ Order loaded: ${order.id}, Status: ${order.status}, Items: ${order.items.length}');
       }
     } catch (e) {
       print('❌ Error fetching order details: $e');
@@ -78,6 +80,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
     );
     return formatter.format(price);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +92,8 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.primary),
                   ),
                   SizedBox(height: 16.h),
                   Text(
@@ -379,6 +383,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
     );
   }
+
   /// Section Widget
   Widget _buildOrderList(BuildContext context) {
     if (orderData == null || orderData!.items.isEmpty) {
@@ -414,9 +419,9 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             padding: EdgeInsets.symmetric(horizontal: 10.h),
             physics: NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            itemCount: orderData!.items.length > 3 
-              ? 3  // Chỉ hiển thị 3 sản phẩm đầu tiên nếu có nhiều hơn
-              : orderData!.items.length,
+            itemCount: orderData!.items.length > 3
+                ? 3 // Chỉ hiển thị 3 sản phẩm đầu tiên nếu có nhiều hơn
+                : orderData!.items.length,
             itemBuilder: (context, index) {
               final item = orderData!.items[index];
               return _buildOrderItem(item);
@@ -445,7 +450,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
     );
   }
-  
+
   // Hiển thị tất cả sản phẩm trong một modal
   void _showAllOrderItems(BuildContext context) {
     showModalBottomSheet(
@@ -456,7 +461,8 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
       builder: (context) {
         return Container(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7),
           padding: EdgeInsets.symmetric(vertical: 16.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -494,7 +500,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       },
     );
   }
-  
+
   // Trích xuất widget để hiển thị mỗi mục đơn hàng
   Widget _buildOrderItem(OrderItem item) {
     return Container(
@@ -521,8 +527,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                     item.productName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style:
-                        CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(
+                    style: CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(
                       height: 1.60,
                     ),
                   ),
@@ -566,6 +571,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
     );
   }
+
   /// Section Widget
   Widget _buildPromoCode(BuildContext context) {
     bool hasVoucher =
