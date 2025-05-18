@@ -373,10 +373,15 @@ class _LoginScreenState extends State<LoginScreen> {
               }
               return null;
             },
-          ),
-          if (authController.error != null)
-            Padding(
-              padding: EdgeInsets.only(top: 8.h),
+          ),          if (authController.error != null)
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.h),
+              margin: EdgeInsets.only(top: 8.h, bottom: 5.h),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.h),
+                border: Border.all(color: Colors.red.withOpacity(0.3), width: 1),
+              ),
               child: Text(
                 authController.error!,
                 style: TextStyle(
@@ -385,7 +390,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 15.h),
           Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(

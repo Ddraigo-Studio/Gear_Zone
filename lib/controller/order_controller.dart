@@ -34,16 +34,22 @@ class OrderController {
     }
     return null;
   }
-
   // Lấy đơn hàng theo trạng thái
   Stream<List<OrderModel>> getOrdersByStatus(String status) {
+    // Bỏ orderBy để tránh cần composite index
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: status)
-        .orderBy('orderDate', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => OrderModel.fromFirestore(doc)).toList());
+        .map((snapshot) {
+          // Sắp xếp dữ liệu phía client thay vì server
+          List<OrderModel> orders = snapshot.docs
+              .map((doc) => OrderModel.fromFirestore(doc))
+              .toList();
+          // Sắp xếp theo orderDate giảm dần
+          orders.sort((a, b) => b.orderDate.compareTo(a.orderDate));
+          return orders;
+        });
   }
 
   // Cập nhật trạng thái đơn hàng
