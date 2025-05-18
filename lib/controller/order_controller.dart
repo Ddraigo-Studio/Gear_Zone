@@ -14,16 +14,28 @@ class OrderController {
         .map((snapshot) =>
             snapshot.docs.map((doc) => OrderModel.fromFirestore(doc)).toList());
   }
-
   // Lấy đơn hàng theo userId
   Stream<List<OrderModel>> getOrdersByUserId(String userId) {
-    return _firestore
-        .collection(_collection)
-        .where('userId', isEqualTo: userId)
-        .orderBy('orderDate', descending: true)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => OrderModel.fromFirestore(doc)).toList());
+    try {
+      return _firestore
+          .collection(_collection)
+          .where('userId', isEqualTo: userId)
+          // Remove the orderBy to avoid needing a composite index
+          .snapshots()
+          .map((snapshot) {
+            // Sort client-side instead
+            List<OrderModel> orders = snapshot.docs
+                .map((doc) => OrderModel.fromFirestore(doc))
+                .toList();
+            // Sort by orderDate in descending order
+            orders.sort((a, b) => b.orderDate.compareTo(a.orderDate));
+            return orders;
+          });
+    } catch (e) {
+      print('Error getting orders by userId: $e');
+      // Return empty list on error
+      return Stream.value([]);
+    }
   }
 
   // Lấy đơn hàng theo ID

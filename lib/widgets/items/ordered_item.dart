@@ -107,12 +107,12 @@ class OrderedItem extends StatelessWidget {
           // Thông tin sản phẩm + trạng thái
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Ảnh sản phẩm
+            children: [              // Ảnh sản phẩm
               Container(
                 height: 60.h,
                 width: 60.h,
                 margin: EdgeInsets.only(bottom: 6.h),
+
                 child: _buildProductImage(imagePath),
               ),
               // Thông tin chi tiết
@@ -153,10 +153,9 @@ class OrderedItem extends StatelessWidget {
                         style: TextStyle(color: statusColor),
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    // Giá sản phẩm
+                    SizedBox(height: 8.h),                    // Giá sản phẩm
                     Text(
-                      "${price.toStringAsFixed(2)}",
+                      FormatUtils.formatPrice(price),
                       style: CustomTextStyles.bodySmallBalooBhaiRed500,
                     ),
                   ],

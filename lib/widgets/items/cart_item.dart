@@ -185,9 +185,8 @@ class CartItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "${discountedPrice.toStringAsFixed(0)}đ",
+              children: [                Text(
+                  FormatUtils.formatPrice(discountedPrice),
                   style: CustomTextStyles.labelMedium11.copyWith(
                     decoration: TextDecoration.lineThrough,
                     fontSize: 12.h,
@@ -198,7 +197,7 @@ class CartItem extends StatelessWidget {
                 SizedBox(height: 4.h),
                 if (originalPrice > 0)
                   Text(
-                    "${originalPrice.toStringAsFixed(0)}đ",
+                    FormatUtils.formatPrice(originalPrice),
                     style: CustomTextStyles.titleSmallGabaritoRed500.copyWith(
                       fontSize: 16.h,
                     ),

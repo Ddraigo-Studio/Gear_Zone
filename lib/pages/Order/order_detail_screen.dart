@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
+import '../../widgets/items/order_item.dart' as widget_order_item;
+import '../../widgets/items/order_timeline_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
@@ -189,7 +191,6 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
     );
   }
-
   /// Section Widget
   Widget _buildOrderInformation(BuildContext context) {
     if (orderData == null) {
@@ -619,8 +620,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                         ),
                       ),
                       builder: (BuildContext context) {
-                        return AddVoucherBottomsheet();
-                      },
+                        return AddVoucherBottomsheet();                      },
                     );
                   },
                   icon: CustomImageView(
@@ -734,8 +734,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                 alpha: 0.9,
               ),
             ),
-          ),
-          SizedBox(
+          ),          SizedBox(
             width: double.maxFinite,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -764,15 +763,15 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Phí vận chuyển",
-              priceThree: _formatPrice(orderData!.shippingFee),
+              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.shippingFee) : "0 đ",
             ),
           ),
           SizedBox(
             width: double.maxFinite,
             child: _buildInfoRow(
               context,
-              uiphvnchuyOne: "Thuế (2%)",
-              priceThree: _formatPrice(orderData!.subtotal * 0.02),
+              uiphvnchuyOne: "Giảm giá",
+              priceThree: orderData != null ? "-${FormatUtils.formatPrice(orderData!.discount)}" : "0 đ",
             ),
           ),
           if (orderData!.voucherDiscount > 0)
@@ -808,14 +807,13 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Thành tiền:",
-              priceThree: _formatPrice(orderData!.total),
+              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.total) : "0 đ",
             ),
           ),
         ],
       ),
     );
   }
-
   /// Section Widget
   Widget _buildReviewAndReturn(BuildContext context) {
     bool showReturnButton =
@@ -832,31 +830,29 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CustomOutlinedButton(
-            height: 38.h,
-            width: 134.h,
-            text: "Xem đánh giá",
-            buttonStyle: CustomButtonStyles.outlinePrimary,
-            buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
-            onPressed: () {
-              // Add review functionality here
-            },
-          ),
-          CustomOutlinedButton(
-            height: 38.h,
-            width: 134.h,
-            text: "Về trang chủ",
-            buttonStyle: CustomButtonStyles.outlinePrimary,
-            buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
-            onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.homeScreen,
-                (route) => false,
-              );
-            },
-          ),
-          if (showReturnButton)
+          if (orderData!.status == "Đã nhận")
+            CustomOutlinedButton(
+              height: 38.h,
+              width: 134.h,
+              text: "Đánh giá",
+              buttonStyle: CustomButtonStyles.outlinePrimary,
+              buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+              onPressed: () {
+                // Implement review functionality
+              },
+            ),
+          if (orderData!.status == "Chờ xử lý")
+            CustomOutlinedButton(
+              height: 38.h,
+              width: 152.h,
+              text: "Hủy đơn hàng",
+              buttonStyle: CustomButtonStyles.outlineGrayTL10,
+              buttonTextStyle: theme.textTheme.bodyMedium!,
+              onPressed: () {
+                // Implement cancel order functionality
+              },
+            ),
+          if (orderData!.status == "Đã nhận")
             CustomOutlinedButton(
               height: 38.h,
               width: 152.h,
@@ -864,7 +860,18 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
               buttonStyle: CustomButtonStyles.outlineGrayTL10,
               buttonTextStyle: theme.textTheme.bodyMedium!,
               onPressed: () {
-                // Add return request functionality here
+                // Implement return request functionality
+              },
+            ),
+          if (orderData!.status == "Đang giao")
+            CustomOutlinedButton(
+              height: 38.h,
+              width: 152.h,
+              text: "Theo dõi đơn hàng",
+              buttonStyle: CustomButtonStyles.outlinePrimary,
+              buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+              onPressed: () {
+                // Implement tracking functionality 
               },
             ),
         ],

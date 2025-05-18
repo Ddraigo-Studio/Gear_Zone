@@ -15,6 +15,7 @@ import '../../controller/category_controller.dart';
 import '../../core/utils/responsive.dart';
 import '../../widgets/service_section.dart';
 import '../Setting/setting_screen.dart';
+import '../Order/order_history_screen.dart';
 
 class HomeInitialPage extends StatefulWidget {
   const HomeInitialPage({super.key});
@@ -646,14 +647,21 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                           size: 28.h, // Tăng kích thước icon thông báo
                         ),
                         onPressed: () {},
-                      ),
-                      IconButton(
+                      ),                      IconButton(
                         icon: Icon(
-                          Icons.favorite_border_outlined,
+                          Icons.history,
                           color: Colors.white,
-                          size: 28.h, // Tăng kích thước icon yêu thích
+                          size: 28.h, // Icon lịch sử đơn hàng
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrdersHistoryScreen(),
+                            ),
+                          );
+                        },
+                        tooltip: 'Lịch sử đơn hàng',
                       ),
                     ],
                   )
