@@ -26,7 +26,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   TextEditingController searchController = TextEditingController();
   final ProductController _productController = ProductController();
   final CategoryController _categoryController = CategoryController();
-
   // Product lists
   List<ProductModel> newestProducts = [];
   List<ProductModel> promotionProducts = [];
@@ -36,6 +35,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   List<ProductModel> laptopGamingProducts = [];
   List<ProductModel> mouseProducts = [];
   List<ProductModel> headphoneProducts = [];
+  List<ProductModel> speakerProducts = []; // Sản phẩm Loa
+  List<ProductModel> caseProducts = []; // Sản phẩm Case
 
   // Category list
   List<CategoryModel> categories = [];
@@ -72,8 +73,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   // Load all product data from controller
   Future<void> _loadProducts() async {
     try {
-      setState(() {
-        // Initialize with empty lists
+      setState(() {        // Initialize with empty lists
         newestProducts = [];
         promotionProducts = [];
         bestSellingProducts = [];
@@ -82,6 +82,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
         laptopGamingProducts = [];
         mouseProducts = [];
         headphoneProducts = [];
+        speakerProducts = []; // Khởi tạo danh sách sản phẩm Loa
+        caseProducts = []; // Khởi tạo danh sách sản phẩm Case
       });
 
       // Nếu kết nối được Firebase, sẽ cập nhật lại dữ liệu
@@ -135,9 +137,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
         }
       } catch (e) {
         print('Lỗi khi tải sản phẩm màn hình: $e');
-      }
-
-      try {
+      }      try {
         final laptopGamings = await _productController.getlaptopGamingProducts();
         if (mounted) {
           setState(() {
@@ -145,7 +145,31 @@ class HomeInitialPageState extends State<HomeInitialPage> {
           });
         }
       } catch (e) {
-        print('Lỗi khi tải sản phẩm bàn phím: $e');
+        print('Lỗi khi tải sản phẩm laptop gaming: $e');
+      }
+      
+      // Tải sản phẩm Loa
+      try {
+        final speakers = await _productController.getSpeakerProducts();
+        if (mounted) {
+          setState(() {
+            speakerProducts = speakers;
+          });
+        }
+      } catch (e) {
+        print('Lỗi khi tải sản phẩm loa: $e');
+      }
+      
+      // Tải sản phẩm Case
+      try {
+        final cases = await _productController.getCaseProducts();
+        if (mounted) {
+          setState(() {
+            caseProducts = cases;
+          });
+        }
+      } catch (e) {
+        print('Lỗi khi tải sản phẩm case: $e');
       }
     } catch (e) {
       print('Lỗi khi tải dữ liệu sản phẩm: $e');
@@ -273,7 +297,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
                         context,
-                        titleName: "Laptop bán chạy nhất",
+                        titleName: "Laptop",
                         seeAll: "Xem tất cả",
                         color: appTheme.deepPurple400,
                       ),
@@ -294,9 +318,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                     ),
                     SizedBox(height: 16.h),
                     _buildMonitorTopSell(context), 
-                    SizedBox(height: 25.h),
-
-                    Container(
+                    SizedBox(height: 25.h),                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -308,6 +330,34 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                     ),
                     SizedBox(height: 16.h),
                     _buildlaptopGamingTopSell(context), 
+                    SizedBox(height: 25.h),
+
+                    Container(
+                      width: double.maxFinite,
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
+                      child: _buildTitleRow(
+                        context,
+                        titleName: "Loa",
+                        seeAll: "Xem tất cả",
+                        color: appTheme.deepPurple400,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildSpeakerTopSell(context), 
+                    SizedBox(height: 25.h),
+
+                    Container(
+                      width: double.maxFinite,
+                      margin: EdgeInsets.symmetric(horizontal: 16.h),
+                      child: _buildTitleRow(
+                        context,
+                        titleName: "Case",
+                        seeAll: "Xem tất cả",
+                        color: appTheme.deepPurple400,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildCaseTopSell(context), 
                     SizedBox(height: 25.h),
 
                     // Container(
@@ -932,4 +982,117 @@ Widget _buildlaptopGamingTopSell(BuildContext context) {
     );
   }
   
+  Widget _buildSpeakerTopSell(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
+    // Show loading indicator if products are still loading
+    if (speakerProducts.isEmpty) {
+      return Container(
+        height: isDesktop ? 200.h : 260.h,
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(appTheme.deepPurple400),
+          ),
+        ),
+      );
+    }
+
+    if (isDesktop) {
+      // Desktop view - use grid layout
+      return Container(
+        margin: EdgeInsets.symmetric(horizontal: 16.h),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: SizeUtils.getGridItemCount(),
+            childAspectRatio: 0.9,
+            crossAxisSpacing: 18.h,
+            mainAxisSpacing: 18.h,
+          ),
+          itemCount: speakerProducts.length,
+          itemBuilder: (context, index) {
+            return ProductCarouselItem(
+              product: speakerProducts[index],
+            );
+          },
+        ),
+      );
+    }
+
+    // Mobile view - use horizontal list
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: 230.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: speakerProducts.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h, bottom: 2.h),
+            child: ProductCarouselItem(
+              product: speakerProducts[index],
+            ),
+          );
+        },
+      ),
+    );
+  }
+  
+  Widget _buildCaseTopSell(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
+
+    // Show loading indicator if products are still loading
+    if (caseProducts.isEmpty) {
+      return Container(
+        height: isDesktop ? 200.h : 260.h,
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(appTheme.deepPurple400),
+          ),
+        ),
+      );
+    }
+
+    if (isDesktop) {
+      // Desktop view - use grid layout
+      return Container(
+        margin: EdgeInsets.symmetric(horizontal: 16.h),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: SizeUtils.getGridItemCount(),
+            childAspectRatio: 0.9,
+            crossAxisSpacing: 18.h,
+            mainAxisSpacing: 18.h,
+          ),
+          itemCount: caseProducts.length,
+          itemBuilder: (context, index) {
+            return ProductCarouselItem(
+              product: caseProducts[index],
+            );
+          },
+        ),
+      );
+    }
+
+    // Mobile view - use horizontal list
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      height: 230.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: caseProducts.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(right: 16.h, bottom: 2.h),
+            child: ProductCarouselItem(
+              product: caseProducts[index],
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

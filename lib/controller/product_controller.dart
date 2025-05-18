@@ -645,7 +645,6 @@ class ProductController {
       return [];
     }
   }
-
   // Lấy sản phẩm theo danh mục cụ thể: Chuột
   Future<List<ProductModel>> getMouseProducts() async {
     try {
@@ -661,6 +660,44 @@ class ProductController {
       }).toList();
     } catch (e) {
       // print('Lỗi khi lấy sản phẩm chuột: $e');
+      return [];
+    }
+  }
+  
+  // Lấy sản phẩm theo danh mục cụ thể: Loa
+  Future<List<ProductModel>> getSpeakerProducts() async {
+    try {
+      QuerySnapshot snapshot = await _productsCollection
+          .where('category', isEqualTo: 'Loa')
+          .limit(10)
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+    } catch (e) {
+      // print('Lỗi khi lấy sản phẩm loa: $e');
+      return [];
+    }
+  }
+  
+  // Lấy sản phẩm theo danh mục cụ thể: Case
+  Future<List<ProductModel>> getCaseProducts() async {
+    try {
+      QuerySnapshot snapshot = await _productsCollection
+          .where('category', isEqualTo: 'Case')
+          .limit(10)
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+    } catch (e) {
+      // print('Lỗi khi lấy sản phẩm case: $e');
       return [];
     }
   }
