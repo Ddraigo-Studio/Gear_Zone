@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/orders_controller.dart';
-import '../items/ordered_item.dart';
+import '../items/order_item_enhanced.dart';
 import '../../core/app_export.dart';
 import '../../model/order.dart';
-
 import '../../controller/auth_controller.dart';
-
-
+import '../../controller/review_controller.dart';
 import 'package:intl/intl.dart';
 import '../custom_image_view.dart';
-
 
 class OrderTabPage extends StatefulWidget {
   final String status;
@@ -42,6 +39,8 @@ class _OrderTabPageState extends State<OrderTabPage>
 
     // Lấy userId từ AuthController
     final authController = Provider.of<AuthController>(context, listen: false);
+    final reviewController =
+        Provider.of<ReviewController>(context, listen: false);
     final userId = authController.userModel?.uid;
 
     if (userId == null) {
@@ -105,31 +104,46 @@ class _OrderTabPageState extends State<OrderTabPage>
           if (legacyOrders.isEmpty) {
             return _buildEmptyOrderMessage(context);
           }
-
           return ListView.separated(
             physics: const BouncingScrollPhysics(),
             itemCount: legacyOrders.length,
             separatorBuilder: (_, __) => SizedBox(height: 16.h),
             itemBuilder: (context, index) {
-              final order = legacyOrders[index];
+              // We don't need the legacyOrder anymore, we're using the OrderModel directly
               final orderModel = orders[index]; // Original OrderModel with ID
 
+              // Format the delivery date (if available)
+              String deliveryDate = "N/A";
+              if (orderModel.status == OrdersController.STATUS_COMPLETED &&
+                  orderModel.items.isNotEmpty) {
+                deliveryDate =
+                    DateFormat('dd/MM/yyyy').format(orderModel.orderDate);
+              }
+
+              // Use the first item for display if there are items
+              OrderItem? firstItem;
+              if (orderModel.items.isNotEmpty) {
+                firstItem = orderModel.items.first;
+              }
+
               return OrderedItem(
-                imagePath: order.imagePath,
-                productName: order.productName,
-                color: order.color,
-                quantity: order.quantity,
-                price: order.price,
-                status: order.status,
+                orderId: orderModel.id,
+                orderItem: firstItem ??
+                    OrderItem(
+                      productId: '',
+                      productName: 'Unknown Product',
+                      quantity: 0,
+                      price: 0,
+                    ),
+                status: orderModel.status,
+                deliveryDate: deliveryDate,
                 onReviewPressed: () {
                   // Xử lý nút đánh giá
-                  if (order.status == OrdersController.STATUS_COMPLETED) {
-                    // Tạm thời bỏ qua nếu chưa có màn hình review
-                    // Navigator.pushNamed(context, AppRoutes.reviewScreen,
-                    //     arguments: {'orderId': orderModel.id});
+                  if (orderModel.status == OrdersController.STATUS_COMPLETED) {
+                    // We access the reviewController here if needed
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content:
-                            Text('Tính năng đánh giá đang được phát triển')));
+                        content: Text(
+                            'Hãy nhấn "Đã nhận được hàng" để đánh giá sản phẩm')));
                   }
                 },
                 onDetailsPressed: () {

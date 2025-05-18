@@ -12,6 +12,9 @@ import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/tab_page/product_tab_page.dart';
 import '../../widgets/cart_icon_button.dart';
+import '../../controller/review_controller.dart';
+import '../../model/review.dart';
+import '../../widgets/product_review_list.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -50,9 +53,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } else if (widget.product.color.isNotEmpty) {
       // If only one color is available, add it to the list
       colorsList.add(widget.product.color.trim());
-    }    // Convert string color names to color options with Color objects
+    } // Convert string color names to color options with Color objects
     colorOptions = colorsList.map((colorName) {
-      return {"name": colorName, "color": ColorUtils.getColorFromName(colorName)};
+      return {
+        "name": colorName,
+        "color": ColorUtils.getColorFromName(colorName)
+      };
     }).toList(); // Make sure the selected color is in the available colors
     if (colorsList.isNotEmpty) {
       if (!colorsList.contains(selectedColor)) {
@@ -64,7 +70,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       colorOptions = []; // Empty list instead of default color
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -95,13 +100,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       SizedBox(height: 36.h),
                       ProductTabTabPage(product: widget.product),
                       SizedBox(height: 44.h),
-                      _buildRatingRow(context),
-                      SizedBox(height: 16.h),
-                      _buildReviewRow(context),
-                      SizedBox(height: 4.h),
-                      _buildReviewRow(context),
-                      SizedBox(height: 14.h),
-                      _buildCommentButton(context),
+                      _buildRatingSection(context),
                       SizedBox(height: 110.h),
                     ],
                   ),
@@ -276,7 +275,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ],
                             ),
                             child: isSelected
-                                ? Center(                                    child: Icon(
+                                ? Center(
+                                    child: Icon(
                                       Icons.check,
                                       color: ColorUtils.shouldUseWhiteText(
                                               colorOption["color"])
@@ -409,7 +409,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         onPressed: () {
           showModalBottomSheet(
             context: context,
-            builder: (context) {              
+            builder: (context) {
               return ProductVariantBottomsheet(
                 initialSelectedColor: selectedColor,
                 availableColors: colorOptions,
@@ -435,5 +435,50 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             },
           );
         });
+  }
+
+  Widget _buildRatingSection(BuildContext context) {
+    return Container(
+      width: double.maxFinite,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Tiêu đề
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Đánh giá sản phẩm',
+                style: CustomTextStyles.titleMediumBalooBhai2Gray700,
+              ),
+              TextButton(
+                onPressed: () {
+                  // Xem tất cả đánh giá
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      "Xem tất cả",
+                      style: CustomTextStyles.bodyMediumAmaranthRed500,
+                    ),
+                    CustomImageView(
+                      imagePath: ImageConstant.imgIconsaxBrokenArrowright2,
+                      height: 16.h,
+                      width: 18.h,
+                      margin: EdgeInsets.only(left: 4.h),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Danh sách đánh giá
+          ProductReviewList(
+            productId: widget.product.id,
+          ),
+        ],
+      ),
+    );
   }
 }

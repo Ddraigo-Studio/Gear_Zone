@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import '../../../core/utils/format_utils.dart';
 import '../custom_image_view.dart';
 
 class OrderedItem extends StatelessWidget {
@@ -107,12 +108,12 @@ class OrderedItem extends StatelessWidget {
           // Thông tin sản phẩm + trạng thái
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [              // Ảnh sản phẩm
+            children: [
+              // Ảnh sản phẩm
               Container(
                 height: 60.h,
                 width: 60.h,
                 margin: EdgeInsets.only(bottom: 6.h),
-
                 child: _buildProductImage(imagePath),
               ),
               // Thông tin chi tiết
@@ -153,7 +154,7 @@ class OrderedItem extends StatelessWidget {
                         style: TextStyle(color: statusColor),
                       ),
                     ),
-                    SizedBox(height: 8.h),                    // Giá sản phẩm
+                    SizedBox(height: 8.h), // Giá sản phẩm
                     Text(
                       FormatUtils.formatPrice(price),
                       style: CustomTextStyles.bodySmallBalooBhaiRed500,
