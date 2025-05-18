@@ -46,10 +46,10 @@ class _AdminSupportChatDetailScreenState extends State<AdminSupportChatDetailScr
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(      appBar: AppBar(
+    return Scaffold(
+      appBar: AppBar(
         title: StreamBuilder<QuerySnapshot>(
           stream: _firestore
               .collection('support_chats')
@@ -62,105 +62,270 @@ class _AdminSupportChatDetailScreenState extends State<AdminSupportChatDetailScr
               final userData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
               userName = userData['senderName'] ?? 'Khách hàng';
             }
-            return Text('Chat với $userName');
+            return Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.white,
+                  radius: 20,
+                  child: Text(
+                    userName.isNotEmpty ? userName[0].toUpperCase() : 'K',
+                    style: const TextStyle(
+                      color: Colors.deepPurpleAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Text(
+                      'Trực tuyến',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
           },
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('support_chats')
-                  .orderBy('timestamp')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-                final messages = snapshot.data!.docs.where((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  return (data['senderId'] == 'admin' && data['recipientId'] == widget.userId) ||
-                         (data['senderId'] == widget.userId && data['recipientId'] == 'admin');
-                }).toList();
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final data = messages[index].data() as Map<String, dynamic>;
-                    final isMe = data['senderId'] == 'admin';
-                    final time = data['timestamp'] != null
-                        ? DateFormat('HH:mm, dd/MM/yyyy').format(
-                            (data['timestamp'] as Timestamp).toDate(),
-                          )
-                        : '...';
-
-                    return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.all(10),
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isMe ? Colors.deepPurpleAccent : Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              data['message'],
-                              style: TextStyle(
-                                color: isMe ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              time,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isMe ? Colors.white70 : Colors.black54,
-                              ),
-                            ),
-                          ],
-                        ),
+        backgroundColor: Colors.deepPurpleAccent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {
+              // Show menu
+            },
+          ),
+        ],
+      ),      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const NetworkImage(
+              'https://img.freepik.com/free-vector/gradient-bubble-chat-background_23-2149163886.jpg',
+            ),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.2),
+              BlendMode.lighten,
+            ),
+          ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore
+                    .collection('support_chats')
+                    .orderBy('timestamp')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.deepPurpleAccent,
                       ),
                     );
+                  }
+
+                  final messages = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return (data['senderId'] == 'admin' && data['recipientId'] == widget.userId) ||
+                          (data['senderId'] == widget.userId && data['recipientId'] == 'admin');
+                  }).toList();
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final data = messages[index].data() as Map<String, dynamic>;
+                      final isMe = data['senderId'] == 'admin';
+                      
+                      // Format thời gian
+                      String timeStr = '...';
+                      if (data['timestamp'] != null) {
+                        final timestamp = (data['timestamp'] as Timestamp).toDate();
+                        final now = DateTime.now();
+                        
+                        if (timestamp.year == now.year && 
+                            timestamp.month == now.month && 
+                            timestamp.day == now.day) {
+                          timeStr = DateFormat('HH:mm').format(timestamp);
+                        } else {
+                          timeStr = DateFormat('HH:mm, dd/MM').format(timestamp);
+                        }
+                      }
+
+                      return Align(
+                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            bottom: 12, 
+                            left: isMe ? 50 : 8, 
+                            right: isMe ? 8 : 50,
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isMe ? Colors.deepPurpleAccent : Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(18),
+                              topRight: const Radius.circular(18),
+                              bottomLeft: Radius.circular(isMe ? 18 : 0),
+                              bottomRight: Radius.circular(isMe ? 0 : 18),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 3,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Tin nhắn
+                              Text(
+                                data['message'],
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: isMe ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Thời gian
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    timeStr,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isMe ? Colors.white70 : Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  if (isMe)
+                                    Icon(
+                                      Icons.done_all,
+                                      size: 14,
+                                      color: Colors.white.withOpacity(0.7),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                   },
                 );
               },
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
             child: Row(
               children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: Colors.deepPurpleAccent,
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    // Thêm hình ảnh hoặc tệp
+                  },
+                ),
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
                       hintText: 'Nhập tin nhắn...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade500,
+                      ),
                       filled: true,
                       fillColor: Colors.grey.shade100,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide.none,
                       ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.emoji_emotions_outlined,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          // Hiển thị emoji picker
+                        },
+                      ),
                     ),
+                    minLines: 1,
+                    maxLines: 4,
                     onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Colors.deepPurple),
-                  onPressed: _sendMessage,
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Colors.deepPurpleAccent, Colors.purple],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                    ),
+                    onPressed: _sendMessage,
+                  ),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
+    ),
     );
   }
 }
