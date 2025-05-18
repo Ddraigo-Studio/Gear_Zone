@@ -3,6 +3,7 @@ import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/tab_page/order_tab_page.dart';
 import '../../widgets/cart_icon_button.dart';
+import '../../controller/orders_controller.dart';
 
 class OrdersHistoryScreen extends StatefulWidget {
   const OrdersHistoryScreen({super.key});
@@ -11,7 +12,6 @@ class OrdersHistoryScreen extends StatefulWidget {
   OrdersHistoryScreenState createState() => OrdersHistoryScreenState();
 }
 
-// ignore_for_file: must_be_immutable
 class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
     with TickerProviderStateMixin {
   late TabController tabviewController;
@@ -27,6 +27,13 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
         tabIndex = tabviewController.index;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    // Dispose the tab controller to avoid memory leaks
+    tabviewController.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,11 +56,12 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
               Expanded(
                 child: TabBarView(
                   controller: tabviewController,
+                  physics: const BouncingScrollPhysics(),
                   children: const [
+                    OrderTabPage(status: "Tất cả"),
                     OrderTabPage(status: "Chờ xử lý"),
                     OrderTabPage(status: "Đang giao"),
                     OrderTabPage(status: "Đã nhận"),
-                    OrderTabPage(status: "Trả hàng"),
                     OrderTabPage(status: "Đã hủy"),
                   ],
                 ),
@@ -104,12 +112,11 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
           setState(() {
             tabIndex = index; // Update tabIndex immediately on tap
           });
-        },
-        tabs: [
-          _buildTabItem("Chờ xác nhận", 0),
-          _buildTabItem("Chờ giao hàng", 1),
-          _buildTabItem("Đã giao", 2),
-          _buildTabItem("Trả hàng", 3),
+        },        tabs: [
+          _buildTabItem("Tất cả", 0),
+          _buildTabItem("Chờ xử lý", 1),
+          _buildTabItem("Đang giao", 2),
+          _buildTabItem("Đã nhận", 3),
           _buildTabItem("Đã hủy", 4),
         ],
       ),

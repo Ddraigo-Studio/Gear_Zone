@@ -35,23 +35,36 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       });
     }
   }
-
   Future<void> _fetchOrderDetails() async {
     try {
-      print('Fetching order details for ID: ${widget.orderId}');
+      print('🔍 Fetching order details for ID: ${widget.orderId}');
+      final startTime = DateTime.now();
+      
       final order = await _orderController.getOrderById(widget.orderId!);
-      setState(() {
-        orderData = order;
-        isLoading = false;
-      });
+      
+      final endTime = DateTime.now();
+      final duration = endTime.difference(startTime).inMilliseconds;
+      print('⏱️ Order details fetched in $duration ms');
+      
+      if (mounted) {
+        setState(() {
+          orderData = order;
+          isLoading = false;
+        });
+      }
+      
       if (order == null) {
-        print('Order not found for ID: ${widget.orderId}');
+        print('❌ Order not found for ID: ${widget.orderId}');
+      } else {
+        print('✅ Order loaded: ${order.id}, Status: ${order.status}, Items: ${order.items.length}');
       }
     } catch (e) {
-      print('Error fetching order details: $e');
-      setState(() {
-        isLoading = false;
-      });
+      print('❌ Error fetching order details: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -63,14 +76,31 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
     );
     return formatter.format(price);
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: appTheme.gray100,
       appBar: _buildAppBar(context),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    "Đang tải thông tin đơn hàng...",
+                    style: TextStyle(
+                      fontSize: 16.h,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
           : orderData == null
               ? Center(
                   child: Column(
@@ -348,7 +378,6 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
     );
   }
-
   /// Section Widget
   Widget _buildOrderList(BuildContext context) {
     if (orderData == null || orderData!.items.isEmpty) {
@@ -366,79 +395,96 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       );
     }
 
-    return ListView.separated(
-      padding: EdgeInsets.zero,
-      physics: NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      separatorBuilder: (context, index) {
-        return SizedBox(
-          height: 16.h,
-        );
-      },
-      itemCount: orderData!.items.length,
-      itemBuilder: (context, index) {
-        final item = orderData!.items[index];
-        return Container(
-          padding: EdgeInsets.all(10.h),
-          decoration: AppDecoration.fillWhiteA.copyWith(
-            borderRadius: BorderRadiusStyle.roundedBorder8,
+    return Container(
+      decoration: AppDecoration.fillWhiteA.copyWith(
+        borderRadius: BorderRadiusStyle.roundedBorder5,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 10.h),
+            child: Text(
+              "Danh sách sản phẩm (${orderData!.items.length})",
+              style: CustomTextStyles.titleMediumBalooBhai2Gray700,
+            ),
           ),
-          child: Row(
-            children: [
-              CustomImageView(
-                imagePath: item.productImage ?? ImageConstant.imgImage33,
-                height: 42.h,
-                width: 64.h,
+          ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 10.h),
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: orderData!.items.length > 3 
+              ? 3  // Chỉ hiển thị 3 sản phẩm đầu tiên nếu có nhiều hơn
+              : orderData!.items.length,
+            itemBuilder: (context, index) {
+              final item = orderData!.items[index];
+              return _buildOrderItem(item);
+            },
+          ),
+          // Hiển thị nút "Xem thêm" nếu có hơn 3 sản phẩm
+          if (orderData!.items.length > 3)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.h),
+              child: Center(
+                child: TextButton(
+                  onPressed: () {
+                    _showAllOrderItems(context);
+                  },
+                  child: Text(
+                    "Xem thêm ${orderData!.items.length - 3} sản phẩm",
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+        ],
+      ),
+    );
+  }
+  
+  // Hiển thị tất cả sản phẩm trong một modal
+  void _showAllOrderItems(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.h)),
+      ),
+      builder: (context) {
+        return Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.h),
+                child: Row(
                   children: [
-                    SizedBox(
-                      width: 222.h,
-                      child: Text(
-                        item.productName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(
-                          height: 1.60,
-                        ),
-                      ),
+                    Text(
+                      "Tất cả sản phẩm (${orderData!.items.length})",
+                      style: CustomTextStyles.titleMediumBalooBhai2Gray700,
                     ),
-                    SizedBox(
-                      width: double.maxFinite,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Màu sắc: ${item.color ?? 'N/A'}",
-                            style: CustomTextStyles.labelMediumGray60001,
-                          ),
-                          Text(
-                            "Số lượng: ${item.quantity}",
-                            style: CustomTextStyles.labelMediumGray60001,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-                    SizedBox(
-                      width: double.maxFinite,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(left: 4.h),
-                            child: Text(
-                              _formatPrice(item.price),
-                              style: theme.textTheme.labelLarge,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
+                ),
+              ),
+              Divider(),
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 16.h),
+                  itemCount: orderData!.items.length,
+                  itemBuilder: (context, index) {
+                    final item = orderData!.items[index];
+                    return _buildOrderItem(item);
+                  },
                 ),
               ),
             ],
@@ -447,7 +493,78 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       },
     );
   }
-
+  
+  // Trích xuất widget để hiển thị mỗi mục đơn hàng
+  Widget _buildOrderItem(OrderItem item) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.all(10.h),
+      decoration: AppDecoration.fillWhiteA.copyWith(
+        borderRadius: BorderRadiusStyle.roundedBorder8,
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          CustomImageView(
+            imagePath: item.productImage ?? ImageConstant.imgImage33,
+            height: 42.h,
+            width: 64.h,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 222.h,
+                  child: Text(
+                    item.productName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(
+                      height: 1.60,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Màu sắc: ${item.color ?? 'N/A'}",
+                        style: CustomTextStyles.labelMediumGray60001,
+                      ),
+                      Text(
+                        "Số lượng: ${item.quantity}",
+                        style: CustomTextStyles.labelMediumGray60001,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(left: 4.h),
+                        child: Text(
+                          _formatPrice(item.price),
+                          style: theme.textTheme.labelLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   /// Section Widget
   Widget _buildPromoCode(BuildContext context) {
     bool hasVoucher =
