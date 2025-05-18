@@ -10,6 +10,7 @@ import '../../model/product.dart'; // Thêm import cho ProductModel
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
+import '../../services/email_service.dart'; // Add this import
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItem>? selectedItems;
@@ -511,9 +512,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           // Chỉ cập nhật ở lần đầu tiên
           Future.microtask(() => controller.setUserPoints(loyaltyPoints));
         }
+
         // Tính toán số tiền được giảm
         final pointsValue = loyaltyPoints * 1000.0;
         final formattedPointsValue = ProductModel.formatPrice(pointsValue);
+
+        // Tính số điểm sẽ tích được từ đơn hàng này
+        final pointsToEarn = controller.pointsToEarn;
 
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 16.h),
@@ -546,6 +551,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           "Bạn đang có $loyaltyPoints điểm (${formattedPointsValue})",
                           style: CustomTextStyles.labelLargeGray60001,
                         ),
+                        if (pointsToEarn > 0)
+                          Padding(
+                            padding: EdgeInsets.only(top: 4.h),
+                            child: Text(
+                              "Bạn sẽ tích được $pointsToEarn điểm từ đơn hàng này",
+                              style: TextStyle(
+                                color: appTheme.deepPurpleA200,
+                                fontSize: 12.h,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -576,7 +593,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       SizedBox(width: 8.h),
                       Expanded(
                         child: Text(
-                          "Bạn sẽ được giảm ${ProductModel.formatPrice(controller.pointsDiscount)} từ điểm tích lũy",
+                          "Bạn sẽ dùng hết ${controller.userPoints} điểm và được giảm ${ProductModel.formatPrice(controller.pointsDiscount)}",
                           style: TextStyle(
                             color: appTheme.deepPurpleA200,
                             fontSize: 12.h,
@@ -669,6 +686,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       },
     );
   }
+
   Widget _buildSummaryRow({
     required String title,
     required String price,
@@ -733,31 +751,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               : () async {
                   setState(() {
                     _isProcessing = true;
-                  });
+                  }); // Attempt to complete the checkout process
+                  final orderId = await _checkoutController.completeCheckout();
 
                   // Lấy CartController để xóa các sản phẩm đã được thanh toán
                   final cartController = CartController();
-
-                  final success = await _checkoutController.completeCheckout();
-
-                  if (success) {
+                  if (orderId != null) {
+                    // Successfully created order
                     // Xóa các mục đã chọn khỏi giỏ hàng
                     await cartController.removeSelectedItems();
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Đặt hàng thành công!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    // Refresh user data to update loyalty points
+                    final authController =
+                        Provider.of<AuthController>(context, listen: false);
+                    if (authController.firebaseUser != null) {
+                      await authController.refreshUserData();
+                    }
 
-                    Future.delayed(Duration(seconds: 2), () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.homeScreen,
-                        (route) => false,
-                      );
-                    });
+                    // Send confirmation email
+                    final emailService = EmailService();
+                    try {
+                      await emailService.sendOrderConfirmation(orderId);
+                    } catch (e) {
+                      print('Error sending confirmation email: $e');
+                      // Continue with checkout process even if email fails
+                    }
+
+                    // Navigate to success screen with order ID
+                    Navigator.pushNamed(context, AppRoutes.orderPlacedScreen,
+                        arguments: {'orderId': orderId});
                   } else {
                     setState(() {
                       _isProcessing = false;

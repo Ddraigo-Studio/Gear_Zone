@@ -38,15 +38,11 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
 
   Future<void> _fetchOrderDetails() async {
     try {
-      print('Fetching order details for ID: ${widget.orderId}');
       final order = await _orderController.getOrderById(widget.orderId!);
       setState(() {
         orderData = order;
         isLoading = false;
       });
-      if (order == null) {
-        print('Order not found for ID: ${widget.orderId}');
-      }
     } catch (e) {
       print('Error fetching order details: $e');
       setState(() {
@@ -71,67 +67,35 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       appBar: _buildAppBar(context),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : orderData == null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        "Không tìm thấy thông tin đơn hàng",
-                        style: theme.textTheme.bodyLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 8),
-                      if (widget.orderId != null)
-                        Text(
-                          "Mã đơn hàng: ${widget.orderId}",
-                          style: theme.textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                      SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("Quay lại"),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : SafeArea(
-                  top: false,
-                  child: SizedBox(
+          : SafeArea(
+              top: false,
+              child: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Container(
                     width: double.maxFinite,
-                    child: SingleChildScrollView(
-                      child: Container(
-                        width: double.maxFinite,
-                        padding: EdgeInsets.only(
-                          left: 16.h,
-                          top: 24.h,
-                          right: 16.h,
-                        ),
-                        child: Column(
-                          children: [
-                            _buildOrderInformation(context),
-                            SizedBox(height: 48.h),
-                            _buildOrderList(context),
-                            SizedBox(height: 48.h),
-                            _buildPromoCode(context),
-                            SizedBox(height: 16.h),
-                            _buildPaymentInfo(context),
-                            SizedBox(height: 8.h),
-                          ],
-                        ),
-                      ),
+                    padding: EdgeInsets.only(
+                      left: 16.h,
+                      top: 24.h,
+                      right: 16.h,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildOrderInformation(context),
+                        SizedBox(height: 48.h),
+                        _buildOrderList(context),
+                        SizedBox(height: 48.h),
+                        _buildPromoCode(context),
+                        SizedBox(height: 16.h),
+                        _buildPaymentInfo(context),
+                        SizedBox(height: 8.h),
+                      ],
                     ),
                   ),
                 ),
-      bottomNavigationBar:
-          orderData != null ? _buildReviewAndReturn(context) : null,
+              ),
+            ),
+      bottomNavigationBar: _buildReviewAndReturn(context),
     );
   }
 

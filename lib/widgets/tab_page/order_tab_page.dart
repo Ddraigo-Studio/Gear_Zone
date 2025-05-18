@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../controller/orders_controller.dart';
-import '../../pages/Order/order_detail_screen.dart';
+import '../../routes/app_routes.dart';
 import '../items/ordered_item.dart';
 import '../../core/app_export.dart';
 
@@ -35,10 +35,11 @@ class OrderTabPage extends StatelessWidget {
                     // Xử lý nút đánh giá
                   },
                   onDetailsPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => OrdersDetailScreen()),
-                    );
+                    // Since the Order class doesn't have an ID, we need to navigate to the screen differently
+                    // This is a temporary solution - eventually we should use real order IDs from Firestore
+                    Navigator.pushNamed(context, AppRoutes.ordersDetailScreen,
+                        // Use a placeholder orderId for demo purposes
+                        arguments: {'orderId': 'sample-order-id'});
                   },
                 );
               },
@@ -74,7 +75,8 @@ class OrderTabPage extends StatelessWidget {
             ),
             child: Text(
               "Tiếp tục mua hàng",
-              style: CustomTextStyles.titleMediumBalooBhai2Gray900.copyWith(color: Colors.white),
+              style: CustomTextStyles.titleMediumBalooBhai2Gray900
+                  .copyWith(color: Colors.white),
             ),
           )
         ],
