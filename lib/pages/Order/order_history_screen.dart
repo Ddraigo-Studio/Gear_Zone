@@ -112,7 +112,8 @@ class OrdersHistoryScreenState extends State<OrdersHistoryScreen>
           setState(() {
             tabIndex = index; // Update tabIndex immediately on tap
           });
-        },        tabs: [
+        },
+        tabs: [
           _buildTabItem("Tất cả", 0),
           _buildTabItem("Chờ xử lý", 1),
           _buildTabItem("Đang giao", 2),
