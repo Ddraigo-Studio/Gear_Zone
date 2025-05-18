@@ -386,7 +386,6 @@ class ProductDetailState extends State<ProductDetail> {
   void initState() {
     super.initState();
     
-    // Delay to ensure Provider is ready after widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProductData();
       _loadCategories();

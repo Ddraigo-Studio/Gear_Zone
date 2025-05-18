@@ -528,29 +528,32 @@ class ProductController {
         return ProductModel.fromMap(data);
       }).toList();
     });
-  }
-
-  // Lấy danh sách sản phẩm khuyến mãi (có giảm giá > 0%)
-  Stream<List<ProductModel>> getPromotionProducts() {
-    return _productsCollection
-        .where('discount', isGreaterThan: 0)
-        .orderBy('discount', descending: true)
-        .limit(10)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
-        return ProductModel.fromMap(data);
-      }).toList();
-    });
-  }
-
-  // Lấy danh sách sản phẩm mới nhất
-  Stream<List<ProductModel>> getNewestProducts() {
+  }  // Lấy danh sách sản phẩm khuyến mãi (có mảng promotions không rỗng)
+  Stream<List<ProductModel>> getPromotionProducts({int limit = 10}) {
+    // Không thể sử dụng query trực tiếp để kiểm tra mảng không rỗng trong Firebase,
+    // nên chúng ta sẽ lấy nhiều sản phẩm hơn và lọc trong code
     return _productsCollection
         .orderBy('createdAt', descending: true)
-        .limit(10)
+        .limit(limit * 3) // Lấy nhiều hơn để đảm bảo đủ sản phẩm sau khi lọc
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+        .map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data['id'] = doc.id;
+          return ProductModel.fromMap(data);
+        })
+        .where((product) => 
+          product.promotions != null && product.promotions.isNotEmpty
+        )
+        .take(limit)
+        .toList();
+    });
+  }  // Lấy danh sách sản phẩm mới nhất
+  Stream<List<ProductModel>> getNewestProducts({int limit = 10}) {
+    return _productsCollection
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -562,13 +565,13 @@ class ProductController {
   }
 
   // Lấy danh sách sản phẩm bán chạy nhất (giả lập, trong thực tế sẽ dựa trên số lượng đã bán)
-  Future<List<ProductModel>> getBestSellingProducts() async {
+  Future<List<ProductModel>> getBestSellingProducts({int limit = 10}) async {
     try {
       // Trong môi trường thực, bạn sẽ có một field như "soldCount" để sắp xếp
       // Ở đây chúng ta giả lập bằng cách lấy sản phẩm giảm giá nhiều nhất
       QuerySnapshot snapshot = await _productsCollection
           .orderBy('discount', descending: true)
-          .limit(10)
+          .limit(limit)
           .get();
       
       return snapshot.docs.map((doc) {
@@ -645,7 +648,6 @@ class ProductController {
       return [];
     }
   }
-
   // Lấy sản phẩm theo danh mục cụ thể: Chuột
   Future<List<ProductModel>> getMouseProducts() async {
     try {
@@ -661,6 +663,44 @@ class ProductController {
       }).toList();
     } catch (e) {
       // print('Lỗi khi lấy sản phẩm chuột: $e');
+      return [];
+    }
+  }
+  
+  // Lấy sản phẩm theo danh mục cụ thể: Loa
+  Future<List<ProductModel>> getSpeakerProducts() async {
+    try {
+      QuerySnapshot snapshot = await _productsCollection
+          .where('category', isEqualTo: 'Loa')
+          .limit(10)
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+    } catch (e) {
+      // print('Lỗi khi lấy sản phẩm loa: $e');
+      return [];
+    }
+  }
+  
+  // Lấy sản phẩm theo danh mục cụ thể: Case
+  Future<List<ProductModel>> getCaseProducts() async {
+    try {
+      QuerySnapshot snapshot = await _productsCollection
+          .where('category', isEqualTo: 'Case')
+          .limit(10)
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ProductModel.fromMap(data);
+      }).toList();
+    } catch (e) {
+      // print('Lỗi khi lấy sản phẩm case: $e');
       return [];
     }
   }

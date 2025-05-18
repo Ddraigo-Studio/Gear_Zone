@@ -158,7 +158,8 @@ class AppRoutes {
         address: args['address'],
       );
     },
-    initialRoute: (context) => LoginScreen(),
+
+    initialRoute: (context) => HomeScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),
