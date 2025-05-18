@@ -174,14 +174,15 @@ class ProductModel {
     formatted = formatted.replaceAllMapped(reg, (Match match) => '${match[1]}.');
     return "${formatted}đ";
   }
-
   // Phương thức tính phần trăm giảm giá
   String getDiscountPercent() {
-    if (originalPrice > 0 && price < originalPrice ) {
+    if (originalPrice > 0 && price < originalPrice) {
       double discountValue = ((originalPrice - price) / originalPrice) * 100;
       return "${discountValue.round()}%";
-    } else {
+    } else if (discount > 0) {
       return "${discount}%";
+    } else {
+      return "0%";
     }
   }
   
