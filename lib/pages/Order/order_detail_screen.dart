@@ -450,7 +450,8 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
 
   /// Section Widget
   Widget _buildPromoCode(BuildContext context) {
-    bool hasVoucher = orderData?.voucherId != null && orderData!.voucherDiscount > 0;
+    bool hasVoucher =
+        orderData?.voucherId != null && orderData!.voucherDiscount > 0;
 
     return Container(
       width: double.maxFinite,
@@ -523,12 +524,14 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8.h),
-                    border: Border.all(color: appTheme.deepPurpleA200.withOpacity(0.2)),
+                    border: Border.all(
+                        color: appTheme.deepPurpleA200.withOpacity(0.2)),
                   ),
                   child: Row(
                     children: [
                       CustomImageView(
-                        imagePath: ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
+                        imagePath:
+                            ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
                         height: 24.h,
                         width: 24.h,
                       ),
@@ -538,8 +541,11 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              orderData!.voucherCode ?? orderData!.voucherId?.substring(0, 8) ?? '',
-                              style: CustomTextStyles.titleMediumBalooBhai2Red500,
+                              orderData!.voucherCode ??
+                                  orderData!.voucherId?.substring(0, 8) ??
+                                  '',
+                              style:
+                                  CustomTextStyles.titleMediumBalooBhai2Red500,
                             ),
                             SizedBox(height: 2.h),
                             Text(
@@ -629,12 +635,21 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                 ),
               ],
             ),
-          ),          SizedBox(
+          ),
+          SizedBox(
             width: double.maxFinite,
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Phí vận chuyển",
               priceThree: _formatPrice(orderData!.shippingFee),
+            ),
+          ),
+          SizedBox(
+            width: double.maxFinite,
+            child: _buildInfoRow(
+              context,
+              uiphvnchuyOne: "Thuế (2%)",
+              priceThree: _formatPrice(orderData!.subtotal * 0.02),
             ),
           ),
           if (orderData!.voucherDiscount > 0)
@@ -700,6 +715,23 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             text: "Xem đánh giá",
             buttonStyle: CustomButtonStyles.outlinePrimary,
             buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+            onPressed: () {
+              // Add review functionality here
+            },
+          ),
+          CustomOutlinedButton(
+            height: 38.h,
+            width: 134.h,
+            text: "Về trang chủ",
+            buttonStyle: CustomButtonStyles.outlinePrimary,
+            buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+            onPressed: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.homeScreen,
+                (route) => false,
+              );
+            },
           ),
           if (showReturnButton)
             CustomOutlinedButton(
@@ -708,6 +740,9 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
               text: "Yêu cầu trả hàng",
               buttonStyle: CustomButtonStyles.outlineGrayTL10,
               buttonTextStyle: theme.textTheme.bodyMedium!,
+              onPressed: () {
+                // Add return request functionality here
+              },
             ),
         ],
       ),

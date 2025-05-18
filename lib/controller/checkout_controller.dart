@@ -23,11 +23,9 @@ class CheckoutController extends ChangeNotifier {
   // Payment method
   String _paymentMethod = 'Thanh toán khi nhận hàng';
   String _paymentIcon = '';
-  int _paymentMethodIndex = 2; // Mặc định là thanh toán khi nhận hàng (index 2)
-  // Shipping fee
+  int _paymentMethodIndex =
+      2; // Mặc định là thanh toán khi nhận hàng (index 2)  // Shipping fee
   double _shippingFee = 30000.0;
-  // Tax fee (sẽ được tính là 2% giá trị đơn hàng)
-  double _taxFee = 0.0;
 
   // Discount from voucher
   double _discount = 0.0;
@@ -70,7 +68,7 @@ class CheckoutController extends ChangeNotifier {
     // Tính toán trực tiếp từ từng thành phần thay vì dùng _discount tổng
     return subtotalPrice +
         _shippingFee +
-        _taxFee -
+        taxFee -
         _voucherDiscount -
         _pointsDiscount;
   }
@@ -224,7 +222,8 @@ class CheckoutController extends ChangeNotifier {
           .toList();
 
       // Generate a unique order ID
-      final String orderId = firestore.collection('orders').doc().id;      // Create the order model
+      final String orderId =
+          firestore.collection('orders').doc().id; // Create the order model
       final OrderModel order = OrderModel(
         id: orderId,
         userId: currentUser.uid,

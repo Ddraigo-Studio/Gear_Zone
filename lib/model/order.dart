@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Simple Order class for UI display purposes (legacy support)
@@ -21,7 +20,8 @@ class Order {
 }
 
 // Enhanced OrderModel for Firestore and full order management
-class OrderModel {  final String id;
+class OrderModel {
+  final String id;
   final String userId;
   final String userName;
   final String userPhone;
@@ -88,6 +88,7 @@ class OrderModel {  final String id;
       'note': note,
     };
   }
+
   // Create from Firestore document
   factory OrderModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;

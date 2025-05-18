@@ -616,6 +616,14 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
               priceThree: _formatPrice(orderData!.shippingFee),
             ),
           ),
+          SizedBox(
+            width: double.maxFinite,
+            child: _buildInfoRow(
+              context,
+              uiphvnchuyOne: "Thuế (2%)",
+              priceThree: _formatPrice(orderData!.subtotal * 0.02),
+            ),
+          ),
           if (orderData!.discount > 0)
             SizedBox(
               width: double.maxFinite,
