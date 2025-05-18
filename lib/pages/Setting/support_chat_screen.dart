@@ -24,17 +24,14 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() async {
+  void _sendMessage(String userId, String userName) async {
     if (_messageController.text.trim().isNotEmpty) {
-      final authController =
-          Provider.of<AuthController>(context, listen: false);
-      final user = authController.userModel;
-
       await _firestore.collection('support_chats').add({
         'message': _messageController.text.trim(),
-        'senderId': user?.uid ?? 'anonymous',
+        'senderId': userId,
+        'senderName': userName,
+        'recipientId': 'admin',
         'timestamp': FieldValue.serverTimestamp(),
-        'senderName': user?.name ?? 'Khách hàng',
       });
 
       _messageController.clear();
@@ -54,24 +51,21 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     });
   }
 
-  // Định nghĩa các kiểu văn bản trực tiếp
-  final TextStyle _appBarTitleStyle = const TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    color: Colors.black87,
-  );
-
   @override
   Widget build(BuildContext context) {
-    // Check screen width to determine layout
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final bool isDesktop = screenWidth >= 1200;
+    final authController = Provider.of<AuthController>(context, listen: false);
+    final user = authController.userModel;
+    final bool isDesktop = MediaQuery.of(context).size.width >= 1200;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Trò chuyện với hỗ trợ',
-          style: _appBarTitleStyle,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
         backgroundColor: appTheme.whiteA700,
         elevation: 0,
@@ -81,17 +75,17 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Chúng tôi sẽ hỗ trợ bạn trong thời gian sớm nhất!'),
+                  content:
+                      Text('Chúng tôi sẽ hỗ trợ bạn trong thời gian sớm nhất!'),
                   backgroundColor: Colors.deepPurple,
                 ),
               );
             },
-          )
+          ),
         ],
       ),
       body: Column(
-        children: [
-          Expanded(
+        children: [          Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestore
                   .collection('support_chats')
@@ -100,22 +94,22 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
-                }
-
-                final messages = snapshot.data!.docs;
+                }                // Lọc các tin nhắn liên quan đến người dùng hiện tại
+                final messages = snapshot.data!.docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return (data['senderId'] == user?.uid && data['recipientId'] == 'admin') ||
+                         (data['senderId'] == 'admin' && data['recipientId'] == user?.uid);
+                }).toList();
 
                 return ListView.builder(
                   controller: _scrollController,
                   itemCount: messages.length,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: isDesktop ? 200 : 16, vertical: 10),
-                  itemBuilder: (context, index) {
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isDesktop ? 200 : 16,
+                    vertical: 10,
+                  ),                  itemBuilder: (context, index) {
                     final message = messages[index];
-                    final data = message.data() as Map<String, dynamic>;
-                    final isMe = data['senderId'] ==
-                        Provider.of<AuthController>(context, listen: false)
-                            .userModel
-                            ?.uid;
+                    final data = message.data() as Map<String, dynamic>;                    final isMe = data['senderId'] == user?.uid;
 
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -124,9 +118,12 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                             isMe ? Alignment.centerRight : Alignment.centerLeft,
                         child: Container(
                           constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.7),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            maxWidth: MediaQuery.of(context).size.width * 0.7,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: isMe
                                 ? appTheme.deepPurpleA200.withOpacity(0.9)
@@ -148,6 +145,16 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text(
+                                data['senderName'] ??
+                                    (isMe ? 'Khách hàng' : 'Hỗ trợ'),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isMe ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
                               Text(
                                 data['message'],
                                 style: TextStyle(
@@ -204,7 +211,9 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                         color: Colors.grey,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
@@ -222,12 +231,14 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                     ),
                     maxLines: 1,
                     textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _sendMessage(),
+                    onSubmitted: (_) => _sendMessage(
+                        user?.uid ?? 'anonymous', user?.name ?? 'Khách hàng'),
                   ),
                 ),
                 const SizedBox(width: 8),
                 FloatingActionButton(
-                  onPressed: _sendMessage,
+                  onPressed: () => _sendMessage(
+                      user?.uid ?? 'anonymous', user?.name ?? 'Khách hàng'),
                   mini: !isDesktop,
                   elevation: 1,
                   backgroundColor: appTheme.deepPurpleA200,

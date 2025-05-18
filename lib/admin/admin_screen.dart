@@ -17,7 +17,7 @@ import 'Voucher/voucher_detail_screen.dart';
 import 'Voucher/voucher_add_screen.dart';
 import 'Order/order_screen.dart';
 import 'Order/order_detail_screen.dart';
-
+import 'Support/list_chat.dart';
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});  @override
   Widget build(BuildContext context) {
@@ -228,6 +228,9 @@ class AdminScreen extends StatelessWidget {
             } else {
               return const OrderScreen();
             }
+          case AppScreen.supportChat:
+            return const AdminSupportUserListScreen();
+          
             
           default:
             return const DashboardScreen();

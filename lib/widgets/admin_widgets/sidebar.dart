@@ -191,7 +191,7 @@ class _SidebarState extends State<Sidebar> {
                     context,
                     icon: Icons.chat_outlined,
                     title: 'Hộp thoại',
-                    screen: AppScreen.dashboard, // Tạm thời sử dụng dashboard vì chưa có màn hình hộp thoại
+                    screen: AppScreen.supportChat, // Tạm thời sử dụng dashboard vì chưa có màn hình hộp thoại
                     currentScreen: appProvider.currentScreen,
                   ),
 
