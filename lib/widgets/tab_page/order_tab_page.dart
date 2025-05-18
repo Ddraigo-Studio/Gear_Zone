@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller/orders_controller.dart';
-import '../../routes/app_routes.dart';
-import '../../pages/Order/order_detail_screen.dart';
 import '../items/ordered_item.dart';
 import '../../core/app_export.dart';
 import '../../model/order.dart';
 import '../../controller/auth_controller.dart';
-import '../../model/order.dart';
-import 'package:intl/intl.dart';
+
 
 class OrderTabPage extends StatefulWidget {
   final String status;
