@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/items/order_item.dart' as widget_order_item;
-import '../../widgets/items/order_timeline_item.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/bottom_sheet/add_voucher_bottomsheet.dart';
@@ -40,35 +38,16 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
 
   Future<void> _fetchOrderDetails() async {
     try {
-      print('🔍 Fetching order details for ID: ${widget.orderId}');
-      final startTime = DateTime.now();
-
       final order = await _orderController.getOrderById(widget.orderId!);
-
-      final endTime = DateTime.now();
-      final duration = endTime.difference(startTime).inMilliseconds;
-      print('⏱️ Order details fetched in $duration ms');
-
-      if (mounted) {
-        setState(() {
-          orderData = order;
-          isLoading = false;
-        });
-      }
-
-      if (order == null) {
-        print('❌ Order not found for ID: ${widget.orderId}');
-      } else {
-        print(
-            '✅ Order loaded: ${order.id}, Status: ${order.status}, Items: ${order.items.length}');
-      }
+      setState(() {
+        orderData = order;
+        isLoading = false;
+      });
     } catch (e) {
-      print('❌ Error fetching order details: $e');
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      print('Error fetching order details: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -87,87 +66,36 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       backgroundColor: appTheme.gray100,
       appBar: _buildAppBar(context),
       body: isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.colorScheme.primary),
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    "Đang tải thông tin đơn hàng...",
-                    style: TextStyle(
-                      fontSize: 16.h,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : orderData == null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        "Không tìm thấy thông tin đơn hàng",
-                        style: theme.textTheme.bodyLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 8),
-                      if (widget.orderId != null)
-                        Text(
-                          "Mã đơn hàng: ${widget.orderId}",
-                          style: theme.textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                      SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("Quay lại"),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : SafeArea(
-                  top: false,
-                  child: SizedBox(
+          ? Center(child: CircularProgressIndicator())
+          : SafeArea(
+              top: false,
+              child: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Container(
                     width: double.maxFinite,
-                    child: SingleChildScrollView(
-                      child: Container(
-                        width: double.maxFinite,
-                        padding: EdgeInsets.only(
-                          left: 16.h,
-                          top: 24.h,
-                          right: 16.h,
-                        ),
-                        child: Column(
-                          children: [
-                            _buildOrderInformation(context),
-                            SizedBox(height: 48.h),
-                            _buildOrderList(context),
-                            SizedBox(height: 48.h),
-                            _buildPromoCode(context),
-                            SizedBox(height: 16.h),
-                            _buildPaymentInfo(context),
-                            SizedBox(height: 8.h),
-                          ],
-                        ),
-                      ),
+                    padding: EdgeInsets.only(
+                      left: 16.h,
+                      top: 24.h,
+                      right: 16.h,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildOrderInformation(context),
+                        SizedBox(height: 48.h),
+                        _buildOrderList(context),
+                        SizedBox(height: 48.h),
+                        _buildPromoCode(context),
+                        SizedBox(height: 16.h),
+                        _buildPaymentInfo(context),
+                        SizedBox(height: 8.h),
+                      ],
                     ),
                   ),
                 ),
-      bottomNavigationBar:
-          orderData != null ? _buildReviewAndReturn(context) : null,
+              ),
+            ),
+      bottomNavigationBar: _buildReviewAndReturn(context),
     );
   }
 
@@ -191,6 +119,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       ),
     );
   }
+
   /// Section Widget
   Widget _buildOrderInformation(BuildContext context) {
     if (orderData == null) {
@@ -401,97 +330,79 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       );
     }
 
-    return Container(
-      decoration: AppDecoration.fillWhiteA.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder5,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 10.h),
-            child: Text(
-              "Danh sách sản phẩm (${orderData!.items.length})",
-              style: CustomTextStyles.titleMediumBalooBhai2Gray700,
-            ),
-          ),
-          ListView.builder(
-            padding: EdgeInsets.symmetric(horizontal: 10.h),
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: orderData!.items.length > 3
-                ? 3 // Chỉ hiển thị 3 sản phẩm đầu tiên nếu có nhiều hơn
-                : orderData!.items.length,
-            itemBuilder: (context, index) {
-              final item = orderData!.items[index];
-              return _buildOrderItem(item);
-            },
-          ),
-          // Hiển thị nút "Xem thêm" nếu có hơn 3 sản phẩm
-          if (orderData!.items.length > 3)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.h),
-              child: Center(
-                child: TextButton(
-                  onPressed: () {
-                    _showAllOrderItems(context);
-                  },
-                  child: Text(
-                    "Xem thêm ${orderData!.items.length - 3} sản phẩm",
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // Hiển thị tất cả sản phẩm trong một modal
-  void _showAllOrderItems(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.h)),
-      ),
-      builder: (context) {
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      physics: NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      separatorBuilder: (context, index) {
+        return SizedBox(
+          height: 16.h,
+        );
+      },
+      itemCount: orderData!.items.length,
+      itemBuilder: (context, index) {
+        final item = orderData!.items[index];
         return Container(
-          constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7),
-          padding: EdgeInsets.symmetric(vertical: 16.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          padding: EdgeInsets.all(10.h),
+          decoration: AppDecoration.fillWhiteA.copyWith(
+            borderRadius: BorderRadiusStyle.roundedBorder8,
+          ),
+          child: Row(
             children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.h),
-                child: Row(
+              CustomImageView(
+                imagePath: item.productImage ?? ImageConstant.imgImage33,
+                height: 42.h,
+                width: 64.h,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Tất cả sản phẩm (${orderData!.items.length})",
-                      style: CustomTextStyles.titleMediumBalooBhai2Gray700,
+                    SizedBox(
+                      width: 222.h,
+                      child: Text(
+                        item.productName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(
+                          height: 1.60,
+                        ),
+                      ),
                     ),
-                    Spacer(),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
+                    SizedBox(
+                      width: double.maxFinite,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Màu sắc: ${item.color ?? 'N/A'}",
+                            style: CustomTextStyles.labelMediumGray60001,
+                          ),
+                          Text(
+                            "Số lượng: ${item.quantity}",
+                            style: CustomTextStyles.labelMediumGray60001,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    SizedBox(
+                      width: double.maxFinite,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 4.h),
+                            child: Text(
+                              _formatPrice(item.price),
+                              style: theme.textTheme.labelLarge,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-              ),
-              Divider(),
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 16.h),
-                  itemCount: orderData!.items.length,
-                  itemBuilder: (context, index) {
-                    final item = orderData!.items[index];
-                    return _buildOrderItem(item);
-                  },
                 ),
               ),
             ],
@@ -501,81 +412,9 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
     );
   }
 
-  // Trích xuất widget để hiển thị mỗi mục đơn hàng
-  Widget _buildOrderItem(OrderItem item) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
-      padding: EdgeInsets.all(10.h),
-      decoration: AppDecoration.fillWhiteA.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          CustomImageView(
-            imagePath: item.productImage ?? ImageConstant.imgImage33,
-            height: 42.h,
-            width: 64.h,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 222.h,
-                  child: Text(
-                    item.productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyles.bodySmallBalooBhaiGray900.copyWith(
-                      height: 1.60,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Màu sắc: ${item.color ?? 'N/A'}",
-                        style: CustomTextStyles.labelMediumGray60001,
-                      ),
-                      Text(
-                        "Số lượng: ${item.quantity}",
-                        style: CustomTextStyles.labelMediumGray60001,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 6.h),
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 4.h),
-                        child: Text(
-                          _formatPrice(item.price),
-                          style: theme.textTheme.labelLarge,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Section Widget
   Widget _buildPromoCode(BuildContext context) {
-    bool hasVoucher =
-        orderData?.voucherId != null && orderData!.voucherDiscount > 0;
+    bool hasVoucher = orderData?.voucherId != null && orderData!.discount > 0;
 
     return Container(
       width: double.maxFinite,
@@ -620,7 +459,8 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                         ),
                       ),
                       builder: (BuildContext context) {
-                        return AddVoucherBottomsheet();                      },
+                        return AddVoucherBottomsheet();
+                      },
                     );
                   },
                   icon: CustomImageView(
@@ -641,45 +481,54 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                     ),
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.only(top: 10.h),
-                  padding: EdgeInsets.all(12.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.h),
-                    border: Border.all(
-                        color: appTheme.deepPurpleA200.withOpacity(0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      CustomImageView(
-                        imagePath:
-                            ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
-                        height: 24.h,
-                        width: 24.h,
-                      ),
-                      SizedBox(width: 12.h),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              orderData!.voucherCode ??
-                                  orderData!.voucherId?.substring(0, 8) ??
-                                  '',
-                              style:
-                                  CustomTextStyles.titleMediumBalooBhai2Red500,
-                            ),
-                            SizedBox(height: 2.h),
-                            Text(
-                              "Giảm ${_formatPrice(orderData!.voucherDiscount)} cho đơn hàng",
-                              style: CustomTextStyles.labelLargeGray60001,
-                            ),
-                          ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4.h, right: 10.h),
+                      child: CustomIconButton(
+                        height: 34.h,
+                        width: 34.h,
+                        padding: EdgeInsets.all(6.h),
+                        decoration: IconButtonStyleHelper.fillDeepPurpleTL16,
+                        child: CustomImageView(
+                          imagePath: ImageConstant.imgDiscount,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Giảm ${(orderData!.discount / orderData!.subtotal * 100).toStringAsFixed(0)}%",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyles.titleMediumBalooBhai2Gray700
+                                .copyWith(
+                              height: 1.60,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                "Mã khuyến mãi:",
+                                style: CustomTextStyles.titleSmallInterGray700,
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(left: 4.h),
+                                child: Text(
+                                  orderData!.voucherId ?? '',
+                                  style: CustomTextStyles.titleSmallInterRed500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -734,7 +583,8 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                 alpha: 0.9,
               ),
             ),
-          ),          SizedBox(
+          ),
+          SizedBox(
             width: double.maxFinite,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -763,35 +613,24 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Phí vận chuyển",
-              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.shippingFee) : "0 đ",
+              priceThree: _formatPrice(orderData!.shippingFee),
             ),
           ),
           SizedBox(
             width: double.maxFinite,
             child: _buildInfoRow(
               context,
-              uiphvnchuyOne: "Giảm giá",
-              priceThree: orderData != null ? "-${FormatUtils.formatPrice(orderData!.discount)}" : "0 đ",
+              uiphvnchuyOne: "Thuế (2%)",
+              priceThree: _formatPrice(orderData!.subtotal * 0.02),
             ),
           ),
-          if (orderData!.voucherDiscount > 0)
+          if (orderData!.discount > 0)
             SizedBox(
               width: double.maxFinite,
               child: _buildInfoRow(
                 context,
-                uiphvnchuyOne: "Voucher (${orderData!.voucherCode ?? ''})",
-                priceThree: "- ${_formatPrice(orderData!.voucherDiscount)}",
-                color: appTheme.red400,
-              ),
-            ),
-          if (orderData!.pointsDiscount > 0)
-            SizedBox(
-              width: double.maxFinite,
-              child: _buildInfoRow(
-                context,
-                uiphvnchuyOne: "Điểm tích lũy (${orderData!.pointsUsed} điểm)",
-                priceThree: "- ${_formatPrice(orderData!.pointsDiscount)}",
-                color: appTheme.deepPurpleA200,
+                uiphvnchuyOne: "Voucher",
+                priceThree: "- ${_formatPrice(orderData!.discount)}",
               ),
             ),
           SizedBox(
@@ -807,13 +646,14 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Thành tiền:",
-              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.total) : "0 đ",
+              priceThree: _formatPrice(orderData!.total),
             ),
           ),
         ],
       ),
     );
   }
+
   /// Section Widget
   Widget _buildReviewAndReturn(BuildContext context) {
     bool showReturnButton =
@@ -830,49 +670,20 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (orderData!.status == "Đã nhận")
-            CustomOutlinedButton(
-              height: 38.h,
-              width: 134.h,
-              text: "Đánh giá",
-              buttonStyle: CustomButtonStyles.outlinePrimary,
-              buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
-              onPressed: () {
-                // Implement review functionality
-              },
-            ),
-          if (orderData!.status == "Chờ xử lý")
-            CustomOutlinedButton(
-              height: 38.h,
-              width: 152.h,
-              text: "Hủy đơn hàng",
-              buttonStyle: CustomButtonStyles.outlineGrayTL10,
-              buttonTextStyle: theme.textTheme.bodyMedium!,
-              onPressed: () {
-                // Implement cancel order functionality
-              },
-            ),
-          if (orderData!.status == "Đã nhận")
+          CustomOutlinedButton(
+            height: 38.h,
+            width: 134.h,
+            text: "Xem đánh giá",
+            buttonStyle: CustomButtonStyles.outlinePrimary,
+            buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
+          ),
+          if (showReturnButton)
             CustomOutlinedButton(
               height: 38.h,
               width: 152.h,
               text: "Yêu cầu trả hàng",
               buttonStyle: CustomButtonStyles.outlineGrayTL10,
               buttonTextStyle: theme.textTheme.bodyMedium!,
-              onPressed: () {
-                // Implement return request functionality
-              },
-            ),
-          if (orderData!.status == "Đang giao")
-            CustomOutlinedButton(
-              height: 38.h,
-              width: 152.h,
-              text: "Theo dõi đơn hàng",
-              buttonStyle: CustomButtonStyles.outlinePrimary,
-              buttonTextStyle: CustomTextStyles.bodyMediumDeeppurple400,
-              onPressed: () {
-                // Implement tracking functionality 
-              },
             ),
         ],
       ),
@@ -884,7 +695,6 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
     BuildContext context, {
     required String uiphvnchuyOne,
     required String priceThree,
-    Color? color,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -900,7 +710,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
         Text(
           priceThree,
           style: theme.textTheme.bodyLarge!.copyWith(
-            color: color ?? appTheme.gray900,
+            color: appTheme.gray900,
           ),
         ),
       ],
