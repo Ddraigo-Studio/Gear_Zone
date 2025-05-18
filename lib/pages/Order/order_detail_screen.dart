@@ -450,7 +450,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
 
   /// Section Widget
   Widget _buildPromoCode(BuildContext context) {
-    bool hasVoucher = orderData?.voucherId != null && orderData!.discount > 0;
+    bool hasVoucher = orderData?.voucherId != null && orderData!.voucherDiscount > 0;
 
     return Container(
       width: double.maxFinite,
@@ -517,54 +517,40 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4.h, right: 10.h),
-                      child: CustomIconButton(
-                        height: 34.h,
-                        width: 34.h,
-                        padding: EdgeInsets.all(6.h),
-                        decoration: IconButtonStyleHelper.fillDeepPurpleTL16,
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgDiscount,
+                Container(
+                  margin: EdgeInsets.only(top: 10.h),
+                  padding: EdgeInsets.all(12.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.h),
+                    border: Border.all(color: appTheme.deepPurpleA200.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      CustomImageView(
+                        imagePath: ImageConstant.imgIconsaxBrokenDiscountshapeGreen400,
+                        height: 24.h,
+                        width: 24.h,
+                      ),
+                      SizedBox(width: 12.h),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              orderData!.voucherCode ?? orderData!.voucherId?.substring(0, 8) ?? '',
+                              style: CustomTextStyles.titleMediumBalooBhai2Red500,
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              "Giảm ${_formatPrice(orderData!.voucherDiscount)} cho đơn hàng",
+                              style: CustomTextStyles.labelLargeGray60001,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Giảm ${(orderData!.discount / orderData!.subtotal * 100).toStringAsFixed(0)}%",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyles.titleMediumBalooBhai2Gray700
-                                .copyWith(
-                              height: 1.60,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                "Mã khuyến mãi:",
-                                style: CustomTextStyles.titleSmallInterGray700,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 4.h),
-                                child: Text(
-                                  orderData!.voucherId ?? '',
-                                  style: CustomTextStyles.titleSmallInterRed500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -643,8 +629,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
                 ),
               ],
             ),
-          ),
-          SizedBox(
+          ),          SizedBox(
             width: double.maxFinite,
             child: _buildInfoRow(
               context,
@@ -652,13 +637,24 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
               priceThree: _formatPrice(orderData!.shippingFee),
             ),
           ),
-          if (orderData!.discount > 0)
+          if (orderData!.voucherDiscount > 0)
             SizedBox(
               width: double.maxFinite,
               child: _buildInfoRow(
                 context,
-                uiphvnchuyOne: "Voucher",
-                priceThree: "- ${_formatPrice(orderData!.discount)}",
+                uiphvnchuyOne: "Voucher (${orderData!.voucherCode ?? ''})",
+                priceThree: "- ${_formatPrice(orderData!.voucherDiscount)}",
+                color: appTheme.red400,
+              ),
+            ),
+          if (orderData!.pointsDiscount > 0)
+            SizedBox(
+              width: double.maxFinite,
+              child: _buildInfoRow(
+                context,
+                uiphvnchuyOne: "Điểm tích lũy (${orderData!.pointsUsed} điểm)",
+                priceThree: "- ${_formatPrice(orderData!.pointsDiscount)}",
+                color: appTheme.deepPurpleA200,
               ),
             ),
           SizedBox(
@@ -723,6 +719,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
     BuildContext context, {
     required String uiphvnchuyOne,
     required String priceThree,
+    Color? color,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -738,7 +735,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
         Text(
           priceThree,
           style: theme.textTheme.bodyLarge!.copyWith(
-            color: appTheme.gray900,
+            color: color ?? appTheme.gray900,
           ),
         ),
       ],

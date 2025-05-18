@@ -40,32 +40,22 @@ Widget get buildElevatedButtonWidget => Container(
       decoration: decoration,
       child: ElevatedButton(
         style: buttonStyle,
-        onPressed: isDisabled ?? false ? null : onPressed ?? () {},        
+        onPressed: isDisabled ?? false ? null : onPressed ?? () {},
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 12.h),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Changed to spaceBetween for start and end alignment
+            mainAxisAlignment: MainAxisAlignment.center, // Changed to center alignment
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
-              // Left side with icon and text
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start, // Align to start (left)
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    leftIcon ?? const SizedBox.shrink(),
-                    if (leftIcon != null) SizedBox(width: 8.h),
-                    Text(
-                      text,
-                      style:
-                          buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
-                      textAlign: TextAlign.start, // Align text to start
-                    ),
-                  ],
-                ),
+              leftIcon ?? const SizedBox.shrink(),
+              if (leftIcon != null) SizedBox(width: 8.h),
+              Text(
+                text,
+                style: buttonTextStyle ?? CustomTextStyles.labelMediumInterRed500,
+                textAlign: TextAlign.center, // Center the text
               ),
-              // Right side with optional icon
+              if (rightIcon != null) SizedBox(width: 8.h),
               rightIcon ?? const SizedBox.shrink()
             ],
           ),

@@ -224,9 +224,7 @@ class CheckoutController extends ChangeNotifier {
           .toList();
 
       // Generate a unique order ID
-      final String orderId = firestore.collection('orders').doc().id;
-
-      // Create the order model
+      final String orderId = firestore.collection('orders').doc().id;      // Create the order model
       final OrderModel order = OrderModel(
         id: orderId,
         userId: currentUser.uid,
@@ -241,6 +239,10 @@ class CheckoutController extends ChangeNotifier {
         discount: _voucherDiscount + _pointsDiscount,
         total: totalPrice,
         voucherId: _voucherId,
+        voucherCode: _voucherCode,
+        voucherDiscount: _voucherDiscount,
+        pointsDiscount: _pointsDiscount,
+        pointsUsed: _usePoints ? _userPoints : 0,
         paymentMethod: _paymentMethod,
         isPaid: _paymentMethodIndex != 2, // Not COD means already paid
         note: '',
