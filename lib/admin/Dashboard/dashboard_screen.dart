@@ -434,7 +434,7 @@ class DashboardScreen extends StatelessWidget {
                 color: Colors.deepPurple,
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  image: AssetImage('images/learn_more.png'),
+                  image: AssetImage('assets/images/learn_more.png'),
                   fit: BoxFit.cover,
                 ),
                 boxShadow: [
@@ -652,11 +652,14 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Text(
-                'Từ tuần trước',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
+              Flexible(
+                child: Text(
+                  'Từ tuần trước',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
