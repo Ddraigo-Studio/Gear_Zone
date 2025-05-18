@@ -763,7 +763,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Phí vận chuyển",
-              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.shippingFee) : "0 đ",
+              priceThree: orderData != null ? FormatUtils.formatPrice(orderData!.shippingFee) : "0đ",
             ),
           ),
           SizedBox(
@@ -771,7 +771,7 @@ class _OrdersDetailScreenState extends State<OrdersDetailScreen> {
             child: _buildInfoRow(
               context,
               uiphvnchuyOne: "Giảm giá",
-              priceThree: orderData != null ? "-${FormatUtils.formatPrice(orderData!.discount)}" : "0 đ",
+              priceThree: orderData != null ? "-${FormatUtils.formatPrice(orderData!.discount)}" : "0đ",
             ),
           ),
           if (orderData!.voucherDiscount > 0)

@@ -1,6 +1,8 @@
+// filepath: d:\HOCTAP\CrossplatformMobileApp\DOANCK\Project\Gear_Zone\lib\pages\Profile\add_address_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/responsive.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle_two.dart';
 import '../../widgets/custom_text_form_field.dart';
@@ -77,6 +79,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context); // Added
+    
     return ChangeNotifierProvider(
       create: (_) {
         addressData = AddressData();
@@ -88,73 +92,79 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         appBar: _buildAppBar(context),
         body: SafeArea(
           top: false,
-          child: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Container(
-                    width: double.maxFinite,
-                    padding: EdgeInsets.only(
-                      left: 16.h,
-                      top: 32.h,
-                      right: 16.h,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: Column(
-                            children: [
-                              // Only show name and phone inputs if not coming from registration
-                              if (widget.fromRegistration) ...[
-                                Container(
-                                  padding: EdgeInsets.all(12.h),
-                                  decoration: BoxDecoration(
-                                    color: appTheme.gray100,
-                                    borderRadius: BorderRadius.circular(8.h),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.info_outline,
-                                          color: appTheme.gray700),
-                                      SizedBox(width: 10.h),
-                                      Expanded(
-                                        child: Text(
-                                          "Địa chỉ sẽ được lưu với thông tin tài khoản của bạn",
-                                          style: CustomTextStyles
-                                              .bodyMediumGray900,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 16.h),
-                              ],
-                              if (!widget.fromRegistration) ...[
-                                _buildNameInput(context),
-                                SizedBox(height: 16.h),
-                                _buildPhoneInput(context),
-                                SizedBox(height: 16.h),
-                              ],
-                              _buildProvinceSelector(context),
-                              SizedBox(height: 16.h),
-                              _buildDistrictSelector(context),
-                              SizedBox(height: 16.h),
-                              _buildWardSelector(context),
-                              SizedBox(height: 16.h),
-                              _buildAddressInput(context),
-                            ],
-                          ),
+          child: Center( // Wrap with Center
+            child: Container( // Add Container for width constraint
+              width: isDesktop ? 1200.0 : double.maxFinite, // Set responsive width
+              padding: isDesktop ? EdgeInsets.symmetric(horizontal: 20.h) : null, // Add responsive padding
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView( // Wrap with SingleScrollView to avoid overflow
+                      child: Container(
+                        width: double.maxFinite,
+                        padding: EdgeInsets.only(
+                          left: 16.h,
+                          top: 32.h,
+                          right: 16.h,
+                          bottom: 20.h, // Add bottom padding
                         ),
-                      ],
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            SizedBox(
+                              width: double.maxFinite,
+                              child: Column(
+                                children: [
+                                  // Only show name and phone inputs if not coming from registration
+                                  if (widget.fromRegistration) ...[
+                                    Container(
+                                      padding: EdgeInsets.all(12.h),
+                                      decoration: BoxDecoration(
+                                        color: appTheme.gray100,
+                                        borderRadius: BorderRadius.circular(8.h),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.info_outline,
+                                              color: appTheme.gray700),
+                                          SizedBox(width: 10.h),
+                                          Expanded(
+                                            child: Text(
+                                              "Địa chỉ sẽ được lưu với thông tin tài khoản của bạn",
+                                              style: CustomTextStyles
+                                                  .bodyMediumGray900,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(height: 16.h),
+                                  ],
+                                  if (!widget.fromRegistration) ...[
+                                    _buildNameInput(context),
+                                    SizedBox(height: 16.h),
+                                    _buildPhoneInput(context),
+                                    SizedBox(height: 16.h),
+                                  ],
+                                  _buildProvinceSelector(context),
+                                  SizedBox(height: 16.h),
+                                  _buildDistrictSelector(context),
+                                  SizedBox(height: 16.h),
+                                  _buildWardSelector(context),
+                                  SizedBox(height: 16.h),
+                                  _buildAddressInput(context),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -189,68 +199,80 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   /// Section Widget
   Widget _buildNameInput(BuildContext context) {
-    return CustomTextFormField(
-      controller: nameInputController,
-      hintText: "Họ và tên",
-      hintStyle: CustomTextStyles.bodyLargeGray700,
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 12.h,
-        vertical: 12.h,
+    final bool isDesktop = Responsive.isDesktop(context);
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 0),
+      child: CustomTextFormField(
+        controller: nameInputController,
+        hintText: "Họ và tên",
+        hintStyle: CustomTextStyles.bodyLargeGray700,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 12.h,
+          vertical: 12.h,
+        ),
       ),
     );
   }
 
   /// Section Widget
   Widget _buildPhoneInput(BuildContext context) {
-    return CustomTextFormField(
-      controller: phoneInputController,
-      hintText: "Số điện thoại",
-      textInputType: TextInputType.phone,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return "Vui lòng nhập số điện thoại";
-        } else if (!RegExp(r'^\d{10,11}$').hasMatch(value)) {
-          return "Số điện thoại không hợp lệ";
-        }
-        return null;
-      },
-      hintStyle: CustomTextStyles.bodyLargeGray700,
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 12.h,
-        vertical: 12.h,
+    final bool isDesktop = Responsive.isDesktop(context);
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 0),
+      child: CustomTextFormField(
+        controller: phoneInputController,
+        hintText: "Số điện thoại",
+        textInputType: TextInputType.phone,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return "Vui lòng nhập số điện thoại";
+          } else if (!RegExp(r'^\d{10,11}$').hasMatch(value)) {
+            return "Số điện thoại không hợp lệ";
+          }
+          return null;
+        },
+        hintStyle: CustomTextStyles.bodyLargeGray700,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 12.h,
+          vertical: 12.h,
+        ),
       ),
     );
   }
 
   /// Section Widget: Province Selector
   Widget _buildProvinceSelector(BuildContext context) {
-    return Consumer<AddressData>(
-      builder: (context, data, _) => InkWell(
-        onTap: () => _selectProvince(context, data),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8.h),
-            border: Border.all(color: appTheme.gray300, width: 1),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                data.province?.name ?? "Chọn Tỉnh/Thành phố",
-                style: data.province != null
-                    ? CustomTextStyles.bodyLargeGray700
-                    : CustomTextStyles.bodyLargeGray900,
-              ),
-              CustomImageView(
-                imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
-                height: 24.h,
-                width: 24.h,
-                fit: BoxFit.contain,
-              ),
-            ],
+    final bool isDesktop = Responsive.isDesktop(context);
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 0),
+      child: Consumer<AddressData>(
+        builder: (context, data, _) => InkWell(
+          onTap: () => _selectProvince(context, data),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.h),
+              border: Border.all(color: appTheme.gray300, width: 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  data.province?.name ?? "Chọn Tỉnh/Thành phố",
+                  style: data.province != null
+                      ? CustomTextStyles.bodyLargeGray700
+                      : CustomTextStyles.bodyLargeGray900,
+                ),
+                CustomImageView(
+                  imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
+                  height: 24.h,
+                  width: 24.h,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -259,37 +281,41 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   /// Section Widget: District Selector
   Widget _buildDistrictSelector(BuildContext context) {
-    return Consumer<AddressData>(
-      builder: (context, data, _) => InkWell(
-        onTap:
-            data.province != null ? () => _selectDistrict(context, data) : null,
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
-          decoration: BoxDecoration(
-            color: data.province != null ? Colors.white : appTheme.gray100,
-            borderRadius: BorderRadius.circular(8.h),
-            border: Border.all(color: appTheme.gray300, width: 1),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                data.district?.name ??
-                    (data.province != null
-                        ? "Chọn Quận/Huyện"
-                        : "Vui lòng chọn Tỉnh/Thành phố trước"),
-                style: data.district != null
-                    ? CustomTextStyles.bodyLargeGray700
-                    : CustomTextStyles.bodyLargeGray900,
-              ),
-              CustomImageView(
-                imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
-                height: 24.h,
-                width: 24.h,
-                fit: BoxFit.contain,
-              ),
-            ],
+    final bool isDesktop = Responsive.isDesktop(context);
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 0),
+      child: Consumer<AddressData>(
+        builder: (context, data, _) => InkWell(
+          onTap:
+              data.province != null ? () => _selectDistrict(context, data) : null,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
+            decoration: BoxDecoration(
+              color: data.province != null ? Colors.white : appTheme.gray100,
+              borderRadius: BorderRadius.circular(8.h),
+              border: Border.all(color: appTheme.gray300, width: 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  data.district?.name ??
+                      (data.province != null
+                          ? "Chọn Quận/Huyện"
+                          : "Vui lòng chọn Tỉnh/Thành phố trước"),
+                  style: data.district != null
+                      ? CustomTextStyles.bodyLargeGray700
+                      : CustomTextStyles.bodyLargeGray900,
+                ),
+                CustomImageView(
+                  imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
+                  height: 24.h,
+                  width: 24.h,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -298,36 +324,40 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   /// Section Widget: Ward Selector
   Widget _buildWardSelector(BuildContext context) {
-    return Consumer<AddressData>(
-      builder: (context, data, _) => InkWell(
-        onTap: data.district != null ? () => _selectWard(context, data) : null,
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
-          decoration: BoxDecoration(
-            color: data.district != null ? Colors.white : appTheme.gray100,
-            borderRadius: BorderRadius.circular(8.h),
-            border: Border.all(color: appTheme.gray300, width: 1),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                data.ward?.name ??
-                    (data.district != null
-                        ? "Chọn Phường/Xã"
-                        : "Vui lòng chọn Quận/Huyện trước"),
-                style: data.ward != null
-                    ? CustomTextStyles.bodyLargeGray700
-                    : CustomTextStyles.bodyLargeGray900,
-              ),
-              CustomImageView(
-                imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
-                height: 24.h,
-                width: 24.h,
-                fit: BoxFit.contain,
-              ),
-            ],
+    final bool isDesktop = Responsive.isDesktop(context);
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 0),
+      child: Consumer<AddressData>(
+        builder: (context, data, _) => InkWell(
+          onTap: data.district != null ? () => _selectWard(context, data) : null,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 14.h),
+            decoration: BoxDecoration(
+              color: data.district != null ? Colors.white : appTheme.gray100,
+              borderRadius: BorderRadius.circular(8.h),
+              border: Border.all(color: appTheme.gray300, width: 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  data.ward?.name ??
+                      (data.district != null
+                          ? "Chọn Phường/Xã"
+                          : "Vui lòng chọn Quận/Huyện trước"),
+                  style: data.ward != null
+                      ? CustomTextStyles.bodyLargeGray700
+                      : CustomTextStyles.bodyLargeGray900,
+                ),
+                CustomImageView(
+                  imagePath: ImageConstant.imgIconsaxBrokenArrowdown2,
+                  height: 24.h,
+                  width: 24.h,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -336,19 +366,24 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   /// Section Widget
   Widget _buildAddressInput(BuildContext context) {
-    return CustomTextFormField(
-      controller: addressInputController,
-      hintText: "Số nhà, tên đường ...",
-      hintStyle: CustomTextStyles.bodyLargeGray700,
-      textInputType: TextInputType.multiline,
-      textInputAction: TextInputAction.done,
-      maxLines: 5,
-      contentPadding: EdgeInsets.fromLTRB(12.h, 10.h, 12.h, 12.h),
+    final bool isDesktop = Responsive.isDesktop(context);
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: isDesktop ? 200.h : 0),
+      child: CustomTextFormField(
+        controller: addressInputController,
+        hintText: "Số nhà, tên đường ...",
+        hintStyle: CustomTextStyles.bodyLargeGray700,
+        textInputType: TextInputType.multiline,
+        textInputAction: TextInputAction.done,
+        maxLines: 5,
+        contentPadding: EdgeInsets.fromLTRB(12.h, 10.h, 12.h, 12.h),
+      ),
     );
   }
 
   /// Section Widget
   Widget _buildSaveButton(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
     return Consumer<AddressData>(
       builder: (context, data, _) {
         bool isValidAddress = data.province != null &&
@@ -378,7 +413,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
-            minimumSize: Size(double.infinity, 60.h),
+            minimumSize: Size(double.infinity, isDesktop ? 60.h : 50.h), // Tăng chiều cao cho màn hình desktop
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30.h),
             ),
@@ -396,11 +431,12 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   /// Section Widget
   Widget _buildSaveButtonSection(BuildContext context) {
+    final bool isDesktop = Responsive.isDesktop(context);
     return Container(
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
-        horizontal: 24.h,
-        vertical: 14.h,
+        horizontal: isDesktop ? 300.h : 24.h, // Tăng margin để giảm độ rộng của nút
+        vertical: isDesktop ? 20.h : 14.h, // Tăng padding dọc cho desktop
       ),
       decoration: AppDecoration.fillWhiteA,
       child: Column(

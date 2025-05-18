@@ -58,5 +58,6 @@
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "IDX.aI.enableInlineCompletion": true,
-  "IDX.aI.enableCodebaseIndexing": true
+  "IDX.aI.enableCodebaseIndexing": true,
+  "cmake.sourceDirectory": "D:/HOCTAP/CrossplatformMobileApp/DOANCK/Project/Gear_Zone/build/windows/x64/extracted/firebase_cpp_sdk_windows"
 }

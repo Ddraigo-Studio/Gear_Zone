@@ -8,7 +8,6 @@ import '../../../widgets/custom_image_view.dart';
 import 'package:provider/provider.dart';
 import '../../../core/app_provider.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
-import 'package:dotted_border/dotted_border.dart';
 import '../../../widgets/admin_widgets/breadcrumb.dart';
 
 class CategoryAddScreen extends StatefulWidget {
