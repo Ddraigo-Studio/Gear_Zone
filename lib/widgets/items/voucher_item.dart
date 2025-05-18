@@ -1,17 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../core/app_export.dart';
+import '../../model/voucher.dart';
 
 class ListVoucherItem extends StatelessWidget {
-  const ListVoucherItem({super.key});
+  final Voucher voucher;
+  final VoidCallback? onTap;
+  final bool isSelected;
+
+  const ListVoucherItem({
+    super.key,
+    required this.voucher,
+    this.onTap,
+    this.isSelected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Format discount amount to VND
+    final formatCurrency =
+        NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
+    final discountText = '${formatCurrency.format(voucher.discountAmount)}đ';
+
+    // Format expiry date (using createdAt + 30 days as example)
+    final expiryDate = voucher.createdAt.add(const Duration(days: 30));
+    final formattedExpiry = DateFormat('dd/MM/yyyy').format(expiryDate);
+
+    // Minimum order amount (assumed to be 1,000,000đ for all vouchers)
+    final minOrderAmount = "1.000.000đ";
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: 16.h,
         vertical: 14.h,
       ),
-      decoration: AppDecoration.row30,
+      decoration: AppDecoration.row30.copyWith(
+        border:
+            isSelected ? Border.all(color: appTheme.blue300, width: 2) : null,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -27,7 +53,7 @@ class ListVoucherItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Giảm 10% ",
+                    "Giảm $discountText",
                     style: CustomTextStyles.labelLargeInterGray700,
                   ),
                   Row(
@@ -38,7 +64,7 @@ class ListVoucherItem extends StatelessWidget {
                         style: CustomTextStyles.labelLargeInterDeeppurple400,
                       ),
                       Text(
-                        "1.000.000đ",
+                        minOrderAmount,
                         style: CustomTextStyles.labelLargeInterGray700,
                       )
                     ],
@@ -57,8 +83,9 @@ class ListVoucherItem extends StatelessWidget {
                         Padding(
                           padding: EdgeInsets.only(left: 10.h),
                           child: Text(
-                            "16/12/2025",
-                            style: CustomTextStyles.labelMediumInterDeeporange400,
+                            formattedExpiry,
+                            style:
+                                CustomTextStyles.labelMediumInterDeeporange400,
                           ),
                         ),
                       ],
@@ -78,9 +105,12 @@ class ListVoucherItem extends StatelessWidget {
                   "Điều kiện",
                   style: CustomTextStyles.labelLargeInterBlue300,
                 ),
-                Text(
-                  "Sử dụng",
-                  style: CustomTextStyles.labelLargeInterRed400,
+                GestureDetector(
+                  onTap: onTap,
+                  child: Text(
+                    "Sử dụng",
+                    style: CustomTextStyles.labelLargeInterRed400,
+                  ),
                 )
               ],
             ),

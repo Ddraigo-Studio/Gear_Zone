@@ -140,6 +140,7 @@ class AppRoutes {
         address: args['address'],
       );
     },
+
     initialRoute: (context) => HomeScreen(),
 
     // Admin routes
