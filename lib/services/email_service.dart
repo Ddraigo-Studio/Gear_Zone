@@ -5,8 +5,8 @@ import '../../model/product.dart';
 
 class EmailService {
   // Cấu hình thông tin SMTP
-  final String _email = 'thhg1010@gmail.com'; // Thay bằng email của bạn
-  final String _appPassword = 'bltj blxk qwpa yftu'; // Thay bằng mật khẩu ứng dụng
+  final String _email = 'laithanh1000@gmail.com'; // Thay bằng email của bạn
+  final String _appPassword = 'excj hagq wzxf myzs'; // Thay bằng mật khẩu ứng dụng
 
   Future<void> sendOrderConfirmation(
     String orderId,
