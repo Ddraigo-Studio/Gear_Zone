@@ -5,8 +5,7 @@ import '../core/utils/responsive.dart';
 import '../widgets/admin_widgets/sidebar.dart';
 import '../core/app_provider.dart';
 import 'package:provider/provider.dart';
-import 'Dashboard/model_dashboard_screen.dart';
-import 'Dashboard/dashboard_screen.dart';
+import 'Dashboard/screens/dashboard_screen.dart';
 import 'Product/product_screen.dart';
 import 'Product/product_add_screen.dart';
 import 'Customer/customer_detail_screen.dart';
@@ -158,8 +157,9 @@ class AdminScreen extends StatelessWidget {
         // Lấy trạng thái xem/sửa từ AppProvider
         final appProvider = Provider.of<AppProvider>(context, listen: false);
         
-        switch (screenIndex) {            case AppScreen.dashboard:
-            return const ModelDashboardScreen(); // Using the new ModelDashboardScreen with Provider
+        switch (screenIndex) {              
+          case AppScreen.dashboard:
+            return const DashboardScreen(); // Using the new DashboardScreen from the screens folder
             
           case AppScreen.productList:
             return const ProductScreen(); // Màn hình danh sách sản phẩm

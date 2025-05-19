@@ -44,7 +44,7 @@ import '../pages/Setting/setting_screen.dart';
 import '../pages/Voucher/voucher_detail_screen.dart';
 
 // Admin
-import '../admin/Dashboard/dashboard_screen.dart';
+import '../admin/Dashboard/screens/dashboard_screen.dart';
 import '../admin/Product/product_screen.dart';
 import '../admin/Product/product_add_screen.dart';
 import '../admin/Customer/customer_screen.dart';

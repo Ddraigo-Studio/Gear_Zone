@@ -11,8 +11,7 @@ class DashboardService {
 
   // Formatter for currency values
   final currencyFormatter = NumberFormat("#,###", "vi_VN");
-  
-  // Get overall stats data (users, orders, revenue)
+    // Get overall stats data (users, orders, revenue, profit)
   Future<Map<String, dynamic>> getOverallStats(DateTime startDate, DateTime endDate) async {
     // In a real application, this would make API calls to your backend
     // For now, we're returning mock data
@@ -26,7 +25,9 @@ class DashboardService {
       'totalOrders': 4389,
       'avgOrderValue': 325000,
       'totalRevenue': 142000000,
+      'totalProfit': 68200000,
       'revenueChange': 15.3,
+      'profitChange': 18.7,
       'orderChange': 8.2,
       'userChange': 12.5,
     };
@@ -48,53 +49,104 @@ class DashboardService {
     if (timeInterval == 'Năm') {
       // Monthly data for a year
       for (int i = 0; i < 12; i++) {
+        final revenue = (3.5 + (i * 0.5) + (i % 3 == 0 ? 0.3 : -0.1)) * 1000000;
+        final profit = revenue * (0.45 + (i % 5) * 0.01); // Profit is approx 45-50% of revenue
+        
         data.add({
           'period': DateFormat('MM/yyyy').format(DateTime(startDate.year, 1 + i, 1)),
-          'revenue': (3.5 + (i * 0.5) + (i % 3 == 0 ? 0.3 : -0.1)) * 1000000,
+          'revenue': revenue,
+          'profit': profit,
           'orders': 320 + (i * 15) + (i % 2 == 0 ? 25 : -15),
+          'productCount': 145 + (i * 8) + (i % 3 == 0 ? 12 : -5),
+          'productTypes': 18 + (i % 4),
         });
       }
     } else if (timeInterval == 'Quý') {
       // Monthly data for a quarter
       final quarterStartMonth = ((startDate.month - 1) ~/ 3) * 3 + 1;
       for (int i = 0; i < 3; i++) {
+        final revenue = (5.2 + (i * 0.8) + (i % 2 == 0 ? 0.5 : -0.2)) * 1000000;
+        final profit = revenue * (0.46 + (i % 3) * 0.02); // Profit varies between 46-50%
+        
         data.add({
           'period': DateFormat('MM/yyyy').format(DateTime(startDate.year, quarterStartMonth + i, 1)),
-          'revenue': (5.2 + (i * 0.8) + (i % 2 == 0 ? 0.5 : -0.2)) * 1000000,
+          'revenue': revenue,
+          'profit': profit,
           'orders': 380 + (i * 25) + (i % 2 == 0 ? 35 : -20),
+          'productCount': 160 + (i * 12),
+          'productTypes': 15 + (i % 3),
         });
       }
     } else if (timeInterval == 'Tháng') {
       // Weekly data for a month
       for (int i = 0; i < 4; i++) {
+        final revenue = (1.2 + (i * 0.3) + (i % 2 == 0 ? 0.2 : -0.1)) * 1000000;
+        final profit = revenue * (0.47 + (i % 3) * 0.01);
+        
         data.add({
           'period': 'Tuần ${i+1}',
-          'revenue': (1.5 + (i * 0.3) + (i % 2 == 0 ? 0.2 : -0.1)) * 1000000,
-          'orders': 95 + (i * 12) + (i % 2 == 0 ? 8 : -5),
+          'revenue': revenue,
+          'profit': profit,
+          'orders': 280 + (i * 18) + (i % 2 == 0 ? 15 : -10),
+          'productCount': 85 + (i * 7),
+          'productTypes': 12 + (i % 3),
         });
       }
     } else if (timeInterval == 'Tuần') {
       // Daily data for a week
+      final weekStart = startDate;
       for (int i = 0; i < 7; i++) {
-        final date = startDate.add(Duration(days: i));
+        final day = weekStart.add(Duration(days: i));
+        final revenue = (0.4 + (i * 0.06) + (i % 3 == 0 ? 0.1 : -0.05)) * 1000000;
+        final profit = revenue * (0.48 + (i % 2) * 0.02);
+        
         data.add({
-          'period': DateFormat('EEE').format(date),
-          'revenue': (0.5 + (i * 0.12) + (i % 3 == 0 ? 0.15 : -0.05)) * 1000000,
-          'orders': 35 + (i * 5) + (i % 2 == 0 ? 10 : -8),
+          'period': DateFormat('E').format(day),
+          'revenue': revenue,
+          'profit': profit,
+          'orders': 80 + (i * 8) + (i < 5 ? 10 : -15), // Weekdays have more orders
+          'productCount': 25 + (i * 3) + (i < 5 ? 5 : -3),
+          'productTypes': 8 + (i % 3),
         });
       }
     } else {
-      // Custom range - generate daily data
-      final daysDiff = endDate.difference(startDate).inDays;
-      final dataPoints = daysDiff > 30 ? 30 : daysDiff;
+      // Custom range - show daily data for up to 30 days or weekly data for longer periods
+      final daysDifference = endDate.difference(startDate).inDays;
       
-      for (int i = 0; i < dataPoints; i++) {
-        final date = startDate.add(Duration(days: (daysDiff / dataPoints * i).round()));
-        data.add({
-          'period': DateFormat('dd/MM').format(date),
-          'revenue': (0.8 + (i * 0.1) + (i % 3 == 0 ? 0.2 : -0.1)) * 1000000,
-          'orders': 40 + (i * 3) + (i % 2 == 0 ? 7 : -4),
-        });
+      if (daysDifference <= 30) {
+        // Daily data
+        for (int i = 0; i <= daysDifference; i++) {
+          final day = startDate.add(Duration(days: i));
+          final revenue = (0.5 + (i % 7) * 0.1 + (i % 5 == 0 ? 0.2 : -0.1)) * 1000000;
+          final profit = revenue * (0.47 + (day.weekday % 2) * 0.01);
+          
+          data.add({
+            'period': DateFormat('dd/MM').format(day),
+            'revenue': revenue,
+            'profit': profit,
+            'orders': 75 + (i % 7) * 5 + (i % 5 == 0 ? 15 : -5),
+            'productCount': 22 + (i % 7) * 2,
+            'productTypes': 6 + (i % 4),
+          });
+        }
+      } else {
+        // Weekly data
+        final weeksDifference = (daysDifference / 7).ceil();
+        for (int i = 0; i < weeksDifference; i++) {
+          final weekStart = startDate.add(Duration(days: i * 7));
+          final weekEnd = weekStart.add(const Duration(days: 6));
+          final revenue = (1.1 + (i * 0.2) + (i % 3 == 0 ? 0.3 : -0.1)) * 1000000;
+          final profit = revenue * (0.46 + (i % 4) * 0.01);
+          
+          data.add({
+            'period': '${DateFormat('dd/MM').format(weekStart)} - ${DateFormat('dd/MM').format(weekEnd)}',
+            'revenue': revenue,
+            'profit': profit,
+            'orders': 285 + (i * 15) + (i % 3 == 0 ? 20 : -10),
+            'productCount': 75 + (i * 8),
+            'productTypes': 10 + (i % 5),
+          });
+        }
       }
     }
     
@@ -231,8 +283,7 @@ class DashboardService {
       'salesChannels': ['Tất cả', 'Online', 'Cửa hàng', 'Đại lý', 'Marketplace'],
     };
   }
-  
-  // Get comparison data for the selected time period
+    // Get comparison data for the selected time period
   Future<List<Map<String, dynamic>>> getComparisonData(
     DateTime currentStartDate,
     DateTime currentEndDate,
@@ -250,39 +301,63 @@ class DashboardService {
     if (timeInterval == 'Năm') {
       // Monthly data for a year
       for (int i = 0; i < 12; i++) {
+        final revenue = (3.0 + (i * 0.4) + (i % 3 == 0 ? 0.2 : -0.1)) * 1000000;
+        final profit = revenue * (0.43 + (i % 5) * 0.01); // Profit is approx 43-48% of revenue (lower than current year)
+        
         data.add({
           'period': DateFormat('MM/yyyy').format(DateTime(previousStartDate.year, 1 + i, 1)),
-          'revenue': (3.0 + (i * 0.4) + (i % 3 == 0 ? 0.2 : -0.1)) * 1000000,
+          'revenue': revenue,
+          'profit': profit,
           'orders': 280 + (i * 12) + (i % 2 == 0 ? 20 : -10),
+          'productCount': 130 + (i * 7) + (i % 3 == 0 ? 10 : -4),
+          'productTypes': 16 + (i % 4),
         });
       }
     } else if (timeInterval == 'Quý') {
       // Monthly data for a quarter
       final quarterStartMonth = ((previousStartDate.month - 1) ~/ 3) * 3 + 1;
       for (int i = 0; i < 3; i++) {
+        final revenue = (4.5 + (i * 0.6) + (i % 2 == 0 ? 0.4 : -0.1)) * 1000000;
+        final profit = revenue * (0.44 + (i % 3) * 0.01); // Profit varies between 44-47%
+        
         data.add({
           'period': DateFormat('MM/yyyy').format(DateTime(previousStartDate.year, quarterStartMonth + i, 1)),
-          'revenue': (4.5 + (i * 0.6) + (i % 2 == 0 ? 0.4 : -0.1)) * 1000000,
+          'revenue': revenue,
+          'profit': profit,
           'orders': 340 + (i * 20) + (i % 2 == 0 ? 25 : -15),
+          'productCount': 145 + (i * 10),
+          'productTypes': 14 + (i % 3),
         });
       }
     } else if (timeInterval == 'Tháng') {
       // Weekly data for a month
       for (int i = 0; i < 4; i++) {
+        final revenue = (1.2 + (i * 0.25) + (i % 2 == 0 ? 0.15 : -0.08)) * 1000000;
+        final profit = revenue * (0.45 + (i % 3) * 0.01);
+        
         data.add({
           'period': 'Tuần ${i+1}',
-          'revenue': (1.2 + (i * 0.25) + (i % 2 == 0 ? 0.15 : -0.08)) * 1000000,
+          'revenue': revenue,
+          'profit': profit,
           'orders': 85 + (i * 10) + (i % 2 == 0 ? 7 : -4),
+          'productCount': 78 + (i * 6),
+          'productTypes': 11 + (i % 3),
         });
       }
     } else if (timeInterval == 'Tuần') {
       // Daily data for a week
       for (int i = 0; i < 7; i++) {
         final date = previousStartDate.add(Duration(days: i));
+        final revenue = (0.4 + (i * 0.1) + (i % 3 == 0 ? 0.12 : -0.04)) * 1000000;
+        final profit = revenue * (0.45 + (i % 2) * 0.02);
+        
         data.add({
           'period': DateFormat('EEE').format(date),
-          'revenue': (0.4 + (i * 0.1) + (i % 3 == 0 ? 0.12 : -0.04)) * 1000000,
+          'revenue': revenue,
+          'profit': profit,
           'orders': 30 + (i * 4) + (i % 2 == 0 ? 8 : -6),
+          'productCount': 22 + (i * 2) + (i < 5 ? 5 : -2),
+          'productTypes': 7 + (i % 3),
         });
       }
     } else {
@@ -292,10 +367,16 @@ class DashboardService {
       
       for (int i = 0; i < dataPoints; i++) {
         final date = previousStartDate.add(Duration(days: (daysDiff / dataPoints * i).round()));
+        final revenue = (0.7 + (i * 0.08) + (i % 3 == 0 ? 0.15 : -0.08)) * 1000000;
+        final profit = revenue * (0.44 + (date.weekday % 2) * 0.01);
+        
         data.add({
           'period': DateFormat('dd/MM').format(date),
-          'revenue': (0.7 + (i * 0.08) + (i % 3 == 0 ? 0.15 : -0.08)) * 1000000,
+          'revenue': revenue,
+          'profit': profit,
           'orders': 35 + (i * 2) + (i % 2 == 0 ? 6 : -3),
+          'productCount': 20 + (i % 7) * 2,
+          'productTypes': 5 + (i % 4),
         });
       }
     }
