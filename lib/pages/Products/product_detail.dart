@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gear_zone/model/product.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:convert';
 import '../../core/app_export.dart';
 import '../../core/utils/responsive.dart';
 import '../../core/utils/color_utils.dart';
@@ -13,8 +15,10 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/tab_page/product_tab_page.dart';
 import '../../widgets/cart_icon_button.dart';
 import '../../controller/review_controller.dart';
+import '../../model/product.dart';
 import '../../model/review.dart';
 import '../../widgets/product_review_list.dart';
+import 'dialog_review.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -26,49 +30,83 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  // The currently selected color
   String selectedColor = "";
-  // List of available color options for the product
   List<Map<String, dynamic>> colorOptions = [];
+  late WebSocketChannel _channel;
+  ProductReviewSummary? _summary;
+
   @override
   void initState() {
     super.initState();
-    // Initialize the selected color with the product's default color
     selectedColor = widget.product.color;
-
-    // Parse and set color options from the product color data
     _parseProductColors();
+    // Connect to WebSocket
+    _channel = WebSocketChannel.connect(
+      Uri.parse('ws://localhost:8080?productId=${widget.product.id}'),
+    );
+    // Listen for summary updates
+    _channel.stream.listen(
+      (message) {
+        final data = jsonDecode(message);
+        if (data['type'] == 'summary_update') {
+          final summaryData = data['summary'];
+          setState(() {
+            _summary = ProductReviewSummary(
+              productId: summaryData['productId'],
+              averageRating: (summaryData['averageRating'] as num).toDouble(),
+              numberOfReviews: (summaryData['numberOfReviews'] as num).toInt(),
+              ratingDistribution: Map<int, int>.fromEntries(
+                (summaryData['ratingDistribution'] as Map<String, dynamic>)
+                    .entries
+                    .map((e) => MapEntry(int.parse(e.key), (e.value as num).toInt())),
+              ),
+            );
+          });
+        }
+      },
+      onError: (error) {
+        print('WebSocket error: $error');
+      },
+      onDone: () {
+        print('WebSocket closed');
+      },
+    );
+    // Fetch initial summary
+    _fetchInitialSummary();
   }
 
-  // Parse colors from product data
-  void _parseProductColors() {
-    // Product color can be a comma-separated list of available colors
-    // First, check if color contains multiple values
-    List<String> colorsList = [];
+  Future<void> _fetchInitialSummary() async {
+    final summary = await ReviewController().getProductReviewSummary(widget.product.id);
+    setState(() {
+      _summary = summary;
+    });
+  }
 
+  void _parseProductColors() {
+    List<String> colorsList = [];
     if (widget.product.color.contains(",")) {
-      // Split the colors by comma if multiple colors are available
-      colorsList =
-          widget.product.color.split(",").map((color) => color.trim()).toList();
+      colorsList = widget.product.color.split(",").map((color) => color.trim()).toList();
     } else if (widget.product.color.isNotEmpty) {
-      // If only one color is available, add it to the list
       colorsList.add(widget.product.color.trim());
-    } // Convert string color names to color options with Color objects
+    }
     colorOptions = colorsList.map((colorName) {
       return {
         "name": colorName,
         "color": ColorUtils.getColorFromName(colorName)
       };
-    }).toList(); // Make sure the selected color is in the available colors
-    if (colorsList.isNotEmpty) {
-      if (!colorsList.contains(selectedColor)) {
-        selectedColor = colorsList.first;
-      }
-    } else {
-      // If no colors are available, set an empty list instead of a default value
+    }).toList();
+    if (colorsList.isNotEmpty && !colorsList.contains(selectedColor)) {
+      selectedColor = colorsList.first;
+    } else if (colorsList.isEmpty) {
       selectedColor = "";
-      colorOptions = []; // Empty list instead of default color
+      colorOptions = [];
     }
+  }
+
+  @override
+  void dispose() {
+    _channel.sink.close();
+    super.dispose();
   }
 
   @override
@@ -135,64 +173,96 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  /// Section Widget
-  Widget _buildReviewRow(BuildContext context) {
-    return SizedBox(
+  Widget _buildCommentButton(BuildContext context) {
+    bool isLoggedIn = FirebaseAuth.instance.currentUser != null;
+
+    return CustomOutlinedButton(
+      height: 40.h,
+      text: "Bình luận",
+      margin: EdgeInsets.symmetric(horizontal: 70.h),
+      buttonStyle: CustomButtonStyles.outlinePrimaryTL20,
+      buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanDeeppurple400,
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return ProductReviewSubmissionDialog(
+              productId: widget.product.id,
+              isLoggedIn: isLoggedIn,
+              onReviewSubmitted: () {
+                // No setState needed; WebSocket handles updates
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRatingSection(BuildContext context) {
+    return Container(
       width: double.maxFinite,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Text(
+                'Đánh giá sản phẩm',
+                style: CustomTextStyles.titleMediumBalooBhai2Gray700,
+              ),
+              TextButton(
+                onPressed: () {
+                  // Navigate to full reviews page
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      "Xem tất cả",
+                      style: CustomTextStyles.bodyMediumAmaranthRed500,
+                    ),
+                    CustomImageView(
+                      imagePath: ImageConstant.imgIconsaxBrokenArrowright2,
+                      height: 16.h,
+                      width: 18.h,
+                      margin: EdgeInsets.only(left: 4.h),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _summary != null ? "${_summary!.averageRating.toStringAsFixed(1)}/5" : "0.0/5",
+                style: CustomTextStyles.headlineSmallRed500,
+              ),
               CustomImageView(
-                imagePath: ImageConstant.imgUser2,
-                height: 40.h,
-                width: 42.h,
-                radius: BorderRadius.circular(20.h),
+                imagePath: ImageConstant.imgDefaultIcon,
+                height: 16.h,
+                width: 18.h,
+                margin: EdgeInsets.only(left: 2.h),
               ),
               Padding(
-                padding: EdgeInsets.only(left: 12.h),
+                padding: EdgeInsets.only(left: 8.h),
                 child: Text(
-                  "Alex Morgan",
-                  style: CustomTextStyles.labelLargeGray900,
-                ),
-              ),
-              Spacer(),
-              Row(
-                children: List.generate(5, (index) {
-                  return CustomImageView(
-                    imagePath: ImageConstant.imgDefaultIcon,
-                    height: 16.h,
-                    width: 18.h,
-                  );
-                }),
-              ),
-            ],
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: Text(
-                  "Gucci transcribes its heritage, creativity, and innovation into a plentitude of collections. From staple items to distinctive accessories.",
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyles.bodySmallBalooBhaiGray900_1.copyWith(
-                    height: 1.60,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 4.h),
-                child: Text(
-                  "12 ngày trước",
-                  style: CustomTextStyles.bodySmallBalooBhaiGray900,
+                  _summary != null
+                      ? "${_summary!.numberOfReviews} lượt đánh giá"
+                      : "0 lượt đánh giá",
+                  style: CustomTextStyles.bodySmallBalooBhaiDeeppurple400,
                 ),
               ),
             ],
           ),
+          SizedBox(height: 16.h),
+          ProductReviewList(
+            productId: widget.product.id,
+          ),
+          SizedBox(height: 16.h),
+          _buildCommentButton(context),
         ],
       ),
     );
@@ -226,10 +296,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
             ],
-          ), // Chỉ hiển thị thông tin màu sắc nếu sản phẩm có màu sắc thực sự và danh sách màu không trống
-          if (widget.product.color.isNotEmpty &&
-              colorOptions.isNotEmpty &&
-              colorOptions[0]["name"] != "Default")
+          ),
+          if (widget.product.color.isNotEmpty && colorOptions.isNotEmpty && colorOptions[0]["name"] != "Default")
             Row(
               children: [
                 Text(
@@ -241,8 +309,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: colorOptions.map((colorOption) {
-                      final bool isSelected =
-                          selectedColor == colorOption["name"];
+                      final bool isSelected = selectedColor == colorOption["name"];
                       return Tooltip(
                         message: colorOption["name"],
                         preferBelow: false,
@@ -260,9 +327,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               color: colorOption["color"],
                               borderRadius: BorderRadius.circular(16.h),
                               border: Border.all(
-                                color: isSelected
-                                    ? Colors.black
-                                    : Colors.transparent,
+                                color: isSelected ? Colors.black : Colors.transparent,
                                 width: isSelected ? 1 : 0,
                               ),
                               boxShadow: [
@@ -278,8 +343,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ? Center(
                                     child: Icon(
                                       Icons.check,
-                                      color: ColorUtils.shouldUseWhiteText(
-                                              colorOption["color"])
+                                      color: ColorUtils.shouldUseWhiteText(colorOption["color"])
                                           ? Colors.white
                                           : Colors.black,
                                       size: 18.h,
@@ -295,8 +359,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ],
             ),
           SizedBox(height: 8.h),
-          // Color selection options
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -312,8 +374,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       padding: EdgeInsets.only(left: 10.h),
                       child: Text(
                         ProductModel.formatPrice(widget.product.originalPrice),
-                        style:
-                            CustomTextStyles.titleSmallGabaritoGray900.copyWith(
+                        style: CustomTextStyles.titleSmallGabaritoGray900.copyWith(
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
@@ -326,14 +387,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   icon: CustomIconButton(
                     height: 40.h,
                     width: 40.h,
-                    // padding: EdgeInsets.all(12.h),
                     decoration: IconButtonStyleHelper.outline,
                     child: CustomImageView(
                       imagePath: ImageConstant.imgIconsaxBrokenHeart,
                     ),
                   ),
                   onPressed: () {
-                    // Hành động khi nhấn vào nút giỏ hàng
+                    // Handle favorite action
                   },
                 ),
               ),
@@ -344,141 +404,46 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildRatingRow(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            "4.5/5",
-            style: CustomTextStyles.headlineSmallRed500,
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgDefaultIcon,
-            height: 16.h,
-            width: 18.h,
-            margin: EdgeInsets.only(left: 2.h),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 8.h),
-            child: Text(
-              "213 lượt đánh giá",
-              style: CustomTextStyles.bodySmallBalooBhaiDeeppurple400,
-            ),
-          ),
-          Spacer(),
-          Text(
-            "Xem tất cả",
-            style: CustomTextStyles.bodyMediumAmaranthRed500,
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgIconsaxBrokenArrowright2,
-            height: 16.h,
-            width: 18.h,
-            margin: EdgeInsets.only(left: 4.h),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCommentButton(BuildContext context) {
-    return CustomOutlinedButton(
-      height: 40.h,
-      text: "Bình luận",
-      margin: EdgeInsets.symmetric(horizontal: 70.h),
-      buttonStyle: CustomButtonStyles.outlinePrimaryTL20,
-      buttonTextStyle: CustomTextStyles.bodyLargeBalooBhaijaanDeeppurple400,
-    );
-  }
-
   Widget _buildFloatingActionButton(BuildContext context) {
     return IconButton(
-        icon: CustomFloatingButton(
-          height: 50,
-          width: 50,
-          backgroundColor: theme.colorScheme.primary,
-          shape: null,
-          child: CustomImageView(
-            imagePath: ImageConstant.imgIconsaxBrokenBag2WhiteA700,
-            height: 25.0.h,
-            width: 25.0.h,
-          ),
+      icon: CustomFloatingButton(
+        height: 50,
+        width: 50,
+        backgroundColor: theme.colorScheme.primary,
+        shape: null,
+        child: CustomImageView(
+          imagePath: ImageConstant.imgIconsaxBrokenBag2WhiteA700,
+          height: 25.0.h,
+          width: 25.0.h,
         ),
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            builder: (context) {
-              return ProductVariantBottomsheet(
-                initialSelectedColor: selectedColor,
-                availableColors: colorOptions,
-                productName: widget.product.name,
-                productImage: widget.product.imageUrl,
-                productPrice: ProductModel.formatPrice(widget.product.price),
-                productOriginalPrice: widget.product.originalPrice > 0
-                    ? ProductModel.formatPrice(widget.product.originalPrice)
-                    : "",
-                productStock: widget.product.quantity,
-                productId: widget.product.id,
-                onAddToCart: (color, quantity) {
-                  // Handle add to cart action
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Đã thêm $quantity sản phẩm màu $color vào giỏ hàng'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        });
-  }
-
-  Widget _buildRatingSection(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tiêu đề
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Đánh giá sản phẩm',
-                style: CustomTextStyles.titleMediumBalooBhai2Gray700,
-              ),
-              TextButton(
-                onPressed: () {
-                  // Xem tất cả đánh giá
-                },
-                child: Row(
-                  children: [
-                    Text(
-                      "Xem tất cả",
-                      style: CustomTextStyles.bodyMediumAmaranthRed500,
-                    ),
-                    CustomImageView(
-                      imagePath: ImageConstant.imgIconsaxBrokenArrowright2,
-                      height: 16.h,
-                      width: 18.h,
-                      margin: EdgeInsets.only(left: 4.h),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          // Danh sách đánh giá
-          ProductReviewList(
-            productId: widget.product.id,
-          ),
-        ],
       ),
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return ProductVariantBottomsheet(
+              initialSelectedColor: selectedColor,
+              availableColors: colorOptions,
+              productName: widget.product.name,
+              productImage: widget.product.imageUrl,
+              productPrice: ProductModel.formatPrice(widget.product.price),
+              productOriginalPrice: widget.product.originalPrice > 0
+                  ? ProductModel.formatPrice(widget.product.originalPrice)
+                  : "",
+              productStock: widget.product.quantity,
+              productId: widget.product.id,
+              onAddToCart: (color, quantity) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đã thêm $quantity sản phẩm màu $color vào giỏ hàng'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
