@@ -476,7 +476,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildSocialButton(
-                icon: "images/ic_google.png",
+                icon: "assets/images/ic_google.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -489,7 +489,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(width: 16.h),
               _buildSocialButton(
-                icon: "images/ic_facebook.png",
+                icon: "assets/images/ic_facebook.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -502,7 +502,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(width: 20.h),
               _buildSocialButton(
-                icon: "images/ic_apple.png",
+                icon: "assets/images/ic_apple.png",
                 onPressed: () {
                   // View chỉ gọi đến controller để xử lý - chờ tính năng được thêm vào controller
                   ScaffoldMessenger.of(context).showSnackBar(
