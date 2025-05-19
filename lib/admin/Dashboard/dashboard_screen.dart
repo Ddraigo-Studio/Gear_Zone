@@ -1,14 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:gear_zone/core/utils/responsive.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  // Time filter options
+  final List<String> _timeFilterOptions = ['Năm', 'Quý', 'Tháng', 'Tuần', 'Tùy chỉnh'];
+  String _selectedTimeFilter = 'Năm';
+  
+  // Selected date range for custom filter
+  DateTimeRange? _selectedDateRange;
+  
+  // Data for comparison chart
+  bool _showComparisonChart = false;
+  String _comparisonPeriod = 'Năm trước';
+  
+  final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  @override
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
     return Scaffold(
       body: SingleChildScrollView(
