@@ -229,7 +229,6 @@ class _ProductScreenState extends State<ProductScreen> {
   // Xây dựng TableRow cho sản phẩm
   TableRow buildProductTableRow(BuildContext context, int index, List<ProductModel> products) {
     final product = products[index];
-    final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
     return TableRow(
       decoration: BoxDecoration(
@@ -254,7 +253,7 @@ class _ProductScreenState extends State<ProductScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           child: Text(
-            currencyFormatter.format(product.price), // Updated price formatting
+            ProductModel.formatPrice(product.price),
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
