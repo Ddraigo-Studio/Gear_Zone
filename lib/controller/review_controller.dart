@@ -46,11 +46,6 @@ class ReviewController with ChangeNotifier {
     return _reviewService.getUserReviews(userId);
   }
 
-  // Kiểm tra xem người dùng đã đánh giá sản phẩm chưa
-  Future<bool> hasUserReviewedProduct(String productId, String userId) {
-    return _reviewService.hasUserReviewedProduct(productId, userId);
-  }
-
   // Lấy thông tin tổng hợp đánh giá của sản phẩm
   Future<ProductReviewSummary?> getProductReviewSummary(String productId) {
     return _reviewService.getProductReviewSummary(productId);
