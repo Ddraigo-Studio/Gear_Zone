@@ -101,123 +101,124 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildAddressSection(BuildContext context) {
     final authController = Provider.of<AuthController>(context);
-  final userModel = authController.userModel;
+    final userModel = authController.userModel;
 
-  if (userModel == null) {
-    return Container(
-      margin: EdgeInsets.all(16.h),
-      padding: EdgeInsets.all(16.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.h),
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on,
-                  color: appTheme.red400,
-                  size: 24.h,
-                ),
-                SizedBox(width: 12.h),
-                Text(
-                  "Thông tin giao hàng",
-                  style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
-                ),
-              ],
-            ),
-            SizedBox(height: 16.h),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: "Họ và tên",
-                border: OutlineInputBorder(),
-                errorStyle: TextStyle(color: appTheme.red400),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Vui lòng nhập họ và tên";
-                }
-                if (value.length < 2) {
-                  return "Họ và tên phải có ít nhất 2 ký tự";
-                }
-                return null;
-              },
-              onChanged: (value) {
-                _checkoutController.setGuestInfo(name: value.trim());
-              },
-            ),
-            SizedBox(height: 12.h),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: "Số điện thoại",
-                border: OutlineInputBorder(),
-                errorStyle: TextStyle(color: appTheme.red400),
-              ),
-              keyboardType: TextInputType.phone,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Vui lòng nhập số điện thoại";
-                }
-                if (!RegExp(r'^0[0-9]{9}$').hasMatch(value)) {
-                  return "Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số";
-                }
-                return null;
-              },
-              onChanged: (value) {
-                _checkoutController.setGuestInfo(phone: value.trim());
-              },
-            ),
-            SizedBox(height: 12.h),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
-                errorStyle: TextStyle(color: appTheme.red400),
-              ),
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Vui lòng nhập email";
-                }
-                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                  return "Email không hợp lệ";
-                }
-                return null;
-              },
-              onChanged: (value) {
-                _checkoutController.setGuestInfo(email: value.trim());
-              },
-            ),
-            SizedBox(height: 12.h),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: "Địa chỉ",
-                border: OutlineInputBorder(),
-                errorStyle: TextStyle(color: appTheme.red400),
-              ),
-              maxLines: 2,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Vui lòng nhập địa chỉ";
-                }
-                if (value.length < 5) {
-                  return "Địa chỉ phải có ít nhất 5 ký tự";
-                }
-                return null;
-              },
-              onChanged: (value) {
-                _checkoutController.setGuestInfo(address: value.trim());
-              },
-            ),
-          ],
+    if (userModel == null) {
+      return Container(
+        margin: EdgeInsets.all(16.h),
+        padding: EdgeInsets.all(16.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.h),
         ),
-      ),
-    );
-  }
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: appTheme.red400,
+                    size: 24.h,
+                  ),
+                  SizedBox(width: 12.h),
+                  Text(
+                    "Thông tin giao hàng",
+                    style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold,
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: "Họ và tên",
+                  border: OutlineInputBorder(),
+                  errorStyle: TextStyle(color: appTheme.red400),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Vui lòng nhập họ và tên";
+                  }
+                  if (value.length < 2) {
+                    return "Họ và tên phải có ít nhất 2 ký tự";
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  _checkoutController.setGuestInfo(name: value.trim());
+                },
+              ),
+              SizedBox(height: 12.h),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: "Số điện thoại",
+                  border: OutlineInputBorder(),
+                  errorStyle: TextStyle(color: appTheme.red400),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Vui lòng nhập số điện thoại";
+                  }
+                  if (!RegExp(r'^0[0-9]{9}$').hasMatch(value)) {
+                    return "Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số";
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  _checkoutController.setGuestInfo(phone: value.trim());
+                },
+              ),
+              SizedBox(height: 12.h),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  border: OutlineInputBorder(),
+                  errorStyle: TextStyle(color: appTheme.red400),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Vui lòng nhập email";
+                  }
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                      .hasMatch(value)) {
+                    return "Email không hợp lệ";
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  _checkoutController.setGuestInfo(email: value.trim());
+                },
+              ),
+              SizedBox(height: 12.h),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: "Địa chỉ",
+                  border: OutlineInputBorder(),
+                  errorStyle: TextStyle(color: appTheme.red400),
+                ),
+                maxLines: 2,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Vui lòng nhập địa chỉ";
+                  }
+                  if (value.length < 5) {
+                    return "Địa chỉ phải có ít nhất 5 ký tự";
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  _checkoutController.setGuestInfo(address: value.trim());
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     // Trường hợp đã đăng nhập: hiển thị địa chỉ như cũ
     if (userModel.addressList.isEmpty) {
@@ -522,9 +523,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Navigator.pushNamed(context, AppRoutes.methodCheckoutScreen)
                       .then((_) {
                     setState(() {});
-                  }
-                  );
-              },
+                  });
+                },
               ),
             ],
           ),
@@ -820,134 +820,133 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildPlaceOrderButton(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(top: 16.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
+  return Container(
+    margin: EdgeInsets.only(top: 16.h),
+    padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.h),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 4,
+          offset: const Offset(0, -2),
+        ),
+      ],
+    ),
+    child: Container(
+      height: 48.h,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _checkoutController.paymentMethod.isEmpty
+              ? Colors.grey
+              : appTheme.deepPurpleA200,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.h),
           ),
-        ],
-      ),
-      child: Container(
-        height: 48.h,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _checkoutController.paymentMethod.isEmpty
-                ? Colors.grey
-                : appTheme.deepPurpleA200,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24.h),
-            ),
-            padding: EdgeInsets.symmetric(vertical: 16.h),
-          ),
-          onPressed: (_isProcessing || _checkoutController.paymentMethod.isEmpty)
-              ? null
-              : () async {
-                  final authController =
-                      Provider.of<AuthController>(context, listen: false);
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+        ),
+        onPressed: (_isProcessing || _checkoutController.paymentMethod.isEmpty)
+            ? null
+            : () async {
+                final authController =
+                    Provider.of<AuthController>(context, listen: false);
 
-                  // Kiểm tra thông tin khách nếu không đăng nhập
-                  if (authController.userModel == null) {
-                    if (!_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Vui lòng điền đầy đủ thông tin giao hàng.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-                    // Kiểm tra xem thông tin khách đã được lưu đầy đủ chưa
-                    if (_checkoutController.guestName.isEmpty ||
-                        _checkoutController.guestAddress.isEmpty ||
-                        _checkoutController.guestPhone.isEmpty ||
-                        _checkoutController.guestEmail.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Thông tin giao hàng không hợp lệ.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-                  }
-
-                  setState(() {
-                    _isProcessing = true;
-                  });
-
-                  // Thực hiện quá trình thanh toán
-                  final orderId = await _checkoutController.completeCheckout();
-
-                  // Lấy thông tin người dùng và địa chỉ
-                  final userEmail = authController.firebaseUser?.email ??
-                      _checkoutController.guestEmail;
-                  final shippingAddress = authController.userModel != null
-                      ? authController.userModel!.getDefaultAddress() ?? {}
-                      : {
-                          'name': _checkoutController.guestName,
-                          'phoneNumber': _checkoutController.guestPhone,
-                          'fullAddress': _checkoutController.guestAddress,
-                        };
-
-                  if (orderId != null) {
-                    // Xóa các mục đã chọn khỏi giỏ hàng
-                    await CartController().removeSelectedItems();
-
-                    // Cập nhật dữ liệu người dùng (chỉ cho người dùng đã đăng nhập)
-                    if (authController.firebaseUser != null) {
-                      await authController.refreshUserData();
-                    }
-
-                    // Gửi email xác nhận
-                    final emailService = EmailService();
-                    try {
-                      await emailService.sendOrderConfirmation(
-                        orderId,
-                        userEmail,
-                        _checkoutController.items,
-                        _checkoutController.totalPrice,
-                        shippingAddress,
-                      );
-                    } catch (e) {
-                      print('Lỗi khi gửi email xác nhận: $e');
-                    }
-
-                    // Chuyển đến màn hình thành công
-                    Navigator.pushNamed(
-                      context,
-                      AppRoutes.orderPlacedScreen,
-                      arguments: {'orderId': orderId},
-                    );
-                  } else {
-                    setState(() {
-                      _isProcessing = false;
-                    });
+                // Kiểm tra thông tin khách nếu không đăng nhập
+                if (authController.userModel == null) {
+                  if (!_formKey.currentState!.validate()) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Có lỗi xảy ra khi đặt hàng.'),
+                        content: Text('Vui lòng điền đầy đủ thông tin giao hàng.'),
                         backgroundColor: Colors.red,
                       ),
                     );
+                    return;
                   }
-                },
-          child: Text(
-            _isProcessing ? "Đang xử lý..." : "Đặt hàng",
-            style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
-              fontSize: 18.h,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+                  // Kiểm tra xem thông tin khách đã được lưu đầy đủ chưa
+                  if (_checkoutController.guestName.isEmpty ||
+                      _checkoutController.guestAddress.isEmpty ||
+                      _checkoutController.guestPhone.isEmpty ||
+                      _checkoutController.guestEmail.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Thông tin giao hàng không hợp lệ.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                }
+
+                setState(() {
+                  _isProcessing = true;
+                });
+
+                // Thực hiện quá trình thanh toán
+                final order = await _checkoutController.completeCheckout();
+
+                // Lấy thông tin người dùng và địa chỉ
+                final userEmail = authController.firebaseUser?.email ??
+                    _checkoutController.guestEmail;
+                final shippingAddress = authController.userModel != null
+                    ? authController.userModel!.getDefaultAddress() ?? {}
+                    : {
+                        'name': _checkoutController.guestName,
+                        'phoneNumber': _checkoutController.guestPhone,
+                        'fullAddress': _checkoutController.guestAddress,
+                      };
+
+                if (order != null) {
+                  // Xóa các mục đã chọn khỏi giỏ hàng
+                  await CartController().removeSelectedItems();
+
+                  // Cập nhật dữ liệu người dùng (chỉ cho người dùng đã đăng nhập)
+                  if (authController.firebaseUser != null) {
+                    await authController.refreshUserData();
+                  }
+
+                  // Gửi email xác nhận
+                  final emailService = EmailService();
+                  try {
+                    await emailService.sendOrderConfirmation(
+                      order.id,
+                      userEmail,
+                      order, // Truyền OrderModel
+                      shippingAddress,
+                    );
+                  } catch (e) {
+                    print('Lỗi khi gửi email xác nhận: $e');
+                  }
+
+                  // Chuyển đến màn hình thành công
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.orderPlacedScreen,
+                    arguments: {'orderId': order.id},
+                  );
+                } else {
+                  setState(() {
+                    _isProcessing = false;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Có lỗi xảy ra khi đặt hàng.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+        child: Text(
+          _isProcessing ? "Đang xử lý..." : "Đặt hàng",
+          style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+            fontSize: 18.h,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class PromoItem extends StatelessWidget {

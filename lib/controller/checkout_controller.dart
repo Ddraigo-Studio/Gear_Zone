@@ -197,7 +197,7 @@ void setUserPoints(int points) {
     return (totalPrice / 10000).floor();
   }
 
-  Future<String?> completeCheckout() async {
+  Future<OrderModel?> completeCheckout() async {
   try {
     final firestore = FirebaseFirestore.instance;
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -284,8 +284,8 @@ void setUserPoints(int points) {
       voucherId: _voucherId,
       voucherCode: _voucherCode,
       voucherDiscount: _voucherDiscount,
-      pointsDiscount: 0.0, // Khách vãng lai không dùng điểm
-      pointsUsed: 0, // Khách vãng lai không dùng điểm
+      pointsDiscount: _pointsDiscount, // Sử dụng pointsDiscount
+      pointsUsed: _usePoints ? _userPoints : 0, // Sử dụng pointsUsed
       paymentMethod: _paymentMethod,
       isPaid: _paymentMethodIndex != 2,
       note: '',
@@ -344,8 +344,8 @@ void setUserPoints(int points) {
     _voucherDiscount = 0.0;
     notifyListeners();
 
-    return orderId;
-} catch (e) {
+    return order; // Trả về OrderModel
+  } catch (e) {
     print('Lỗi khi thanh toán: $e');
     return null;
   }

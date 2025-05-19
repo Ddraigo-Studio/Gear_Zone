@@ -1,6 +1,6 @@
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
-import '../../model/cart_item.dart';
+import '../../model/order.dart'; // Import OrderModel
 import '../../model/product.dart';
 
 class EmailService {
@@ -11,8 +11,7 @@ class EmailService {
   Future<void> sendOrderConfirmation(
     String orderId,
     String userEmail,
-    List<CartItem> items,
-    double totalPrice,
+    OrderModel order, // Thay List<CartItem> bằng OrderModel
     Map<String, dynamic> shippingAddress,
   ) async {
     // Tạo SMTP server cho Gmail
@@ -23,7 +22,7 @@ class EmailService {
       ..from = Address(_email, 'Gear Zone') // Tên ứng dụng của bạn
       ..recipients.add(userEmail)
       ..subject = 'Xác nhận đơn hàng - Mã đơn #$orderId'
-      ..html = _buildOrderEmailContent(orderId, items, totalPrice, shippingAddress);
+      ..html = _buildOrderEmailContent(orderId, order, shippingAddress);
 
     try {
       final sendReport = await send(message, smtpServer);
@@ -36,8 +35,7 @@ class EmailService {
 
   String _buildOrderEmailContent(
     String orderId,
-    List<CartItem> items,
-    double totalPrice,
+    OrderModel order, // Thay List<CartItem> bằng OrderModel
     Map<String, dynamic> shippingAddress,
   ) {
     // Tạo nội dung HTML cho email
@@ -52,19 +50,43 @@ class EmailService {
               <ul style="list-style-type: none; padding: 0;">
       ''');
 
-    // Thêm danh sách sản phẩm
-    for (var item in items) {
+    // Thêm danh sách sản phẩm từ OrderModel
+    for (var item in order.items) {
       buffer.writeln('''
         <li style="margin-bottom: 10px;">
-          ${item.productName} (Màu: ${item.color}, Số lượng: ${item.quantity}) - ${ProductModel.formatPrice(item.discountedPrice)}
+          ${item.productName} ${item.color != null ? '(Màu: ${item.color})' : ''} ${item.size != null ? '(Kích thước: ${item.size})' : ''}, Số lượng: ${item.quantity} - ${ProductModel.formatPrice(item.price * item.quantity)}
         </li>
       ''');
     }
 
+    // Thêm thông tin chi tiết thanh toán
     buffer.writeln('''
               </ul>
-              <p><strong>Địa chỉ giao hàng:</strong> ${shippingAddress['fullAddress'] ?? 'Không có thông tin'}</p>
-              <p><strong>Tổng cộng:</strong> ${ProductModel.formatPrice(totalPrice)}</p>
+              <h3 style="color: #6B38FB;">Thông tin thanh toán</h3>
+              <p><strong>Tổng tiền hàng:</strong> ${ProductModel.formatPrice(order.subtotal)}</p>
+              <p><strong>Phí vận chuyển:</strong> ${ProductModel.formatPrice(order.shippingFee)}</p>
+              <p><strong>Thuế:</strong> ${ProductModel.formatPrice(order.discount)}</p>
+    ''');
+
+    // Thêm thông tin giảm giá nếu có
+    if (order.voucherDiscount > 0) {
+      buffer.writeln('''
+        <p><strong>Giảm giá voucher (${order.voucherCode}):</strong> -${ProductModel.formatPrice(order.voucherDiscount)}</p>
+      ''');
+    }
+    if (order.pointsDiscount > 0) {
+      buffer.writeln('''
+        <p><strong>Giảm giá điểm tích lũy (${order.pointsUsed} điểm):</strong> -${ProductModel.formatPrice(order.pointsDiscount)}</p>
+      ''');
+    }
+
+    buffer.writeln('''
+              <p><strong>Tổng cộng:</strong> ${ProductModel.formatPrice(order.total)}</p>
+              <h3 style="color: #6B38FB;">Thông tin giao hàng</h3>
+              <p><strong>Tên:</strong> ${order.userName}</p>
+              <p><strong>Số điện thoại:</strong> ${order.userPhone}</p>
+              <p><strong>Địa chỉ:</strong> ${order.shippingAddress}</p>
+              <p><strong>Phương thức thanh toán:</strong> ${order.paymentMethod}</p>
               <p style="margin-top: 20px;">Chúng tôi sẽ thông báo khi đơn hàng được giao.</p>
               <p style="font-size: 12px; color: #666;">
                 Nếu bạn có câu hỏi, liên hệ với chúng tôi qua email: <a href="mailto:support@gearzone.com">support@gearzone.com</a>.
