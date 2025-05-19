@@ -103,9 +103,8 @@ class ProductMetricsChart extends StatelessWidget {
     // Calculate averages
     final avgProductCount = model.revenueByTime.isNotEmpty ? totalProducts / model.revenueByTime.length : 0;
     final avgProductTypes = model.revenueByTime.isNotEmpty ? totalTypes / model.revenueByTime.length : 0;
-    
-    return SizedBox(
-      height: 250,
+      return SizedBox(
+      height: 280,
       child: model.revenueByTime.isNotEmpty ? Stack(
         children: [
           // Left info box
@@ -132,18 +131,22 @@ class ProductMetricsChart extends StatelessWidget {
           
           // Actual chart
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: LineChart(
+            padding: const EdgeInsets.symmetric(vertical: 20),            child: LineChart(
               getDoubleLineChartData(
                 firstSpots: productCountSpots,
                 secondSpots: productTypeSpots,
                 labels: model.periodLabels,
                 firstLineColor: const Color(0xFF42A5F5),
                 secondLineColor: const Color(0xFFFFA726),
+                showGrid: true,
                 showLeftTitles: true,
                 showRightTitles: true,
                 leftTitle: 'Số lượng sản phẩm',
                 rightTitle: 'Loại sản phẩm',
+                firstLineName: 'Số lượng sản phẩm',
+                secondLineName: 'Loại sản phẩm',
+                firstValueSuffix: '',
+                secondValueSuffix: '',
               ),
             ),
           ),

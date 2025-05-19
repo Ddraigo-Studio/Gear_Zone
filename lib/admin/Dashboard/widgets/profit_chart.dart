@@ -93,9 +93,8 @@ class ProfitChart extends StatelessWidget {
       final profitMargin = (profit / revenue) * 100;
       profitMarginSpots.add(FlSpot(i.toDouble(), profitMargin));
     }
-    
-    return SizedBox(
-      height: 250,
+      return SizedBox(
+      height: 280,
       child: model.revenueByTime.isNotEmpty ? Stack(
         children: [
           // Left info box
@@ -122,8 +121,7 @@ class ProfitChart extends StatelessWidget {
           
           // Actual chart
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: LineChart(
+            padding: const EdgeInsets.symmetric(vertical: 20),            child: LineChart(
               getDoubleLineChartData(
                 firstSpots: profitSpots,
                 secondSpots: profitMarginSpots,
@@ -132,8 +130,14 @@ class ProfitChart extends StatelessWidget {
                 secondLineColor: Colors.orange,
                 showLeftTitles: true,
                 showRightTitles: true,
+                showGrid: true,
                 leftTitle: 'Lợi nhuận (triệu đồng)',
                 rightTitle: 'Tỷ suất lợi nhuận (%)',
+                firstLineName: 'Lợi nhuận',
+                secondLineName: 'Tỷ suất',
+                firstValuePrefix: '₫',
+                firstValueSuffix: 'M',
+                secondValueSuffix: '%',
               ),
             ),
           ),
