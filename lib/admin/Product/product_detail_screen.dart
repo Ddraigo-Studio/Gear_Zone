@@ -26,8 +26,7 @@ class ProductDetail extends StatefulWidget {
 }
 
 class ProductDetailState extends State<ProductDetail> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _idController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();  final TextEditingController _idController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
@@ -37,6 +36,26 @@ class ProductDetailState extends State<ProductDetail> {
       TextEditingController();
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
+  
+  // Technical specification controllers
+  final TextEditingController _processorController = TextEditingController();
+  final TextEditingController _ramController = TextEditingController();
+  final TextEditingController _storageController = TextEditingController();
+  final TextEditingController _graphicsCardController = TextEditingController();
+  final TextEditingController _displayController = TextEditingController();
+  final TextEditingController _osController = TextEditingController();
+  final TextEditingController _keyboardController = TextEditingController();
+  final TextEditingController _audioController = TextEditingController();
+  final TextEditingController _wifiController = TextEditingController();
+  final TextEditingController _bluetoothController = TextEditingController();
+  final TextEditingController _batteryController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _dimensionsController = TextEditingController();  final TextEditingController _securityController = TextEditingController();
+  final TextEditingController _webcamController = TextEditingController();
+  final TextEditingController _warrantyController = TextEditingController();
+  final TextEditingController _portsController = TextEditingController();
+  final TextEditingController _promotionsController = TextEditingController();
 
   String? _selectedCategory;
   List<CategoryModel> _categories = [];
@@ -168,8 +187,8 @@ class ProductDetailState extends State<ProductDetail> {
       return 'Chiết khấu phải là số';
     }
     double discount = double.parse(value);
-    if (discount < 0 || discount > 100) {
-      return 'Chiết khấu phải từ 0 đến 100%';
+    if (discount < 0 || discount > 50) {
+      return 'Chiết khấu phải từ 0 đến 50%';
     }
     return null;
   }
@@ -273,8 +292,7 @@ class ProductDetailState extends State<ProductDetail> {
             ),
           );
         },      ); 
-      
-      // Tạo đối tượng ProductModel từ dữ liệu form
+        // Tạo đối tượng ProductModel từ dữ liệu form
       ProductModel product = ProductModel(
         id: _idController.text,
         name: _nameController.text,
@@ -290,6 +308,25 @@ class ProductDetailState extends State<ProductDetail> {
         status: _selectedStatus ?? 'out_of_stock',
         inStock: _selectedStatus == 'available',
         discount: int.tryParse(_discountController.text) ?? 0,
+        // Thông số kỹ thuật cơ bản
+        processor: _processorController.text,
+        ram: _ramController.text,
+        storage: _storageController.text,
+        graphicsCard: _graphicsCardController.text,
+        display: _displayController.text,
+        operatingSystem: _osController.text,
+        keyboard: _keyboardController.text,
+        audio: _audioController.text,
+        wifi: _wifiController.text,
+        bluetooth: _bluetoothController.text,
+        battery: _batteryController.text,
+        weight: _weightController.text,
+        color: _colorController.text,
+        dimensions: _dimensionsController.text,        security: _securityController.text,
+        webcam: _webcamController.text,
+        warranty: _warrantyController.text,
+        ports: _portsController.text.isNotEmpty ? [_portsController.text] : [],
+        promotions: _promotionsController.text.isNotEmpty ? [_promotionsController.text] : [],
       );// Lưu sản phẩm vào Firestore
       String? productId;
       if (_idController.text.isEmpty) {
@@ -391,9 +428,40 @@ class ProductDetailState extends State<ProductDetail> {
       _loadCategories();
     });
   }
-  
-  @override
+    @override
   void dispose() {
+    // Giải phóng các controllers thông tin cơ bản
+    _idController.dispose();
+    _codeController.dispose();
+    _nameController.dispose();
+    _brandController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _originalPriceController.dispose();
+    _discountController.dispose();
+    _quantityController.dispose();
+    
+    // Giải phóng các controllers thông số kỹ thuật
+    _processorController.dispose();
+    _ramController.dispose();
+    _storageController.dispose();
+    _graphicsCardController.dispose();
+    _displayController.dispose();
+    _osController.dispose();
+    _keyboardController.dispose();
+    _audioController.dispose();
+    _wifiController.dispose();
+    _bluetoothController.dispose();
+    _batteryController.dispose();
+    _weightController.dispose();
+    _colorController.dispose();
+    _dimensionsController.dispose();
+    _securityController.dispose();
+    _webcamController.dispose();
+    _warrantyController.dispose();
+    _portsController.dispose();
+    _promotionsController.dispose();
+    
     _imageController.dispose();
     super.dispose();
   }
@@ -412,8 +480,7 @@ class ProductDetailState extends State<ProductDetail> {
       final product = await _productController.getProductById(productId);
       if (product != null) {
         // Set form field values
-        setState(() {
-          _idController.text = product.id;
+        setState(() {          _idController.text = product.id;
           _nameController.text = product.name;
           _codeController.text = product.seriNumber;
           _brandController.text = product.brand;
@@ -427,6 +494,28 @@ class ProductDetailState extends State<ProductDetail> {
           
           // Initialize the image controller with product data
           _imageController.initWithProductData(product.imageUrl, List.from(product.additionalImages));
+          
+          // Populate technical specification fields
+          _processorController.text = product.processor;
+          _ramController.text = product.ram;
+          _storageController.text = product.storage;
+          _graphicsCardController.text = product.graphicsCard;
+          _displayController.text = product.display;
+          _osController.text = product.operatingSystem;
+          _keyboardController.text = product.keyboard;
+          _audioController.text = product.audio;
+          _wifiController.text = product.wifi;
+          _bluetoothController.text = product.bluetooth;
+          _batteryController.text = product.battery;
+          _weightController.text = product.weight;
+          _colorController.text = product.color;
+          _dimensionsController.text = product.dimensions;          _securityController.text = product.security;
+          _webcamController.text = product.webcam;
+          _warrantyController.text = product.warranty;
+          
+          // Nạp dữ liệu cho cổng kết nối và khuyến mãi
+          _portsController.text = product.ports.isNotEmpty ? product.ports.first : '';
+          _promotionsController.text = product.promotions.isNotEmpty ? product.promotions.first : '';
 
           // Add a small delay to ensure state updates before updating styling
           Future.delayed(const Duration(milliseconds: 100), () {
@@ -1045,7 +1134,7 @@ class ProductDetailState extends State<ProductDetail> {
                       items: _categories.map((CategoryModel category) {
                         return DropdownMenuItem<CategoryModel>(
                           value: category,
-                          child: Text(category.categoryName ?? 'N/A', style: TextStyle(fontSize: 13)),
+                          child: Text(category.categoryName, style: TextStyle(fontSize: 13)),
                         );
                       }).toList(),
                       onChanged: widget.isViewOnly
@@ -1324,18 +1413,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _processorController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: Intel Core i5-12500H',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _processorController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _processorController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1358,18 +1449,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _ramController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: 16GB DDR4 3200MHz',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _ramController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _ramController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1399,18 +1492,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _storageController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: 512GB SSD NVMe',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _storageController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _storageController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1433,18 +1528,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _graphicsCardController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: NVIDIA RTX 4050 6GB',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _graphicsCardController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _graphicsCardController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1474,18 +1571,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _displayController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: 15.6" FHD IPS 144Hz',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _displayController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _displayController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1508,18 +1607,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _osController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: Windows 11 Home',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _osController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _osController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1549,18 +1650,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _keyboardController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: RGB Backlit keyboard',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _keyboardController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _keyboardController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1583,14 +1686,14 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _audioController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: Stereo speakers, DTS',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _audioController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
@@ -1624,18 +1727,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _wifiController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: Wi-Fi 6 (802.11ax)',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _wifiController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _wifiController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1658,18 +1763,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _bluetoothController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: Bluetooth 5.2',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _bluetoothController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _bluetoothController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1699,18 +1806,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _batteryController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: 4-cell, 54WHr',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _batteryController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _batteryController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1733,18 +1842,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _weightController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: 1.8 kg',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _weightController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _weightController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1774,18 +1885,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _colorController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: Đen, Bạc...',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _colorController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _colorController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1808,18 +1921,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _dimensionsController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: 360 x 252 x 19.9 mm',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _dimensionsController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _dimensionsController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1849,18 +1964,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _webcamController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: HD 720p',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _webcamController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _webcamController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1883,18 +2000,20 @@ class ProductDetailState extends State<ProductDetail> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    TextFormField(
+                    const SizedBox(height: 6),                    TextFormField(
+                      controller: _securityController,
                       decoration: _getInputDecoration(
                         hintText: 'Vd: Vân tay, khuôn mặt',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 8),
                         enabled: !widget.isViewOnly,
-                        hasValue: false,
+                        hasValue: _securityController.text.isNotEmpty,
                       ),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.normal,
+                        fontWeight: _securityController.text.isNotEmpty
+                            ? FontWeight.w500
+                            : FontWeight.normal,
                       ),
                       enabled: !widget.isViewOnly,
                       onChanged: (value) {
@@ -1906,9 +2025,7 @@ class ProductDetailState extends State<ProductDetail> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Ports
+          const SizedBox(height: 12),          // Ports
           const Text(
             'Cổng kết nối',
             style: TextStyle(
@@ -1918,16 +2035,19 @@ class ProductDetailState extends State<ProductDetail> {
           ),
           const SizedBox(height: 6),
           TextFormField(
+            controller: _portsController,
             decoration: _getInputDecoration(
               hintText: 'Vd: 2x USB-C, 2x USB-A, 1x HDMI, 1x Audio Jack',
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               enabled: !widget.isViewOnly,
-              hasValue: false,
+              hasValue: _portsController.text.isNotEmpty,
             ),
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.normal,
+              fontWeight: _portsController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
             ),
             enabled: !widget.isViewOnly,
             onChanged: (value) {
@@ -1944,27 +2064,27 @@ class ProductDetailState extends State<ProductDetail> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 6),
-          TextFormField(
+          const SizedBox(height: 6),          TextFormField(
+            controller: _warrantyController,
             decoration: _getInputDecoration(
               hintText: 'Vd: 24 tháng',
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               enabled: !widget.isViewOnly,
-              hasValue: false,
+              hasValue: _warrantyController.text.isNotEmpty,
             ),
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.normal,
+              fontWeight: _warrantyController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
             ),
             enabled: !widget.isViewOnly,
             onChanged: (value) {
               setState(() {});
             },
           ),
-          const SizedBox(height: 12),
-
-          // Promotions
+          const SizedBox(height: 12),          // Promotions
           const Text(
             'Khuyến mãi',
             style: TextStyle(
@@ -1974,16 +2094,19 @@ class ProductDetailState extends State<ProductDetail> {
           ),
           const SizedBox(height: 6),
           TextFormField(
+            controller: _promotionsController,
             maxLines: 2,
             decoration: _getInputDecoration(
               hintText: 'Vd: Balo, chuột không dây, PMH 200.000đ',
               contentPadding: const EdgeInsets.all(12),
               enabled: !widget.isViewOnly,
-              hasValue: false,
+              hasValue: _promotionsController.text.isNotEmpty,
             ),
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.normal,
+              fontWeight: _promotionsController.text.isNotEmpty
+                  ? FontWeight.w500
+                  : FontWeight.normal,
             ),
             enabled: !widget.isViewOnly,
             onChanged: (value) {

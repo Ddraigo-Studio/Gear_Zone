@@ -32,6 +32,26 @@ class ProductAddState extends State<ProductAddScreen> {
   bool _isCalculatingPrice = false;
   bool _isCalculatingDiscount = false;
 
+  // Technical specification controllers
+  final TextEditingController _processorController = TextEditingController();
+  final TextEditingController _ramController = TextEditingController();
+  final TextEditingController _storageController = TextEditingController();
+  final TextEditingController _graphicsCardController = TextEditingController();
+  final TextEditingController _displayController = TextEditingController();
+  final TextEditingController _osController = TextEditingController();
+  final TextEditingController _keyboardController = TextEditingController();
+  final TextEditingController _audioController = TextEditingController();
+  final TextEditingController _wifiController = TextEditingController();
+  final TextEditingController _bluetoothController = TextEditingController();
+  final TextEditingController _batteryController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _dimensionsController = TextEditingController();
+  final TextEditingController _securityController = TextEditingController();  final TextEditingController _webcamController = TextEditingController();
+  final TextEditingController _warrantyController = TextEditingController();
+  final TextEditingController _portsController = TextEditingController();
+  final TextEditingController _promotionsController = TextEditingController();
+
   String? _selectedCategory;
   List<CategoryModel> _categories = [];
   CategoryModel? _currentSelectedCategory;
@@ -113,7 +133,8 @@ class ProductAddState extends State<ProductAddScreen> {
     await _imageController.pickAdditionalImage(index);
     setState(() {}); // Trigger UI update
   }
-  
+    // Unused methods commented out to avoid warnings
+  /*
   // Phương thức để xóa ảnh chính
   void _removeMainImage() {
     _imageController.removeMainImage();
@@ -127,11 +148,11 @@ class ProductAddState extends State<ProductAddScreen> {
   }
   
   // Phương thức để thêm vị trí cho ảnh phụ
-
   void _addAdditionalImageSlot() {
     _imageController.addAdditionalImageSlot();
     setState(() {}); // Trigger UI update
   }
+  */
   
   // Phương thức để thêm controller cho URL ảnh phụ
   void _addAdditionalUrlController() {
@@ -200,6 +221,26 @@ class ProductAddState extends State<ProductAddScreen> {
         status: _selectedStatus ?? 'out_of_stock',
         inStock: _selectedStatus == 'available',
         discount: int.tryParse(_discountController.text) ?? 0,
+        // Technical specifications
+        processor: _processorController.text,
+        ram: _ramController.text,
+        storage: _storageController.text,
+        graphicsCard: _graphicsCardController.text,
+        display: _displayController.text,
+        operatingSystem: _osController.text,
+        keyboard: _keyboardController.text,
+        audio: _audioController.text,
+        wifi: _wifiController.text,
+        bluetooth: _bluetoothController.text,
+        battery: _batteryController.text,
+        weight: _weightController.text,
+        color: _colorController.text,
+        dimensions: _dimensionsController.text,        
+        security: _securityController.text,        
+        webcam: _webcamController.text,
+        warranty: _warrantyController.text,
+        ports: _portsController.text.isNotEmpty ? [_portsController.text] : [],
+        promotions: _promotionsController.text.isNotEmpty ? [_promotionsController.text] : [],
       );// Lưu sản phẩm vào Firestore (chưa có ảnh)
       String? productId;
       if (_idController.text.isEmpty) {
@@ -282,13 +323,44 @@ class ProductAddState extends State<ProductAddScreen> {
     _discountController.addListener(_handleOriginalPriceOrDiscountChange);
     _priceController.addListener(_handleOriginalPriceOrSellingPriceChange);
   }
-
   @override
   void dispose() {
     _originalPriceController.removeListener(_handleOriginalPriceOrDiscountChange);
     _originalPriceController.removeListener(_handleOriginalPriceOrSellingPriceChange);
     _discountController.removeListener(_handleOriginalPriceOrDiscountChange);
     _priceController.removeListener(_handleOriginalPriceOrSellingPriceChange);
+    
+    // Dispose regular controllers
+    _idController.dispose();
+    _codeController.dispose();
+    _nameController.dispose();
+    _brandController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _originalPriceController.dispose();
+    _discountController.dispose();
+    _quantityController.dispose();
+    
+    // Dispose technical specification controllers
+    _processorController.dispose();
+    _ramController.dispose();
+    _storageController.dispose();
+    _graphicsCardController.dispose();
+    _displayController.dispose();
+    _osController.dispose();
+    _keyboardController.dispose();
+    _audioController.dispose();
+    _wifiController.dispose();
+    _bluetoothController.dispose();
+    _batteryController.dispose();
+    _weightController.dispose();
+    _colorController.dispose();
+    _dimensionsController.dispose();
+    _securityController.dispose();    _webcamController.dispose();
+    _warrantyController.dispose();
+    _portsController.dispose();
+    _promotionsController.dispose();
+    
     _imageController.dispose();
     super.dispose();
   }
@@ -679,6 +751,7 @@ class ProductAddState extends State<ProductAddScreen> {
               return null;
             },
           ),
+
           const SizedBox(height: 12),
 
           // Mô tả sản phẩm
@@ -744,12 +817,13 @@ class ProductAddState extends State<ProductAddScreen> {
                             horizontal: 10, vertical: 3),
                         isDense: true,
                       ),
-                      value: _currentSelectedCategory,
-                      items: _categories.map((CategoryModel category) {
+                      value: _currentSelectedCategory,                      items: _categories.map((CategoryModel category) {
                         return DropdownMenuItem<CategoryModel>(
                           value: category,
-                          child: Text(category.categoryName ?? 'N/A',
-                              style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            category.categoryName,
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         );
                       }).toList(),
                       onChanged: (CategoryModel? newValue) {
@@ -1026,6 +1100,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _processorController,
                       decoration: InputDecoration(
                         hintText: 'Vd: Intel Core i5-12500H',
                         hintStyle: TextStyle(
@@ -1058,6 +1133,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _ramController,
                       decoration: InputDecoration(
                         hintText: 'Vd: 16GB DDR4 3200MHz',
                         hintStyle: TextStyle(
@@ -1097,6 +1173,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _storageController,
                       decoration: InputDecoration(
                         hintText: 'Vd: 512GB SSD NVMe',
                         hintStyle: TextStyle(
@@ -1129,6 +1206,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _graphicsCardController,
                       decoration: InputDecoration(
                         hintText: 'Vd: NVIDIA RTX 4050 6GB',
                         hintStyle: TextStyle(
@@ -1168,6 +1246,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _displayController,
                       decoration: InputDecoration(
                         hintText: 'Vd: 15.6" FHD IPS 144Hz',
                         hintStyle: TextStyle(
@@ -1200,6 +1279,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _osController,
                       decoration: InputDecoration(
                         hintText: 'Vd: Windows 11 Home',
                         hintStyle: TextStyle(
@@ -1239,6 +1319,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _keyboardController,
                       decoration: InputDecoration(
                         hintText: 'Vd: RGB Backlit keyboard',
                         hintStyle: TextStyle(
@@ -1271,6 +1352,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _audioController,
                       decoration: InputDecoration(
                         hintText: 'Vd: Stereo speakers, DTS',
                         hintStyle: TextStyle(
@@ -1310,6 +1392,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _wifiController,
                       decoration: InputDecoration(
                         hintText: 'Vd: Wi-Fi 6 (802.11ax)',
                         hintStyle: TextStyle(
@@ -1342,6 +1425,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _bluetoothController,
                       decoration: InputDecoration(
                         hintText: 'Vd: Bluetooth 5.2',
                         hintStyle: TextStyle(
@@ -1381,6 +1465,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _batteryController,
                       decoration: InputDecoration(
                         hintText: 'Vd: 4-cell, 54WHr',
                         hintStyle: TextStyle(
@@ -1413,6 +1498,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _weightController,
                       decoration: InputDecoration(
                         hintText: 'Vd: 1.8 kg',
                         hintStyle: TextStyle(
@@ -1452,6 +1538,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _colorController,
                       decoration: InputDecoration(
                         hintText: 'Vd: Đen, Bạc...',
                         hintStyle: TextStyle(
@@ -1484,6 +1571,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _dimensionsController,
                       decoration: InputDecoration(
                         hintText: 'Vd: 360 x 252 x 19.9 mm',
                         hintStyle: TextStyle(
@@ -1523,6 +1611,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _webcamController,
                       decoration: InputDecoration(
                         hintText: 'Vd: HD 720p',
                         hintStyle: TextStyle(
@@ -1555,6 +1644,7 @@ class ProductAddState extends State<ProductAddScreen> {
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
+                      controller: _securityController,
                       decoration: InputDecoration(
                         hintText: 'Vd: Vân tay, khuôn mặt',
                         hintStyle: TextStyle(
@@ -1574,9 +1664,7 @@ class ProductAddState extends State<ProductAddScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Ports
+          const SizedBox(height: 12),          // Ports
           const Text(
             'Cổng kết nối',
             style: TextStyle(
@@ -1586,6 +1674,7 @@ class ProductAddState extends State<ProductAddScreen> {
           ),
           const SizedBox(height: 6),
           TextFormField(
+            controller: _portsController,
             decoration: InputDecoration(
               hintText: 'Vd: 2x USB-C, 2x USB-A, 1x HDMI, 1x Audio Jack',
               hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
@@ -1599,9 +1688,7 @@ class ProductAddState extends State<ProductAddScreen> {
             ),
             style: const TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 12),
-
-          // Warranty
+          const SizedBox(height: 12),          // Warranty
           const Text(
             'Bảo hành',
             style: TextStyle(
@@ -1611,6 +1698,7 @@ class ProductAddState extends State<ProductAddScreen> {
           ),
           const SizedBox(height: 6),
           TextFormField(
+            controller: _warrantyController,
             decoration: InputDecoration(
               hintText: 'Vd: 24 tháng',
               hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
@@ -1624,9 +1712,7 @@ class ProductAddState extends State<ProductAddScreen> {
             ),
             style: const TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 12),
-
-          // Promotions
+          const SizedBox(height: 12),          // Promotions
           const Text(
             'Khuyến mãi',
             style: TextStyle(
@@ -1636,6 +1722,7 @@ class ProductAddState extends State<ProductAddScreen> {
           ),
           const SizedBox(height: 6),
           TextFormField(
+            controller: _promotionsController,
             maxLines: 2,
             decoration: InputDecoration(
               hintText: 'Vd: Balo, chuột không dây, PMH 200.000đ',
