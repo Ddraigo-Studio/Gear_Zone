@@ -71,12 +71,24 @@ class RevenueChart extends StatelessWidget {
       ],
     );
   }
-  
-  Widget _buildChartArea() {
+    Widget _buildChartArea() {
     final formatter = NumberFormat("#,###");
     
+    // Generate second line data for average order value
+    final orderValueSpots = <FlSpot>[];
+    
+    // Calculate average order value per period
+    for (int i = 0; i < model.revenueByTime.length; i++) {
+      final data = model.revenueByTime[i];
+      final revenue = data['revenue'] as double? ?? 0.0;
+      final orders = data['orders'] as int? ?? 1; // Avoid division by zero
+        // Calculate average order value per million
+      final avgValue = orders > 0 ? (revenue / orders) / 1000000 : 0.0;
+      orderValueSpots.add(FlSpot(i.toDouble(), avgValue.toDouble()));
+    }
+    
     return SizedBox(
-      height: 250,
+      height: 280,
       child: model.revenueSpots.isNotEmpty ? Stack(
         children: [
           // Left info box
@@ -103,13 +115,18 @@ class RevenueChart extends StatelessWidget {
           
           // Actual chart
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: LineChart(
+            padding: const EdgeInsets.symmetric(vertical: 20),            child: LineChart(
               getLineChartData(
                 spots: model.revenueSpots,
                 labels: model.periodLabels,
                 lineColor: const Color(0xFFBCFF5C),
                 secondLineColor: Colors.purple[300]!,
+                showGrid: true,
+                secondLineSpots: orderValueSpots,
+                firstLineName: 'Doanh thu',
+                secondLineName: 'Giá bán TB/đơn',
+                valuePrefix: '₫',
+                valueSuffix: 'M',
               ),
             ),
           ),
