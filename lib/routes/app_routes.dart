@@ -159,7 +159,7 @@ class AppRoutes {
       );
     },
 
-    initialRoute: (context) => AdminScreen(),
+    initialRoute: (context) => HomeScreen(),
 
     // Admin routes
     admin: (context) => const AdminScreen(),

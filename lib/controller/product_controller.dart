@@ -3,6 +3,7 @@ import 'package:gear_zone/model/product.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'dart:async';
+import '../model/review.dart';
 
 class ProductController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -837,6 +838,42 @@ class ProductController {
     }
   }
 
+  // Fetch reviews for a specific product from Firestore
+  Future<List<ReviewModel>> fetchReviews(String productId) async {
+    try {
+      final querySnapshot = await _productsCollection
+          .doc(productId)
+          .collection('reviews')
+          .get();
+      
+      return querySnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return ReviewModel.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print('Error fetching reviews for product $productId: $e');
+      return [];
+    }
+  }
+
+  // Get review summary for a product
+  Future<ProductReviewSummary> getReviewSummary(String productId) async {
+    try {
+      final reviews = await fetchReviews(productId);
+      return ProductReviewSummary.calculate(productId, reviews);
+    } catch (e) {
+      print('Error calculating review summary for product $productId: $e');
+      // Return a default summary if no reviews are available
+      return ProductReviewSummary(
+        productId: productId,
+        averageRating: 0,
+        numberOfReviews: 0,
+        ratingDistribution: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+      );
+    }
+  }
+  
   // Tìm kiếm sản phẩm có phân trang
   Future<Map<String, dynamic>> searchProductsPaginated(String query, {int page = 1, int limit = 20}) async {
     query = query.toLowerCase();

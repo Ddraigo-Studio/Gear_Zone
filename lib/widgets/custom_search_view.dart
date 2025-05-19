@@ -35,7 +35,8 @@ class CustomSearchView extends StatelessWidget {
       this.fillColor,
       this.filled = true,
       this.validator,
-      this.onChanged});
+      this.onChanged,
+      this.onSubmitted});
 
   final Alignment? alignment;
   final double? width;
@@ -59,6 +60,7 @@ class CustomSearchView extends StatelessWidget {
   final bool? filled;
   final FormFieldValidator<String>? validator;
   final Function(String)? onChanged;
+  final Function(String)? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +94,9 @@ class CustomSearchView extends StatelessWidget {
           validator: validator,
           onChanged: (String value) {
             onChanged?.call(value);
+          },
+          onFieldSubmitted: (String value) {
+            onSubmitted?.call(value);
           },
           cursorColor: appTheme.whiteA700,
         ),

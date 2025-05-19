@@ -8,6 +8,8 @@ import '../../widgets/items/product_carousel_item_widget.dart';
 import '../Products/category_screen.dart';
 import '../Products/category_products_page.dart';
 import '../Products/special_products_page.dart';
+import '../Search_Product/search_result_screen.dart';
+import '../Search_Product/search_result_empty_screen.dart';
 import '../../model/product.dart';
 import '../../model/category.dart';
 import '../../controller/product_controller.dart';
@@ -42,7 +44,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   List<ProductModel> caseProducts = []; // Sản phẩm Case
   // Category list
   List<CategoryModel> categories = [];
-  
+
   // Lưu trữ ID cho các danh mục
   String? laptopCategoryId;
   String? monitorCategoryId;
@@ -52,7 +54,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   String? promotionCategoryId;
   String? newestCategoryId;
   String? bestSellingCategoryId;
-  
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +62,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     _loadCategories();
     _loadCategoryIds();
   }
+
   // Load category data from controller
   Future<void> _loadCategories() async {
     try {
@@ -82,47 +85,50 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       print('Lỗi khi tải dữ liệu danh mục: $e');
     }
   }
-    // Tải các ID danh mục
+
+  // Tải các ID danh mục
   Future<void> _loadCategoryIds() async {
     try {
       // Lấy tất cả danh mục
-      final allCategories = await _categoryController.getCategoriesPaginated(limit: 100);
-      List<CategoryModel> categories = allCategories['categories'] as List<CategoryModel>;
-      
+      final allCategories =
+          await _categoryController.getCategoriesPaginated(limit: 100);
+      List<CategoryModel> categories =
+          allCategories['categories'] as List<CategoryModel>;
+
       // Hàm tìm ID dựa trên tên danh mục (không phân biệt chữ hoa thường và dấu)
       String? findCategoryId(String name) {
         final normalizedName = name.toLowerCase().trim();
         final category = categories.firstWhere(
-          (c) => c.categoryName.toLowerCase().trim() == normalizedName ||
-                 c.categoryName.toLowerCase().trim().contains(normalizedName),
-          orElse: () => CategoryModel(id: '', imagePath: '', categoryName: '')
-        );
-        
+            (c) =>
+                c.categoryName.toLowerCase().trim() == normalizedName ||
+                c.categoryName.toLowerCase().trim().contains(normalizedName),
+            orElse: () =>
+                CategoryModel(id: '', imagePath: '', categoryName: ''));
+
         return category.id.isNotEmpty ? category.id : null;
       }
-      
-    // Tìm và cập nhật các ID
+
+      // Tìm và cập nhật các ID
       setState(() {
         laptopCategoryId = findCategoryId('laptop');
         monitorCategoryId = findCategoryId('màn hình');
         laptopGamingCategoryId = findCategoryId('laptop gaming');
         speakerCategoryId = findCategoryId('loa');
         caseCategoryId = findCategoryId('case');
-        
+
         // Các danh mục đặc biệt này được xử lý riêng nên không cần ID
         // Sử dụng chuỗi đặc biệt để nhận diện
         promotionCategoryId = "promotion_special";
         newestCategoryId = "newest_special";
         bestSellingCategoryId = "bestselling_special";
       });
-      
+
       print('Đã tìm thấy các ID danh mục:');
       print('Laptop: $laptopCategoryId');
       print('Màn hình: $monitorCategoryId');
       print('Laptop Gaming: $laptopGamingCategoryId');
       print('Loa: $speakerCategoryId');
       print('Case: $caseCategoryId');
-      
     } catch (e) {
       print('Lỗi khi tải ID danh mục: $e');
     }
@@ -131,7 +137,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
   // Load all product data from controller
   Future<void> _loadProducts() async {
     try {
-      setState(() {        // Initialize with empty lists
+      setState(() {
+        // Initialize with empty lists
         newestProducts = [];
         promotionProducts = [];
         bestSellingProducts = [];
@@ -195,8 +202,10 @@ class HomeInitialPageState extends State<HomeInitialPage> {
         }
       } catch (e) {
         print('Lỗi khi tải sản phẩm màn hình: $e');
-      }      try {
-        final laptopGamings = await _productController.getlaptopGamingProducts();
+      }
+      try {
+        final laptopGamings =
+            await _productController.getlaptopGamingProducts();
         if (mounted) {
           setState(() {
             laptopGamingProducts = laptopGamings;
@@ -205,7 +214,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       } catch (e) {
         print('Lỗi khi tải sản phẩm laptop gaming: $e');
       }
-      
+
       // Tải sản phẩm Loa
       try {
         final speakers = await _productController.getSpeakerProducts();
@@ -217,7 +226,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       } catch (e) {
         print('Lỗi khi tải sản phẩm loa: $e');
       }
-      
+
       // Tải sản phẩm Case
       try {
         final cases = await _productController.getCaseProducts();
@@ -231,6 +240,52 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       }
     } catch (e) {
       print('Lỗi khi tải dữ liệu sản phẩm: $e');
+    }
+  }
+
+  /// Phương thức thực hiện tìm kiếm và điều hướng đến màn hình kết quả tìm kiếm
+  void _performSearch(BuildContext context, String query) async {
+    if (query.trim().isEmpty) return;
+
+    try {
+      // Sử dụng phương thức searchProductsPaginated để lấy kết quả tìm kiếm
+      final searchResult =
+          await _productController.searchProductsPaginated(query);
+      final List<ProductModel> searchResults =
+          searchResult['products'] as List<ProductModel>;
+
+      if (searchResults.isNotEmpty) {
+        // Nếu có kết quả, chuyển đến màn hình kết quả tìm kiếm
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SearchResultScreen(
+              searchQuery: query,
+              searchResults: searchResults,
+            ),
+          ),
+        );
+      } else {
+        // Nếu không có kết quả, chuyển đến màn hình không có kết quả
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SearchResultEmptyScreen(
+              searchQuery: query,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Xử lý lỗi khi tìm kiếm
+      print('Lỗi khi tìm kiếm sản phẩm: $e');
+      // Hiển thị thông báo lỗi nếu cần
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -305,8 +360,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                         ],
                       ),
                     ),
-                    _buildCategoriesList(context), 
-                    SizedBox(height: 40.h),                    Container(
+                    _buildCategoriesList(context),
+                    SizedBox(height: 40.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -317,10 +373,11 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                         categoryId: promotionCategoryId,
                       ),
                     ),
-                    SizedBox(height: 16.h),   
+                    SizedBox(height: 16.h),
                     _buildPromotionListSection(context),
 
-                    SizedBox(height: 25.h),                    Container(
+                    SizedBox(height: 25.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -334,7 +391,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                     SizedBox(height: 16.h),
                     _buildNeweProductSection(context),
 
-                    SizedBox(height: 25.h),                    Container(
+                    SizedBox(height: 25.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -346,8 +404,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildProductCarousel(context), 
-                    SizedBox(height: 25.h),                    Container(
+                    _buildProductCarousel(context),
+                    SizedBox(height: 25.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -359,8 +418,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildLaptopTopSell(context), 
-                    SizedBox(height: 25.h),                    Container(
+                    _buildLaptopTopSell(context),
+                    SizedBox(height: 25.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -372,8 +432,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildMonitorTopSell(context), 
-                    SizedBox(height: 25.h),                    Container(
+                    _buildMonitorTopSell(context),
+                    SizedBox(height: 25.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -385,8 +446,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildlaptopGamingTopSell(context), 
-                    SizedBox(height: 25.h),                    Container(
+                    _buildlaptopGamingTopSell(context),
+                    SizedBox(height: 25.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -398,8 +460,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildSpeakerTopSell(context), 
-                    SizedBox(height: 25.h),                    Container(
+                    _buildSpeakerTopSell(context),
+                    SizedBox(height: 25.h),
+                    Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 16.h),
                       child: _buildTitleRow(
@@ -411,7 +474,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    _buildCaseTopSell(context), 
+                    _buildCaseTopSell(context),
                     SizedBox(height: 25.h),
 
                     // Container(
@@ -438,7 +501,9 @@ class HomeInitialPageState extends State<HomeInitialPage> {
         ],
       ),
     );
-  }  /// Common widget
+  }
+
+  /// Common widget
   Widget _buildTitleRow(
     BuildContext context, {
     required String titleName,
@@ -469,12 +534,14 @@ class HomeInitialPageState extends State<HomeInitialPage> {
               ),
             ),
           ],
-        ),        TextButton(
+        ),
+        TextButton(
           onPressed: () {
             // Xử lý tùy theo loại danh mục
             if (categoryId == null) {
               // Hiển thị thông báo cho các danh mục không có ID
-              String message = "Đang phát triển tính năng xem tất cả cho '$titleName'";
+              String message =
+                  "Đang phát triển tính năng xem tất cả cho '$titleName'";
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(message),
@@ -483,7 +550,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
               );
               return;
             }
-            
+
             // Xử lý các danh mục đặc biệt
             if (categoryId == "promotion_special") {
               Navigator.push(
@@ -613,6 +680,18 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                           : 15.h, // Tăng kích thước icon tìm kiếm
                     ),
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      Icons.search,
+                      color: appTheme.deepPurple400,
+                      size: isDesktop ? 22.h : 18.h,
+                    ),
+                    onPressed: () {
+                      if (searchController.text.trim().isNotEmpty) {
+                        _performSearch(context, searchController.text);
+                      }
+                    },
+                  ),
                   prefixIconConstraints: BoxConstraints(
                     minWidth:
                         isDesktop ? 40.h : 36.h, // Tăng kích thước vùng icon
@@ -629,6 +708,12 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                   fontSize:
                       isDesktop ? 14.h : 12.h, // Tăng kích thước chữ nhập liệu
                 ),
+                onSubmitted: (value) {
+                  // Nếu chuỗi tìm kiếm không rỗng, điều hướng đến trang kết quả tìm kiếm
+                  if (value.trim().isNotEmpty) {
+                    _performSearch(context, value);
+                  }
+                },
               ),
             ),
           ),
@@ -647,7 +732,8 @@ class HomeInitialPageState extends State<HomeInitialPage> {
                           size: 28.h, // Tăng kích thước icon thông báo
                         ),
                         onPressed: () {},
-                      ),                      IconButton(
+                      ),
+                      IconButton(
                         icon: Icon(
                           Icons.history,
                           color: Colors.white,
@@ -947,7 +1033,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     }
   }
 
-
   Widget _buildPromotionListSection(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
 
@@ -981,7 +1066,6 @@ class HomeInitialPageState extends State<HomeInitialPage> {
       ),
     );
   }
-
 
   Widget _buildMonitorTopSell(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
@@ -1040,7 +1124,7 @@ class HomeInitialPageState extends State<HomeInitialPage> {
     );
   }
 
-Widget _buildlaptopGamingTopSell(BuildContext context) {
+  Widget _buildlaptopGamingTopSell(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
 
     // Show loading indicator if products are still loading
@@ -1096,7 +1180,7 @@ Widget _buildlaptopGamingTopSell(BuildContext context) {
       ),
     );
   }
-  
+
   Widget _buildSpeakerTopSell(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
 
@@ -1153,7 +1237,7 @@ Widget _buildlaptopGamingTopSell(BuildContext context) {
       ),
     );
   }
-  
+
   Widget _buildCaseTopSell(BuildContext context) {
     final bool isDesktop = Responsive.isDesktop(context);
 
