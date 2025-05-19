@@ -10,6 +10,7 @@ Future<void> createSampleOrders({int count = 50}) async {
   final firestore = FirebaseFirestore.instance;
   final batch = firestore.batch();
 
+  // 1. Lấy danh sách users và products
   final usersSnap = await firestore.collection('users').get();
   final productsSnap = await firestore.collection('products').get();
   final userDocs = usersSnap.docs;
@@ -21,15 +22,16 @@ Future<void> createSampleOrders({int count = 50}) async {
   }
 
   final rng = Random();
-  final statuses = ['Chờ xử lý', 'Đã xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy'];
-  final paymentMethods = ['Thanh toán khi nhận hàng', 'Chuyển khoản', 'Ví điện tử'];
+  const statuses = ['Chờ xử lý', 'Đã xác nhận', 'Đang giao', 'Đã nhận', 'Trả hàng', 'Đã hủy'];
+  const paymentMethods = ['Thanh toán khi nhận hàng', 'Chuyển khoản', 'Ví điện tử'];
 
   for (int i = 0; i < count; i++) {
     final user = userDocs[rng.nextInt(userDocs.length)];
     final int itemCount = rng.nextInt(5) + 1;
     double subtotal = 0;
-    final List<Map<String, dynamic>> items = [];
+    final items = <Map<String, dynamic>>[];
 
+    // Tạo danh sách items
     for (int j = 0; j < itemCount; j++) {
       final prod = productDocs[rng.nextInt(productDocs.length)];
       final data = prod.data();
@@ -45,19 +47,22 @@ Future<void> createSampleOrders({int count = 50}) async {
     }
 
     const double shippingFee = 30000;
-    final double voucherDiscount = rng.nextBool()
-        ? (rng.nextBool() ? 50000 : 100000)
-        : 0;
+    final double voucherDiscount = rng.nextBool() ? (rng.nextBool() ? 50000 : 100000) : 0;
     final double total = subtotal + shippingFee - voucherDiscount;
 
-    final DateTime now = DateTime.now();
-    final DateTime orderDate = now.subtract(Duration(
+    // Ngày tạo đơn: trong 6 tháng gần nhất
+    final now = DateTime.now();
+    final orderDateTime = now.subtract(Duration(
       days: rng.nextInt(180),
       hours: rng.nextInt(24),
       minutes: rng.nextInt(60),
     ));
 
-    final String orderId = firestore.collection('orders').doc().id;
+    // Chuyển sang Firestore Timestamp
+    final timestamp = Timestamp.fromDate(orderDateTime);
+
+    // Tạo document order
+    final orderId = firestore.collection('orders').doc().id;
     batch.set(firestore.collection('orders').doc(orderId), {
       'id': orderId,
       'userId': user.id,
@@ -68,10 +73,11 @@ Future<void> createSampleOrders({int count = 50}) async {
       'total': total,
       'status': statuses[rng.nextInt(statuses.length)],
       'paymentMethod': paymentMethods[rng.nextInt(paymentMethods.length)],
-      'orderDate': orderDate.toIso8601String(),
+      'orderDate': timestamp,
     });
   }
 
+  // Commit batch
   await batch.commit();
   print('Đã tạo xong $count đơn hàng mẫu!');
 }
@@ -85,14 +91,11 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Tạo mẫu đơn (thay 100 bằng số lượng mong muốn)
-  await createSampleOrders(count: 100);
-
-  // Khởi chạy UI
+  // Chạy UI
   runApp(MyApp());
 }
 
-/// Ứng dụng đơn giản sau khi tạo mẫu đơn
+/// Ứng dụng đơn giản hiển thị nút tạo dữ liệu
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -106,21 +109,20 @@ class MyApp extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle_outline, size: 80, color: Colors.green),
+                Icon(Icons.receipt_long, size: 80, color: Colors.blue),
                 SizedBox(height: 16),
                 Text(
-                  'Đã tạo xong đơn hàng mẫu!',
-                  textAlign: TextAlign.center,
+                  'Tạo đơn hàng mẫu',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 24),
                 ElevatedButton.icon(
-                  icon: Icon(Icons.refresh),
-                  label: Text('Tạo lại đơn mẫu'),
+                  icon: Icon(Icons.cloud_upload),
+                  label: Text('Tạo $count đơn mẫu'),
                   onPressed: () async {
-                    await createSampleOrders(count: 100);
+                    await createSampleOrders(count: 1);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Đã sinh thêm 100 đơn mẫu')),
+                      SnackBar(content: Text('Đã tạo 100 đơn mẫu thành công!')),
                     );
                   },
                 ),
