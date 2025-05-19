@@ -720,91 +720,96 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildPlaceOrderButton(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(top: 16.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
+  return Container(
+    margin: EdgeInsets.only(top: 16.h),
+    padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.h),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 4,
+          offset: const Offset(0, -2),
+        ),
+      ],
+    ),
+    child: Container(
+      height: 48.h,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _checkoutController.paymentMethod.isEmpty
+              ? Colors.grey
+              : appTheme.deepPurpleA200,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.h),
           ),
-        ],
-      ),
-      child: Container(
-        height: 48.h,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _checkoutController.paymentMethod.isEmpty
-                ? Colors.grey
-                : appTheme.deepPurpleA200,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24.h),
-            ),
-            padding: EdgeInsets.symmetric(vertical: 16.h),
-          ),
-          onPressed: (_isProcessing ||
-                  _checkoutController.paymentMethod.isEmpty)
-              ? null
-              : () async {
-                  setState(() {
-                    _isProcessing = true;
-                  }); // Attempt to complete the checkout process
-                  final orderId = await _checkoutController.completeCheckout();
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+        ),
+        onPressed: (_isProcessing || _checkoutController.paymentMethod.isEmpty)
+            ? null
+            : () async {
+                setState(() {
+                  _isProcessing = true;
+                });
 
-                  // Lấy CartController để xóa các sản phẩm đã được thanh toán
-                  final cartController = CartController();
-                  if (orderId != null) {
-                    // Successfully created order
-                    // Xóa các mục đã chọn khỏi giỏ hàng
-                    await cartController.removeSelectedItems();
+                // Thực hiện quá trình thanh toán
+                final orderId = await _checkoutController.completeCheckout();
 
-                    // Refresh user data to update loyalty points
-                    final authController =
-                        Provider.of<AuthController>(context, listen: false);
-                    if (authController.firebaseUser != null) {
-                      await authController.refreshUserData();
-                    }
+                // Lấy thông tin người dùng và địa chỉ
+                final authController = Provider.of<AuthController>(context, listen: false);
+                final userEmail = authController.firebaseUser?.email ?? '';
+                final shippingAddress = authController.userModel?.getDefaultAddress() ?? {};
 
-                    // Send confirmation email
-                    final emailService = EmailService();
-                    try {
-                      await emailService.sendOrderConfirmation(orderId);
-                    } catch (e) {
-                      print('Error sending confirmation email: $e');
-                      // Continue with checkout process even if email fails
-                    }
+                if (orderId != null) {
+                  // Xóa các mục đã chọn khỏi giỏ hàng
+                  await CartController().removeSelectedItems();
 
-                    // Navigate to success screen with order ID
-                    Navigator.pushNamed(context, AppRoutes.orderPlacedScreen,
-                        arguments: {'orderId': orderId});
-                  } else {
-                    setState(() {
-                      _isProcessing = false;
-                    });
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Có lỗi xảy ra khi đặt hàng.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                  // Cập nhật dữ liệu người dùng (điểm tích lũy, v.v.)
+                  if (authController.firebaseUser != null) {
+                    await authController.refreshUserData();
                   }
-                },
-          child: Text(
-            _isProcessing ? "Đang xử lý..." : "Đặt hàng",
-            style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
-              fontSize: 18.h,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+
+                  // Gửi email xác nhận
+                  final emailService = EmailService();
+                  try {
+                    await emailService.sendOrderConfirmation(
+                      orderId,
+                      userEmail,
+                      _checkoutController.items,
+                      _checkoutController.totalPrice,
+                      shippingAddress,
+                    );
+                  } catch (e) {
+                    print('Lỗi khi gửi email xác nhận: $e');
+                    // Không dừng quá trình nếu email thất bại
+                  }
+
+                  // Chuyển đến màn hình thành công
+                  Navigator.pushNamed(context, AppRoutes.orderPlacedScreen, arguments: {'orderId': orderId});
+                } else {
+                  setState(() {
+                    _isProcessing = false;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Có lỗi xảy ra khi đặt hàng.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+        child: Text(
+          _isProcessing ? "Đang xử lý..." : "Đặt hàng",
+          style: CustomTextStyles.titleMediumBaloo2Gray500SemiBold.copyWith(
+            fontSize: 18.h,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // Custom widget for displaying a promo item
